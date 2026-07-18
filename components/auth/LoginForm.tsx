@@ -127,7 +127,7 @@ export function LoginForm() {
           placeholder="you@example.com"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-            ${errors.email ? "border-red-400" : "border-gray-200 focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            ${errors.email ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
       </div>
@@ -152,7 +152,7 @@ export function LoginForm() {
             placeholder="Enter your password"
             disabled={isLoading}
             className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-              ${errors.password ? "border-red-400" : "border-gray-200 focus:border-navy focus:ring-1 focus:ring-gold"}`}
+              ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
           />
           <button
             type="button"
@@ -196,11 +196,11 @@ export function LoginForm() {
         </span>
       </button>
 
-      <a href="/forgot-password" className="text-center text-sm text-slate-500 hover:underline">
+      <a href="/forgot-password" className="text-center text-sm text-muted hover:underline">
         Forgot password?
       </a>
 
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-muted">
         Need an account? <a href="/signup" className="font-semibold text-navy hover:underline">Sign up</a> or contact your school admin.
       </p>
     </form>

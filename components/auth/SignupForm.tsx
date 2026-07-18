@@ -120,7 +120,7 @@ export function SignupForm() {
       ) : null}
 
       {statusMessage ? (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-700">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-muted">
           {statusMessage}
         </div>
       ) : null}
@@ -137,7 +137,7 @@ export function SignupForm() {
           placeholder="Jane Doe"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-            ${errors.name ? "border-red-400" : "border-gray-200 focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            ${errors.name ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
       </div>
@@ -154,7 +154,7 @@ export function SignupForm() {
           placeholder="you@example.com"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-            ${errors.email ? "border-red-400" : "border-gray-200 focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            ${errors.email ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
       </div>
@@ -171,7 +171,7 @@ export function SignupForm() {
           placeholder="Create a strong password"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-            ${errors.password ? "border-red-400" : "border-gray-200 focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
       </div>
@@ -186,7 +186,7 @@ export function SignupForm() {
             onChange={(e) => setRole(e.target.value)}
             disabled={isLoading}
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-              ${errors.role ? "border-red-400" : "border-gray-200 focus:border-navy focus:ring-1 focus:ring-gold"}`}
+              ${errors.role ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
           >
             {ROLES.map((option) => (
               <option key={option.value} value={option.value}>
@@ -215,7 +215,7 @@ export function SignupForm() {
         </span>
       </button>
 
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-muted">
         Already registered? <a href="/login" className="font-semibold text-navy hover:underline">Log in</a>.
       </p>
     </form>

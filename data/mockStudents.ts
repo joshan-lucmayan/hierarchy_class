@@ -50,7 +50,6 @@ export const LEARNING_MATERIALS: LearningMaterial[] = [
     uploadedBy: "Mr. Cruz",
     uploadDate: "2026-07-09",
     description: "Solve the set of linear equations with one variable and graph the results.",
-    url: "#",
   },
   {
     id: "lm-002",
@@ -61,7 +60,6 @@ export const LEARNING_MATERIALS: LearningMaterial[] = [
     uploadedBy: "Ms. Santos",
     uploadDate: "2026-07-06",
     description: "Read the short profiles of national heroes and answer the comprehension questions.",
-    url: "#",
   },
   {
     id: "lm-003",
@@ -72,7 +70,6 @@ export const LEARNING_MATERIALS: LearningMaterial[] = [
     uploadedBy: "Ms. Fernandez",
     uploadDate: "2026-07-08",
     description: "Watch the lab walkthrough and complete the worksheet after the video.",
-    url: "#",
   },
   {
     id: "lm-004",
@@ -83,7 +80,6 @@ export const LEARNING_MATERIALS: LearningMaterial[] = [
     uploadedBy: "Coach Reyes",
     uploadDate: "2026-07-05",
     description: "Perform the warm-up drills before practical PE classes.",
-    url: "#",
   },
   {
     id: "lm-005",
@@ -94,7 +90,6 @@ export const LEARNING_MATERIALS: LearningMaterial[] = [
     uploadedBy: "Ms. Fernandez",
     uploadDate: "2026-06-28",
     description: "Review the Earth, moon, and planetary motion topics.",
-    url: "#",
   },
 ];
 

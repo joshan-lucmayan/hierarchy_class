@@ -11,41 +11,41 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-gray-100 bg-white p-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Admin settings</p>
+      <section className="rounded-3xl border border-base bg-surface p-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted">Admin settings</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">System configuration</h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
+        <p className="mt-3 text-sm leading-6 text-muted">
           Configure school-level defaults and runtime options for your portal.
         </p>
       </section>
 
-      <section className="rounded-3xl border border-gray-100 bg-white p-6">
+      <section className="rounded-3xl border border-base bg-surface p-6">
         <div className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-2">
-            <label className="space-y-2 text-sm font-semibold text-slate-700">
+            <label className="space-y-2 text-sm font-semibold text-muted">
               School name
               <input
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
               />
             </label>
-            <label className="space-y-2 text-sm font-semibold text-slate-700">
+            <label className="space-y-2 text-sm font-semibold text-muted">
               Academic year
               <input
                 value={academicYear}
                 onChange={(e) => setAcademicYear(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
               />
             </label>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <label className="flex items-center justify-between rounded-3xl border border-gray-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-700">
+            <label className="flex items-center justify-between rounded-3xl border border-base bg-slate-50 px-4 py-4 text-sm font-semibold text-muted">
               <span>Enable admin notifications</span>
               <input type="checkbox" checked={enableNotifications} onChange={(e) => setEnableNotifications(e.target.checked)} />
             </label>
-            <label className="flex items-center justify-between rounded-3xl border border-gray-200 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-700">
+            <label className="flex items-center justify-between rounded-3xl border border-base bg-slate-50 px-4 py-4 text-sm font-semibold text-muted">
               <span>Auto enrollment review</span>
               <input type="checkbox" checked={autoEnrollment} onChange={(e) => setAutoEnrollment(e.target.checked)} />
             </label>

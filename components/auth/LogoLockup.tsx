@@ -13,7 +13,7 @@ export function LogoLockup() {
           Hierarchy Class
         </h1>
         <div className="h-[2px] w-10 bg-gold" />
-        <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-muted">
           Climb the ranks
         </p>
       </div>

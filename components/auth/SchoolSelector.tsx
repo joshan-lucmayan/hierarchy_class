@@ -53,8 +53,8 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           className={`flex w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-sm transition-colors
-            ${error ? "border-red-400" : "border-gray-200"}
-            ${isOpen ? "border-navy ring-1 ring-gold" : "hover:border-gray-300"}`}
+            ${error ? "border-red-400" : "border-base"}
+            ${isOpen ? "border-navy ring-1 ring-gold" : "hover:border-base"}`}
         >
           {value ? (
             <span className="flex items-center gap-2.5">
@@ -78,15 +78,15 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
         </button>
 
         {isOpen && (
-          <div className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-            <div className="border-b border-gray-100 p-2">
+          <div className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-lg border border-base bg-surface shadow-lg">
+            <div className="border-b border-base p-2">
               <input
                 autoFocus
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search schools..."
-                className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-navy"
+                className="w-full rounded-md border border-base px-3 py-2 text-sm outline-none focus:border-navy"
               />
             </div>
 

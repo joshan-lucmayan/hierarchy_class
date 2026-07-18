@@ -14,9 +14,8 @@ const NAV_ITEMS = [
 
 export function TeacherTopNav() {
   const pathname = usePathname();
-
   return (
-    <nav className="mb-6 rounded-2xl border border-base bg-surface px-4 py-3">
+    <nav className="hidden xl:block mb-6 rounded-2xl border border-base bg-surface px-4 py-3">
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-muted">
           {NAV_ITEMS.map((item) => {
@@ -26,7 +25,7 @@ export function TeacherTopNav() {
                 key={item.href}
                 href={item.href}
                 className={`inline-flex items-center rounded-full px-4 py-2 transition-colors ${
-                  active ? "bg-surface-strong text-navy" : "hover:bg-gray-50 hover:text-slate-700"
+                  active ? "bg-[var(--surface-strong)] text-navy" : "hover:bg-[var(--surface-strong)] hover:text-muted"
                 }`}
               >
                 {item.label}
