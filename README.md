@@ -1,72 +1,84 @@
 # Hierarchy Class
 
-Gamified academic tracking platform for Grade 1-10 students (Philippine DepEd curriculum). Next.js (App Router, TypeScript, Tailwind) + Supabase.
+**Climb the ranks.**
 
-## Sprint 1 status
+Hierarchy Class is a gamified academic tracking platform for Grade 1–10
+students following the Philippine DepEd curriculum. It reimagines the
+school report card as an RPG-style character sheet — academic subjects
+and personal attributes are converted into stats and tiered ranks
+(S++, S, A, B, C, D), similar to a game character profile, while grading
+data itself remains strictly controlled by teachers and administrators.
 
-- [x] Login screen (`/login`) — email/password + multi-tenant school selector, redirects into `/student/home`
-- [x] Student app: Home, Profile (radar chart + editable bio), Leaderboard (grade/section filters)
-- [x] Shared game-identity components: RankBadge (S++ to D), StatBar, StatRadarChart, BottomNav
-- [ ] Real Supabase auth + data (currently mock data + simulated login)
-- [ ] Teacher screens: Home, Profile, Learning Materials upload, grade submission
-- [ ] Admin screens: Home, Control System, Settings
-- [ ] Remaining student screens: Learning Materials, Library (LMS), Search, Settings
-- [ ] Role-based routing / middleware (currently login always routes to the student app)
+The platform blends the customization and social feel of a profile-based
+app with the structure and accountability of a school information system.
 
-## Try it without Supabase set up yet
+## Concept
 
-The login form detects whether `NEXT_PUBLIC_SUPABASE_URL` is set. If it isn't, it simulates the login (700ms delay, no real auth) and routes straight into `/student/home` — so you can click through the whole student flow (login → home → profile → leaderboard) before Supabase is wired up.
+Each subject grade converts into a stat:
+- **Mathematics → Logic**
+- **English → Communication**
+- **Science → Insight**
+- **PE → Physical**
 
-## Setup
+Stats are ranked on a tier scale (S++, S, A, B, C, D), and an overall
+composite **Academic Excellence** score reflects a student's standing
+across all subjects. Alongside academic performance, a **Charisma** stat
+captures social and engagement activity — participation, library use,
+event attendance.
+
+Students cannot edit their own grades or ranks — those are fed
+exclusively by teachers and confirmed by admins. What students *can*
+customize is their bio, hobbies, interests, favorite subject, and
+self-assigned tags (e.g. "Math Wizard") — similar to a social media
+profile, but layered on top of verified academic data. Sensitive
+information (home address, contact details) is never displayed on any
+profile, public or private.
+
+## Roles
+
+| Role | Can View | Can Edit | Key Actions |
+|---|---|---|---|
+| **Student** | Own profile, other students' profiles, leaderboard, learning materials, library | Bio, hobbies, interests, tags | Borrow/return books, browse materials, view rank |
+| **Teacher** | Student grades/subjects for their class | Submit grades, upload learning materials | Send grades to admin, manage learning material uploads |
+| **Admin** | All system data | Grades, ranks, system configuration | Approve/reconfigure grades, manage system-wide settings |
+
+## Screens
+
+**Student:** Home, Profile, Learning Materials, Library (borrow/return),
+Leaderboard, Search, Settings
+
+**Teacher:** Home, Profile, Learning Materials (upload/manage), Grade
+submission
+
+**Admin:** Home, Control System (grade/rank configuration, user
+management), Settings
+
+## Design direction
+
+The tone sits between a game character sheet and a school portal —
+gamified, but professional and school-appropriate rather than a hardcore
+RPG aesthetic. Visual language includes stat bars, rank badges, and
+tier-based color coding (blue for academic stats, red for physical, gold
+for charisma/rank), built on a flat navy/white/gold identity with no
+gradients or heavy shadows. Student-facing screens lean toward a game
+profile feel; teacher and admin dashboards feel more like a control
+panel — denser, more neutral, minimal ornamentation.
+
+## Tech stack
+
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Charts:** Recharts (stat radar visualization)
+- **Backend / Auth / Database:** Supabase (Postgres, Row-Level Security, Auth)
+- **Hosting:** Vercel
+
+## Getting started
 
 ```bash
-# install dependencies
 npm install
-
-# copy env template and fill in your Supabase project's values
-cp .env.example .env.local
-
-# run the dev server
+cp .env.example .env.local   # fill in your Supabase project's values
 npm run dev
 ```
 
-Visit `http://localhost:3000` — it redirects to `/login`.
-
-## Supabase
-
-You'll need a Supabase project with:
-- `auth` enabled (email/password)
-- Eventually: a `schools` table (id, name, abbreviation) to replace the mock data in `data/schools.ts`, plus a `school_id` column on user-facing tables with row-level security scoping each school's data
-
-## Project structure
-
-```
-app/
-  layout.tsx        root layout, imports globals.css
-  page.tsx           redirects to /login
-  login/page.tsx     login screen
-components/
-  auth/              LoginForm, SchoolSelector, LogoLockup
-data/
-  schools.ts         mock school list (swap for Supabase query later)
-lib/
-  supabase/client.ts   browser client
-types/
-  school.ts
-```
-
-## Pushing to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Sprint 1: login screen walking skeleton"
-gh repo create hierarchy-class --private --source=. --remote=origin
-git push -u origin main
-```
-
-(No `gh` CLI? Create the repo on github.com first, then `git remote add origin <url>` and `git push -u origin main`.)
-
-## Deploying
-
-Connect the GitHub repo to Vercel and add the two `NEXT_PUBLIC_SUPABASE_*` env vars in the Vercel project settings — pushes to `main` will auto-deploy.
+Visit `http://localhost:3000`.
