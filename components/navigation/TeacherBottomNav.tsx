@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const NAV_ITEMS = [
   {
@@ -62,9 +61,6 @@ export function TeacherBottomNav() {
 
   return (
     <>
-      <div className="fixed right-4 top-4 z-30 xl:hidden">
-        <ThemeToggle />
-      </div>
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-base bg-surface xl:hidden">
         <div className="mx-auto flex max-w-sm items-center justify-around py-2">
           {NAV_ITEMS.map((item) => {

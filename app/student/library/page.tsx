@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { LIBRARY_BOOKS, BORROW_HISTORY } from "@/data/mockStudents";
 import { LibraryBook, BorrowRecord } from "@/types/student";
+import { CornerFrame } from "@/components/ui/CornerFrame";
 
 export default function LibraryPage() {
   const [books, setBooks] = useState<LibraryBook[]>(LIBRARY_BOOKS);
@@ -16,48 +17,38 @@ export default function LibraryPage() {
       prev.map((book) => {
         if (book.id !== bookId) return book;
         if (book.status === "available") {
-          return {
-            ...book,
-            status: "borrowed",
-            borrowedDate: "2026-07-16",
-            dueDate: "2026-07-30",
-          };
+          return { ...book, status: "borrowed", borrowedDate: "2026-07-16", dueDate: "2026-07-30" };
         }
-        return {
-          ...book,
-          status: "available",
-          borrowedDate: undefined,
-          dueDate: undefined,
-        };
+        return { ...book, status: "available", borrowedDate: undefined, dueDate: undefined };
       })
     );
   }
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-base bg-surface p-6">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Library</p>
-            <h1 className="mt-2 text-3xl font-bold text-navy">Your current loans</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Library</p>
+            <h1 className="mt-2 text-3xl font-bold">Your current loans</h1>
           </div>
-          <p className="max-w-xl text-sm text-muted">
+          <p className="max-w-xl text-sm opacity-80">
             Borrow a book for your next research task or return it before the due date.
           </p>
         </div>
-      </section>
+      </CornerFrame>
 
       <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-4 rounded-3xl border border-base bg-surface p-6">
+        <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-navy">Available books</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Available books</h2>
             <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
               {availableBooks.length} available
             </span>
           </div>
           <div className="space-y-3">
             {availableBooks.map((book) => (
-              <div key={book.id} className="rounded-3xl border border-base p-4">
+              <div key={book.id} className="rounded-3xl border border-base p-4 transition hover:border-gold">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-navy">{book.title}</p>
@@ -66,7 +57,7 @@ export default function LibraryPage() {
                   <button
                     type="button"
                     onClick={() => toggleBorrow(book.id)}
-                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-navy hover:text-navy"
+                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
                   >
                     Borrow
                   </button>
@@ -74,18 +65,18 @@ export default function LibraryPage() {
               </div>
             ))}
           </div>
-        </div>
+        </CornerFrame>
 
-        <div className="space-y-4 rounded-3xl border border-base bg-surface p-6">
+        <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-navy">Currently borrowed</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Currently borrowed</h2>
             <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
               {borrowedBooks.length} loans
             </span>
           </div>
           <div className="space-y-3">
             {borrowedBooks.map((book) => (
-              <div key={book.id} className="rounded-3xl border border-base p-4">
+              <div key={book.id} className="rounded-3xl border border-base p-4 transition hover:border-gold">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-navy">{book.title}</p>
@@ -94,7 +85,7 @@ export default function LibraryPage() {
                   <button
                     type="button"
                     onClick={() => toggleBorrow(book.id)}
-                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-navy hover:text-navy"
+                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
                   >
                     Return
                   </button>
@@ -102,11 +93,11 @@ export default function LibraryPage() {
               </div>
             ))}
           </div>
-        </div>
+        </CornerFrame>
       </section>
 
-      <section className="rounded-3xl border border-base bg-surface p-6">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-navy">Borrow history</h2>
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Borrow history</h2>
         <div className="mt-4 space-y-3">
           {history.map((record) => (
             <div key={record.id} className="rounded-3xl border border-base p-4">
@@ -121,7 +112,7 @@ export default function LibraryPage() {
             </div>
           ))}
         </div>
-      </section>
+      </CornerFrame>
     </div>
   );
 }

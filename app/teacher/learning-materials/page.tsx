@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { LEARNING_MATERIALS } from "@/data/mockStudents";
 import { LearningMaterial } from "@/types/student";
+import { CornerFrame } from "@/components/ui/CornerFrame";
 
 const SUBJECT_OPTIONS = ["Mathematics", "English", "Science", "PE"];
 const GRADE_OPTIONS = ["9", "10"];
@@ -25,7 +26,6 @@ export default function TeacherLearningMaterialsPage() {
       setMessage("Please enter a title and select a file.");
       return;
     }
-
     const nextMaterial: LearningMaterial = {
       id: `lm-${Date.now()}`,
       title: title.trim(),
@@ -37,7 +37,6 @@ export default function TeacherLearningMaterialsPage() {
       description: `Uploaded resource for Grade ${gradeLevel} ${subject}.`,
       url: "#",
     };
-
     setMaterials((prev) => [nextMaterial, ...prev]);
     setTitle("");
     setFileName("");
@@ -50,24 +49,24 @@ export default function TeacherLearningMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-base bg-surface p-6">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Teaching materials</p>
-            <h1 className="mt-2 text-3xl font-bold text-navy">Upload new lessons</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teaching materials</p>
+            <h1 className="mt-2 text-3xl font-bold">Upload new lessons</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
               Add a resource for your students and manage materials you have uploaded.
             </p>
           </div>
-          <div className="rounded-3xl border border-base bg-slate-50 px-5 py-4 text-sm text-muted">
-            <p className="font-semibold text-navy">Upload status</p>
-            <p className="mt-2">{managedMaterials.length} materials visible</p>
+          <div className="rounded-3xl border border-gold bg-white/10 px-5 py-4 text-sm">
+            <p className="font-semibold text-gold">Upload status</p>
+            <p className="mt-2 opacity-80">{managedMaterials.length} materials visible</p>
           </div>
         </div>
-      </section>
+      </CornerFrame>
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-4 rounded-3xl border border-base bg-surface p-6">
+        <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-muted">Title</label>
@@ -75,7 +74,7 @@ export default function TeacherLearningMaterialsPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Lesson title"
-                className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
               />
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -84,7 +83,7 @@ export default function TeacherLearningMaterialsPage() {
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                  className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
                 >
                   {SUBJECT_OPTIONS.map((item) => (
                     <option key={item} value={item}>{item}</option>
@@ -96,7 +95,7 @@ export default function TeacherLearningMaterialsPage() {
                 <select
                   value={gradeLevel}
                   onChange={(e) => setGradeLevel(e.target.value)}
-                  className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                  className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
                 >
                   {GRADE_OPTIONS.map((grade) => (
                     <option key={grade} value={grade}>{`Grade ${grade}`}</option>
@@ -106,32 +105,32 @@ export default function TeacherLearningMaterialsPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-muted">File</label>
-              <div className="flex items-center gap-3 rounded-2xl border border-base bg-slate-50 px-4 py-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-base bg-surface px-4 py-3">
                 <input
                   value={fileName}
                   onChange={(e) => setFileName(e.target.value)}
                   placeholder="Choose a file name"
-                  className="flex-1 rounded-lg border border-transparent bg-slate-50 px-3 py-2 text-sm text-navy outline-none"
+                  className="flex-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-sm text-navy outline-none"
                 />
-                <span className="rounded-full bg-surface px-4 py-2 text-xs font-semibold text-muted">Browse</span>
+                <span className="rounded-full bg-[var(--surface-strong)] px-4 py-2 text-xs font-semibold text-muted">Browse</span>
               </div>
             </div>
             {message ? <p className="text-sm text-muted">{message}</p> : null}
             <button
               type="button"
               onClick={handleAddMaterial}
-              className="inline-flex items-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
+              className="inline-flex items-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
             >
               Add material
             </button>
           </div>
-        </div>
+        </CornerFrame>
 
-        <aside className="rounded-3xl border border-base bg-surface p-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Manage uploads</p>
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Manage uploads</p>
           <div className="mt-6 space-y-4">
             {managedMaterials.map((material) => (
-              <div key={material.id} className="rounded-3xl border border-base bg-slate-50 p-4">
+              <div key={material.id} className="rounded-3xl border border-base bg-[var(--surface-strong)] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-navy">{material.title}</p>
@@ -140,7 +139,7 @@ export default function TeacherLearningMaterialsPage() {
                   <button
                     type="button"
                     onClick={() => handleDelete(material.id)}
-                    className="rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-red-300 hover:text-red-700"
+                    className="rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-red-300 hover:text-red-600"
                   >
                     Delete
                   </button>
@@ -149,7 +148,7 @@ export default function TeacherLearningMaterialsPage() {
               </div>
             ))}
           </div>
-        </aside>
+        </CornerFrame>
       </section>
     </div>
   );

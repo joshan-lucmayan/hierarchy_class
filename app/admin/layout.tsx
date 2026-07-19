@@ -1,10 +1,12 @@
 import { AdminTopNav } from "@/components/navigation/AdminTopNav";
 import { AdminBottomNav } from "@/components/navigation/AdminBottomNav";
+import { SiteHeader } from "@/components/navigation/SiteHeader";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-24 xl:px-10 xl:pb-6">
+        <SiteHeader href="/admin/home" />
         <main className="flex-1 rounded-[28px] border border-base bg-surface p-6 xl:p-8">
           <AdminTopNav />
           {children}

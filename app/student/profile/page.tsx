@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatBar } from "@/components/ui/StatBar";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
+import { CornerFrame } from "@/components/ui/CornerFrame";
 import { CURRENT_STUDENT } from "@/data/mockStudents";
 
 export default function StudentProfilePage() {
@@ -13,9 +14,9 @@ export default function StudentProfilePage() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
-      <section className="space-y-6 rounded-3xl border border-base bg-surface p-6">
+      <CornerFrame className="space-y-6 rounded-3xl border border-base bg-surface p-6 shadow-card">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-navy text-2xl font-bold text-gold">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-gold bg-navy text-2xl font-bold text-gold">
             {student.initials}
           </div>
           <div>
@@ -31,21 +32,21 @@ export default function StudentProfilePage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-base bg-[var(--surface-strong)] p-5 text-center">
-          <p className="text-xs uppercase tracking-wider text-muted">Academic Excellence</p>
+        <div className="rounded-3xl border border-gold bg-[var(--surface-strong)] p-5 text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted">Academic Excellence</p>
           <p className="mt-3 text-4xl font-bold text-navy">{student.academicExcellence}</p>
           <RankBadge rank={student.overallRank} size="lg" className="mt-4" />
         </div>
-      </section>
+      </CornerFrame>
 
       <div className="space-y-6">
-        <section className="rounded-3xl border border-base bg-surface p-6">
-          <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-navy">Stat overview</h2>
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Stat overview</h2>
           <StatRadarChart stats={student.stats} />
-        </section>
+        </CornerFrame>
 
-        <section className="rounded-3xl border border-base bg-surface p-6">
-          <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-navy">Subject stats</h2>
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Subject stats</h2>
           <div className="space-y-4">
             {student.subjectStats.map((s) => (
               <div key={s.subject} className="flex flex-col gap-3 xl:flex-row xl:items-center">
@@ -57,15 +58,15 @@ export default function StudentProfilePage() {
             ))}
           </div>
           <p className="mt-4 text-xs text-muted">Grades and ranks are set by your teachers and can&apos;t be edited here.</p>
-        </section>
+        </CornerFrame>
 
-        <section className="rounded-3xl border border-base bg-surface p-6">
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-navy">About</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">About</h2>
             <button
               type="button"
               onClick={() => setIsEditing((prev) => !prev)}
-              className="text-xs font-semibold text-navy"
+              className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-navy transition hover:border-gold"
             >
               {isEditing ? "Done" : "Edit"}
             </button>
@@ -76,7 +77,7 @@ export default function StudentProfilePage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
-              className="w-full rounded-2xl border border-base bg-surface p-4 text-sm outline-none focus:border-navy"
+              className="w-full rounded-2xl border border-base bg-surface p-4 text-sm outline-none focus:border-gold"
             />
           ) : (
             <p className="text-sm leading-6 text-muted">{bio}</p>
@@ -92,7 +93,7 @@ export default function StudentProfilePage() {
               <p className="mt-2 text-sm text-navy">{student.hobbies.join(", ")}</p>
             </div>
           </div>
-        </section>
+        </CornerFrame>
       </div>
     </div>
   );

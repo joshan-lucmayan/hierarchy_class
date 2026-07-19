@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CornerFrame } from "@/components/ui/CornerFrame";
 
 export default function AdminSettingsPage() {
   const [schoolName, setSchoolName] = useState("CSA – College of Saint Amateil");
@@ -11,15 +12,15 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-base bg-surface p-6">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted">Admin settings</p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">System configuration</h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Admin settings</p>
+        <h1 className="mt-2 text-3xl font-bold">System configuration</h1>
+        <p className="mt-3 text-sm leading-6 opacity-80">
           Configure school-level defaults and runtime options for your portal.
         </p>
-      </section>
+      </CornerFrame>
 
-      <section className="rounded-3xl border border-base bg-surface p-6">
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
         <div className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-2">
             <label className="space-y-2 text-sm font-semibold text-muted">
@@ -27,7 +28,7 @@ export default function AdminSettingsPage() {
               <input
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
-                className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
               />
             </label>
             <label className="space-y-2 text-sm font-semibold text-muted">
@@ -35,32 +36,44 @@ export default function AdminSettingsPage() {
               <input
                 value={academicYear}
                 onChange={(e) => setAcademicYear(e.target.value)}
-                className="w-full rounded-2xl border border-base bg-slate-50 px-4 py-3 text-sm text-navy outline-none focus:border-navy"
+                className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
               />
             </label>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <label className="flex items-center justify-between rounded-3xl border border-base bg-slate-50 px-4 py-4 text-sm font-semibold text-muted">
+            <div className="flex items-center justify-between rounded-3xl border border-base bg-[var(--surface-strong)] px-4 py-4 text-sm font-semibold text-navy">
               <span>Enable admin notifications</span>
-              <input type="checkbox" checked={enableNotifications} onChange={(e) => setEnableNotifications(e.target.checked)} />
-            </label>
-            <label className="flex items-center justify-between rounded-3xl border border-base bg-slate-50 px-4 py-4 text-sm font-semibold text-muted">
+              <button
+                type="button"
+                onClick={() => setEnableNotifications((v) => !v)}
+                className={`h-6 w-11 shrink-0 rounded-full transition ${enableNotifications ? "bg-gold" : "bg-surface"}`}
+              >
+                <span className={`block h-5 w-5 translate-y-0.5 rounded-full bg-white transition ${enableNotifications ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between rounded-3xl border border-base bg-[var(--surface-strong)] px-4 py-4 text-sm font-semibold text-navy">
               <span>Auto enrollment review</span>
-              <input type="checkbox" checked={autoEnrollment} onChange={(e) => setAutoEnrollment(e.target.checked)} />
-            </label>
+              <button
+                type="button"
+                onClick={() => setAutoEnrollment((v) => !v)}
+                className={`h-6 w-11 shrink-0 rounded-full transition ${autoEnrollment ? "bg-gold" : "bg-surface"}`}
+              >
+                <span className={`block h-5 w-5 translate-y-0.5 rounded-full bg-white transition ${autoEnrollment ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={() => setSaved(true)}
-            className="inline-flex items-center rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
+            className="inline-flex items-center rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
           >
             Save settings
           </button>
-          {saved ? <p className="text-sm text-emerald-700">Settings saved locally.</p> : null}
+          {saved ? <p className="text-sm text-emerald-600">Settings saved locally.</p> : null}
         </div>
-      </section>
+      </CornerFrame>
     </div>
   );
 }

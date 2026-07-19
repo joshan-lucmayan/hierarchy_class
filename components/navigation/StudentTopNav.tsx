@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const NAV_ITEMS = [
   {
@@ -97,7 +96,6 @@ export function StudentTopNav() {
             );
           })}
         </div>
-        <ThemeToggle />
       </div>
     </nav>
   );
