@@ -18,6 +18,7 @@ export default function StudentHomePage() {
     <div className="grid gap-6 xl:grid-cols-[1.7fr_0.9fr]">
       <section className="space-y-4">
         <FriendsStories />
+
         <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Latest School Feed</h1>
 
         <div className="space-y-4">

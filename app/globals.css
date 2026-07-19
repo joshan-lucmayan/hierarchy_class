@@ -80,3 +80,105 @@ body {
 .shadow-card {
   box-shadow: var(--shadow);
 }
+
+@keyframes modalIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.22s ease-out;
+}
+
+@keyframes badgePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-8deg);
+  }
+  70% {
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-badge-pop {
+  animation: badgePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgeGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(201, 150, 44, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(201, 150, 44, 0.8));
+  }
+}
+
+.animate-badge-glow {
+  animation: badgeGlow 2.2s ease-in-out infinite;
+}
+
+@keyframes raySpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-ray-spin {
+  animation: raySpin 30s linear infinite;
+}
+
+@keyframes haloPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.15;
+  }
+}
+
+.animate-halo-pulse {
+  animation: haloPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes sparkleTwinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-sparkle {
+  animation: sparkleTwinkle 1.8s ease-in-out infinite;
+}
+
+@keyframes labelGlow {
+  0%, 100% {
+    text-shadow: 0 0 0 rgba(201, 150, 44, 0);
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(201, 150, 44, 0.6);
+  }
+}
+
+.animate-label-glow {
+  animation: labelGlow 2.2s ease-in-out infinite;
+}

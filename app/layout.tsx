@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { QuizProvider } from "@/lib/quizStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <QuizProvider>{children}</QuizProvider>
+      </body>
     </html>
   );
 }

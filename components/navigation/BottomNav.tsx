@@ -25,6 +25,13 @@ const NAV_ITEMS = [
       <path d="M21 21l-4.35-4.35" />
     </svg>
   ) },
+  { href: "/student/quiz", label: "Quiz", icon: (active: boolean) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={active ? "text-navy" : "text-muted"}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 015 .5c0 1.5-2.5 1.5-2.5 3.5" />
+      <path d="M12 17h.01" />
+    </svg>
+  ) },
   { href: "/student/leaderboard", label: "Ranks", icon: (active: boolean) => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={active ? "text-navy" : "text-muted"}>
       <path d="M8 21V9M14 21V3M20 21v-6M4 21h16" />
