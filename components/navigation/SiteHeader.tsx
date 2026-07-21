@@ -5,7 +5,10 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 export function SiteHeader({ href }: { href?: string }) {
   return (
     <header className="mb-4 flex items-center justify-between rounded-2xl border border-base bg-surface px-5 py-3">
-      <BrandMark href={href} />
+      <div className="xl:hidden">
+        <BrandMark href={href} />
+      </div>
+      <div className="hidden xl:block" />
       <div className="flex items-center gap-2">
         <ChatWidget />
         <ThemeToggle />

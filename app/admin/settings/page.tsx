@@ -12,10 +12,10 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Admin settings</p>
-        <h1 className="mt-2 text-3xl font-bold">System configuration</h1>
-        <p className="mt-3 text-sm leading-6 opacity-80">
+        <h1 className="mt-2 text-3xl font-bold text-navy">System configuration</h1>
+        <p className="mt-3 text-sm leading-6 text-muted">
           Configure school-level defaults and runtime options for your portal.
         </p>
       </CornerFrame>

@@ -25,12 +25,12 @@ export default function LearningMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Learning Materials</p>
-            <h1 className="mt-2 text-3xl font-bold">Browse resources</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
+            <h1 className="mt-2 text-3xl font-bold text-navy">Browse resources</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
               Filter by grade level and subject to find the resources your teachers uploaded.
             </p>
           </div>
@@ -38,19 +38,19 @@ export default function LearningMaterialsPage() {
             <select
               value={subjectFilter}
               onChange={(e) => setSubjectFilter(e.target.value)}
-              className="rounded-2xl border border-gold bg-navy px-4 py-3 text-sm font-semibold text-white outline-none"
+              className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
             >
               {SUBJECT_OPTIONS.map((subject) => (
-                <option key={subject} value={subject} className="text-navy">{subject}</option>
+                <option key={subject} value={subject}>{subject}</option>
               ))}
             </select>
             <select
               value={gradeFilter}
               onChange={(e) => setGradeFilter(e.target.value)}
-              className="rounded-2xl border border-gold bg-navy px-4 py-3 text-sm font-semibold text-white outline-none"
+              className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
             >
               {GRADE_OPTIONS.map((grade) => (
-                <option key={grade} value={grade} className="text-navy">{grade === "All" ? "All grades" : `Grade ${grade}`}</option>
+                <option key={grade} value={grade}>{grade === "All" ? "All grades" : `Grade ${grade}`}</option>
               ))}
             </select>
           </div>
@@ -86,11 +86,11 @@ export default function LearningMaterialsPage() {
                   onClick={() => setOpenId(openId === material.id ? null : material.id)}
                   className="inline-flex items-center rounded-full border border-base bg-surface px-4 py-2 text-sm font-semibold text-navy transition hover:border-gold"
                 >
-                  {openId === material.id ? "Hide preview" : "Preview resource"}
+                  {openId === material.id ? "Close resource" : "Open resource"}
                 </button>
                 {openId === material.id && (
                   <p className="mt-3 rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-sm text-muted">
-                    File preview isn&apos;t connected yet — this will open the actual {material.type.toLowerCase()} once uploads are wired up to storage.
+                    File isn&apos;t connected yet — this will open the actual {material.type.toLowerCase()} once uploads are wired up to storage.
                   </p>
                 )}
               </div>

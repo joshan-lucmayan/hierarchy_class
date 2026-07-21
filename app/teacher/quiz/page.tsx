@@ -63,10 +63,10 @@ export default function TeacherQuizPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz builder</p>
-        <h1 className="mt-2 text-3xl font-bold">Create a timed quiz</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
+        <h1 className="mt-2 text-3xl font-bold text-navy">Create a timed quiz</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
           Scores from these quizzes count toward each student&apos;s rank progress.
         </p>
       </CornerFrame>

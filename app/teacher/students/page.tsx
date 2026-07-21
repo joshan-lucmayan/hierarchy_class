@@ -10,20 +10,20 @@ export default function TeacherStudentsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teacher profile</p>
-            <h1 className="mt-2 text-3xl font-bold">{TEACHER_PROFILE.name}</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
-              {TEACHER_PROFILE.subject} teacher for Grade {TEACHER_PROFILE.gradeLevel} · {TEACHER_PROFILE.section}.
+            <h1 className="mt-2 text-3xl font-bold text-navy">{TEACHER_PROFILE.name}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+              {TEACHER_PROFILE.subject} teacher for Grade {TEACHER_PROFILE.gradeLevel} · {TEACHER_PROFILE.section} · {TEACHER_PROFILE.quarter}.
             </p>
           </div>
-          <div className="rounded-3xl border border-gold bg-white/10 px-5 py-4 text-sm">
+          <div className="rounded-3xl border border-gold bg-[var(--surface-strong)] px-5 py-4 text-sm">
             <p className="font-semibold text-gold">Office</p>
-            <p className="opacity-80">{TEACHER_PROFILE.office}</p>
+            <p className="text-muted">{TEACHER_PROFILE.office}</p>
             <p className="mt-3 font-semibold text-gold">Experience</p>
-            <p className="opacity-80">{TEACHER_PROFILE.experienceYears} years</p>
+            <p className="text-muted">{TEACHER_PROFILE.experienceYears} years</p>
           </div>
         </div>
       </CornerFrame>
@@ -60,9 +60,7 @@ export default function TeacherStudentsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Selected student</p>
           <div className="mt-4 rounded-3xl border border-gold bg-[var(--surface-strong)] p-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy text-xl font-bold text-gold">
-                {selectedStudent.initials}
-              </div>
+              <img src="/avatars/default-avatar.webp" alt={selectedStudent.name} className="h-16 w-16 rounded-full object-cover" />
               <div>
                 <p className="text-lg font-semibold text-navy">{selectedStudent.name}</p>
                 <p className="text-sm text-muted">Grade {selectedStudent.gradeLevel} · {selectedStudent.section}</p>

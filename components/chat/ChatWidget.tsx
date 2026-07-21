@@ -74,9 +74,7 @@ export function ChatWidget() {
                         activeId === c.id ? "bg-[var(--surface-strong)]" : "hover:bg-[var(--surface-strong)]"
                       }`}
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-bold text-gold">
-                        {c.initials}
-                      </div>
+                      <img src="/avatars/default-avatar.webp" alt={c.name} className="h-9 w-9 shrink-0 rounded-full object-cover" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-navy">{c.name}</p>
                         <p className="truncate text-xs text-muted">{c.lastMessage}</p>

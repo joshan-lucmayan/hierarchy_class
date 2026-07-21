@@ -7,6 +7,9 @@ import {
   StudentDirectoryEntry,
 } from "@/types/student";
 
+// TEMP: replace with a Supabase query resolving the active grading period.
+export const CURRENT_QUARTER = "4th Quarter";
+
 // TEMP: replace with a Supabase query joining students + grades + stat computations.
 export const CURRENT_STUDENT: StudentProfile = {
   id: "s-001",
@@ -14,6 +17,7 @@ export const CURRENT_STUDENT: StudentProfile = {
   initials: "MS",
   gradeLevel: 10,
   section: "Zeus",
+  quarter: CURRENT_QUARTER,
   overallRank: "S",
   academicExcellence: 91,
   stats: { academic: 88, physical: 72, charisma: 80 },
@@ -150,6 +154,7 @@ export const TEACHER_PROFILE = {
   subject: "Science",
   gradeLevel: "10",
   section: "Zeus",
+  quarter: CURRENT_QUARTER,
   email: "d.fernandez@csa.edu",
   office: "Room 204",
   experienceYears: 8,
@@ -157,6 +162,13 @@ export const TEACHER_PROFILE = {
 };
 
 export const CLASS_STUDENTS = STUDENT_DIRECTORY;
+
+export const ADMIN_PROFILE = {
+  id: "a-001",
+  name: "Rafael Ortega",
+  initials: "RO",
+  roleLabel: "System Admin",
+};
 
 export const PENDING_GRADE_SUBMISSIONS = [
   {

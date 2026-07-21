@@ -27,18 +27,18 @@ export default function AdminHomePage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Admin control system</p>
-            <h1 className="mt-2 text-3xl font-bold">Approve pending grade submissions</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
+            <h1 className="mt-2 text-3xl font-bold text-navy">Approve pending grade submissions</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
               Review teacher submissions and adjust rank mapping for the current academic year.
             </p>
           </div>
-          <div className="rounded-3xl border border-gold bg-white/10 px-5 py-4 text-sm">
+          <div className="rounded-3xl border border-gold bg-[var(--surface-strong)] px-5 py-4 text-sm">
             <p className="font-semibold text-gold">Submission queue</p>
-            <p className="opacity-80">{submissions.length} pending items</p>
+            <p className="text-muted">{submissions.length} pending items</p>
           </div>
         </div>
       </CornerFrame>

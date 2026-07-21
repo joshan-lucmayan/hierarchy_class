@@ -16,6 +16,7 @@ export interface StudentProfile {
   initials: string;
   gradeLevel: number; // 1-10
   section: string; // e.g. "Zeus"
+  quarter: string; // e.g. "4th Quarter"
   overallRank: TierRank;
   academicExcellence: number; // 0-100 composite
   stats: Record<StatCategory, number>; // 0-100 each

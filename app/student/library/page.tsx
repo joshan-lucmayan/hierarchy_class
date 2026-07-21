@@ -26,13 +26,13 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Library</p>
-            <h1 className="mt-2 text-3xl font-bold">Your current loans</h1>
+            <h1 className="mt-2 text-3xl font-bold text-navy">System Management</h1>
           </div>
-          <p className="max-w-xl text-sm opacity-80">
+          <p className="max-w-xl text-sm text-muted">
             Borrow a book for your next research task or return it before the due date.
           </p>
         </div>

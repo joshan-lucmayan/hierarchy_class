@@ -40,17 +40,17 @@ export default function TeacherClassroomPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Grade submission</p>
-            <h1 className="mt-2 text-3xl font-bold">Submit scores for Grade 10 · Zeus</h1>
-            <p className="mt-3 text-sm leading-6 opacity-80">
+            <h1 className="mt-2 text-3xl font-bold text-navy">Submit scores for Grade 10 · Zeus</h1>
+            <p className="mt-3 text-sm leading-6 text-muted">
               Enter grades for your students and submit the batch for admin approval.
             </p>
           </div>
           <div className="space-y-2 text-right">
-            <p className={`rounded-full px-3 py-1 text-xs font-semibold ${submitted ? "bg-gold/20 text-gold" : "bg-white/10 text-white"}`}>
+            <p className={`rounded-full px-3 py-1 text-xs font-semibold ${submitted ? "bg-gold/20 text-gold" : "bg-[var(--surface-strong)] text-navy"}`}>
               {submitted ? "Pending admin approval" : "Ready to submit"}
             </p>
             <button

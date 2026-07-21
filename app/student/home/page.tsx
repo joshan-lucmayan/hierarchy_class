@@ -31,11 +31,9 @@ export default function StudentHomePage() {
       <aside className="space-y-6">
         <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
           <div className="flex flex-col items-center text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold bg-navy text-lg font-bold text-gold">
-              {student.initials}
-            </div>
+            <img src="/avatars/default-avatar.webp" alt={student.name} className="h-16 w-16 rounded-full border-2 border-gold object-cover" />
             <p className="mt-3 text-base font-bold text-navy">{student.name}</p>
-            <p className="mt-1 text-xs text-muted">Grade {student.gradeLevel} · {student.section}</p>
+            <p className="mt-1 text-xs text-muted">Grade {student.gradeLevel} · {student.section} · {student.quarter}</p>
             <div className="mt-4">
               <RankBadge rank={student.overallRank} size="lg" />
             </div>

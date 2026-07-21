@@ -10,9 +10,7 @@ export function LeaderboardRow({ entry, isCurrentUser }: { entry: LeaderboardEnt
       }`}
     >
       <span className="w-5 text-center text-sm font-bold text-muted">{rank}</span>
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-xs font-bold text-white">
-        {student.initials}
-      </div>
+      <img src="/avatars/default-avatar.webp" alt={student.name} className="h-9 w-9 rounded-full object-cover" />
       <div className="flex-1">
         <p className="text-sm font-semibold text-navy">{student.name}</p>
         <p className="text-[11px] text-muted">Grade {student.gradeLevel} · {student.section}</p>

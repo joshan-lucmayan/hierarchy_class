@@ -76,14 +76,14 @@ export default function StudentQuizPage() {
 
     return (
       <div className="mx-auto max-w-xl">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{activeQuiz.title}</p>
-            <span className={`rounded-full px-3 py-1 text-sm font-bold ${timeLeft <= 10 ? "bg-red-500/30 text-red-200" : "bg-white/10"}`}>
+            <span className={`rounded-full px-3 py-1 text-sm font-bold ${timeLeft <= 10 ? "bg-red-500/15 text-red-600" : "bg-[var(--surface-strong)] text-navy"}`}>
               {minutes}:{seconds.toString().padStart(2, "0")}
             </span>
           </div>
-          <p className="mt-2 text-xs opacity-70">
+          <p className="mt-2 text-xs text-muted">
             Question {questionIndex + 1} of {activeQuiz.questions.length}
           </p>
         </CornerFrame>
@@ -123,10 +123,10 @@ export default function StudentQuizPage() {
     const bonus = Math.round((result.score / result.total) * 3);
     return (
       <div className="mx-auto max-w-xl">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-8 text-center text-white shadow-xl">
+        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-8 text-center shadow-card">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz complete</p>
-          <p className="mt-3 text-4xl font-bold">{result.score} / {result.total}</p>
-          <p className="mt-2 text-sm opacity-80">+{bonus} pts added toward your rank</p>
+          <p className="mt-3 text-4xl font-bold text-navy">{result.score} / {result.total}</p>
+          <p className="mt-2 text-sm text-muted">+{bonus} pts added toward your rank</p>
           <button
             type="button"
             onClick={() => { setActiveQuiz(null); setResult(null); }}
@@ -141,10 +141,10 @@ export default function StudentQuizPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz</p>
-        <h1 className="mt-2 text-3xl font-bold">Test your knowledge</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
+        <h1 className="mt-2 text-3xl font-bold text-navy">Test your knowledge</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
           Play anytime. Your score contributes to your Academic Excellence rank.
         </p>
       </CornerFrame>

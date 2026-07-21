@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { LeaderboardRow } from "@/components/leaderboard/LeaderboardRow";
-import { LEADERBOARD, CURRENT_STUDENT } from "@/data/mockStudents";
+import { LEADERBOARD, CURRENT_STUDENT, CURRENT_QUARTER } from "@/data/mockStudents";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 
 const GRADES = [10];
@@ -20,27 +20,28 @@ export default function LeaderboardPage() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
       <section className="space-y-6">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Leaderboard</p>
-          <h1 className="mt-2 text-3xl font-bold">Grade {grade} · {section}</h1>
+          <h1 className="mt-2 text-3xl font-bold text-navy">Grade {grade} · {section}</h1>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">{CURRENT_QUARTER}</p>
 
           <div className="mt-5 flex flex-wrap gap-3">
             <select
               value={grade}
               onChange={(e) => setGrade(Number(e.target.value))}
-              className="rounded-2xl border border-gold bg-navy px-4 py-3 text-sm font-semibold text-white outline-none"
+              className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
             >
               {GRADES.map((g) => (
-                <option key={g} value={g} className="text-navy">Grade {g}</option>
+                <option key={g} value={g}>Grade {g}</option>
               ))}
             </select>
             <select
               value={section}
               onChange={(e) => setSection(e.target.value)}
-              className="rounded-2xl border border-gold bg-navy px-4 py-3 text-sm font-semibold text-white outline-none"
+              className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
             >
               {SECTIONS.map((s) => (
-                <option key={s} value={s} className="text-navy">{s}</option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>

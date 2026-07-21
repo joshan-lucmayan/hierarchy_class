@@ -16,13 +16,13 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Settings</p>
-            <h1 className="mt-2 text-3xl font-bold">Account and support</h1>
+            <h1 className="mt-2 text-3xl font-bold text-navy">Account and support</h1>
           </div>
-          <p className="max-w-xl text-sm opacity-80">
+          <p className="max-w-xl text-sm text-muted">
             Update your preferences, send feedback, or securely sign out.
           </p>
         </div>

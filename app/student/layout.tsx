@@ -1,18 +1,9 @@
-import { BottomNav } from "@/components/navigation/BottomNav";
-import { StudentTopNav } from "@/components/navigation/StudentTopNav";
-import { SiteHeader } from "@/components/navigation/SiteHeader";
+import { AppShell } from "@/components/navigation/AppShell";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-24 xl:px-10 xl:pb-6">
-        <SiteHeader href="/student/home" />
-        <main className="flex-1 rounded-[28px] border border-base bg-surface p-6 pb-24 xl:p-8 xl:pb-8">
-          <StudentTopNav />
-          {children}
-        </main>
-      </div>
-      <BottomNav />
-    </div>
+    <AppShell role="student" brandHref="/student/home">
+      {children}
+    </AppShell>
   );
 }

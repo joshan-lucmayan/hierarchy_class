@@ -39,7 +39,7 @@ export function FriendsStories() {
                 ) : friend.dayImage ? (
                   <img src={friend.dayImage} alt={friend.name} className="h-full w-full object-cover" />
                 ) : (
-                  friend.initials
+                  <img src="/avatars/default-avatar.webp" alt={friend.name} className="h-full w-full object-cover" />
                 )}
               </div>
             </div>

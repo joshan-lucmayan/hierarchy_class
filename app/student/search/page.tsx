@@ -18,9 +18,7 @@ function ProfileCard({
     <CornerFrame className="rounded-3xl border border-base bg-surface p-4 shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gold bg-navy text-sm font-bold text-gold">
-            {student.initials}
-          </div>
+          <img src="/avatars/default-avatar.webp" alt={student.name} className="h-12 w-12 rounded-full border-2 border-gold object-cover" />
           <div>
             <p className="text-sm font-semibold text-navy">{student.name}</p>
             <p className="text-xs text-muted">Grade {student.gradeLevel} · {student.section}</p>
@@ -69,17 +67,17 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Search</p>
-            <h1 className="mt-2 text-3xl font-bold">Find classmates</h1>
+            <h1 className="mt-2 text-3xl font-bold text-navy">Find classmates</h1>
           </div>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name, section, or subject"
-            className="w-full max-w-md rounded-3xl border border-gold bg-navy px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none"
+            className="w-full max-w-md rounded-3xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm text-navy placeholder:text-muted outline-none"
           />
         </div>
       </CornerFrame>

@@ -16,9 +16,7 @@ export default function StudentProfilePage() {
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
       <CornerFrame className="space-y-6 rounded-3xl border border-base bg-surface p-6 shadow-card">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-gold bg-navy text-2xl font-bold text-gold">
-            {student.initials}
-          </div>
+          <img src="/avatars/default-avatar.webp" alt={student.name} className="h-24 w-24 rounded-full border-2 border-gold object-cover" />
           <div>
             <h1 className="text-3xl font-bold text-navy">{student.name}</h1>
             <p className="mt-2 text-sm text-muted">Grade {student.gradeLevel} · {student.section}</p>

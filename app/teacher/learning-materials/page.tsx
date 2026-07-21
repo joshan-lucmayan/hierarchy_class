@@ -49,18 +49,18 @@ export default function TeacherLearningMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-navy p-6 text-white shadow-xl">
+      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teaching materials</p>
-            <h1 className="mt-2 text-3xl font-bold">Upload new lessons</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 opacity-80">
+            <h1 className="mt-2 text-3xl font-bold text-navy">Upload new lessons</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
               Add a resource for your students and manage materials you have uploaded.
             </p>
           </div>
-          <div className="rounded-3xl border border-gold bg-white/10 px-5 py-4 text-sm">
+          <div className="rounded-3xl border border-gold bg-[var(--surface-strong)] px-5 py-4 text-sm">
             <p className="font-semibold text-gold">Upload status</p>
-            <p className="mt-2 opacity-80">{managedMaterials.length} materials visible</p>
+            <p className="mt-2 text-muted">{managedMaterials.length} materials visible</p>
           </div>
         </div>
       </CornerFrame>
