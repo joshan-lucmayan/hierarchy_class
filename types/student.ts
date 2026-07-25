@@ -52,6 +52,7 @@ export interface LibraryBook {
   title: string;
   author: string;
   genre: string;
+  description: string;
   status: LibraryStatus;
   borrowedDate?: string;
   dueDate?: string;
@@ -75,4 +76,6 @@ export interface StudentDirectoryEntry {
   overallRank: TierRank;
   favoriteSubject: string;
   tags: string[];
+  bio: string;
+  stats: Record<StatCategory, number>;
 }

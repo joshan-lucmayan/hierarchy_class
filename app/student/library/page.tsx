@@ -5,9 +5,54 @@ import { LIBRARY_BOOKS, BORROW_HISTORY } from "@/data/mockStudents";
 import { LibraryBook, BorrowRecord } from "@/types/student";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 
+function BookModal({
+  book,
+  onClose,
+  onToggleBorrow,
+}: {
+  book: LibraryBook;
+  onClose: () => void;
+  onToggleBorrow: (id: string) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-3xl border-2 border-gold bg-surface p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{book.genre}</p>
+          <button type="button" onClick={onClose} className="text-muted">✕</button>
+        </div>
+        <h2 className="mt-2 text-2xl font-bold text-navy">{book.title}</h2>
+        <p className="mt-1 text-sm text-muted">by {book.author}</p>
+        <p className="mt-4 text-sm leading-6 text-muted">{book.description}</p>
+
+        {book.status === "borrowed" && (
+          <p className="mt-4 rounded-2xl border border-base bg-[var(--surface-strong)] p-3 text-xs text-muted">
+            Borrowed {book.borrowedDate} · Due {book.dueDate}
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            onToggleBorrow(book.id);
+            onClose();
+          }}
+          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+        >
+          {book.status === "available" ? "Borrow this book" : "Return this book"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LibraryPage() {
   const [books, setBooks] = useState<LibraryBook[]>(LIBRARY_BOOKS);
   const [history] = useState<BorrowRecord[]>(BORROW_HISTORY);
+  const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
 
   const borrowedBooks = useMemo(() => books.filter((book) => book.status === "borrowed"), [books]);
   const availableBooks = useMemo(() => books.filter((book) => book.status === "available"), [books]);
@@ -46,23 +91,25 @@ export default function LibraryPage() {
               {availableBooks.length} available
             </span>
           </div>
-          <div className="space-y-3">
+          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
             {availableBooks.map((book) => (
-              <div key={book.id} className="rounded-3xl border border-base p-4 transition hover:border-gold">
+              <button
+                key={book.id}
+                type="button"
+                onClick={() => setSelectedBook(book)}
+                className="block w-full rounded-3xl border border-base p-4 text-left transition hover:border-gold hover:bg-[var(--surface-strong)]"
+              >
                 <div className="flex items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-semibold text-navy">{book.title}</p>
                     <p className="mt-1 text-xs text-muted">{book.author} · {book.genre}</p>
+                    <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleBorrow(book.id)}
-                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
-                  >
-                    Borrow
-                  </button>
+                  <span className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy">
+                    View
+                  </span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </CornerFrame>
@@ -75,30 +122,36 @@ export default function LibraryPage() {
             </span>
           </div>
           <div className="space-y-3">
-            {borrowedBooks.map((book) => (
-              <div key={book.id} className="rounded-3xl border border-base p-4 transition hover:border-gold">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-navy">{book.title}</p>
-                    <p className="mt-1 text-xs text-muted">Due {book.dueDate}</p>
+            {borrowedBooks.length === 0 ? (
+              <p className="text-sm text-muted">You have no borrowed books right now.</p>
+            ) : (
+              borrowedBooks.map((book) => (
+                <button
+                  key={book.id}
+                  type="button"
+                  onClick={() => setSelectedBook(book)}
+                  className="block w-full rounded-3xl border border-base p-4 text-left transition hover:border-gold hover:bg-[var(--surface-strong)]"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-navy">{book.title}</p>
+                      <p className="mt-1 text-xs text-muted">Due {book.dueDate}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy">
+                      View
+                    </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleBorrow(book.id)}
-                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
-                  >
-                    Return
-                  </button>
-                </div>
-              </div>
-            ))}
+                </button>
+              ))
+            )}
           </div>
         </CornerFrame>
       </section>
 
       <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Borrow history</h2>
-        <div className="mt-4 space-y-3">
+        <p className="mt-1 text-xs text-muted">Everything you&apos;ve borrowed and returned this semester.</p>
+        <div className="mt-4 max-h-[320px] space-y-3 overflow-y-auto pr-1">
           {history.map((record) => (
             <div key={record.id} className="rounded-3xl border border-base p-4">
               <div className="flex items-center justify-between gap-4 text-sm">
@@ -113,6 +166,10 @@ export default function LibraryPage() {
           ))}
         </div>
       </CornerFrame>
+
+      {selectedBook && (
+        <BookModal book={selectedBook} onClose={() => setSelectedBook(null)} onToggleBorrow={toggleBorrow} />
+      )}
     </div>
   );
 }

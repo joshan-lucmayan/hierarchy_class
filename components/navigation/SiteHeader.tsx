@@ -1,6 +1,5 @@
 import { BrandMark } from "@/components/navigation/BrandMark";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { ChatWidget } from "@/components/chat/ChatWidget";
+import { NotificationBell } from "@/components/navigation/NotificationBell";
 
 export function SiteHeader({ href }: { href?: string }) {
   return (
@@ -10,8 +9,7 @@ export function SiteHeader({ href }: { href?: string }) {
       </div>
       <div className="hidden xl:block" />
       <div className="flex items-center gap-2">
-        <ChatWidget />
-        <ThemeToggle />
+        <NotificationBell />
       </div>
     </header>
   );

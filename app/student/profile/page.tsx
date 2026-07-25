@@ -1,28 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatBar } from "@/components/ui/StatBar";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
 import { CornerFrame } from "@/components/ui/CornerFrame";
-import { CURRENT_STUDENT } from "@/data/mockStudents";
+import { CURRENT_STUDENT, CURRENT_QUARTER } from "@/data/mockStudents";
+
+const SUBJECT_CHOICES = ["Mathematics", "English", "Science", "PE"];
 
 export default function StudentProfilePage() {
   const student = CURRENT_STUDENT;
   const [bio, setBio] = useState(student.bio);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingBio, setIsEditingBio] = useState(false);
+
+  const [avatarUrl, setAvatarUrl] = useState("/avatars/default-avatar.webp");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [favoriteSubject, setFavoriteSubject] = useState(student.favoriteSubject);
+  const [isEditingSubject, setIsEditingSubject] = useState(false);
+
+  const [hobbies, setHobbies] = useState(student.hobbies.join(", "));
+  const [isEditingHobbies, setIsEditingHobbies] = useState(false);
+
+  const [tags, setTags] = useState(student.tags.join(", "));
+  const [isEditingTags, setIsEditingTags] = useState(false);
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setAvatarUrl(url);
+  }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
       <CornerFrame className="space-y-6 rounded-3xl border border-base bg-surface p-6 shadow-card">
         <div className="flex flex-col items-center gap-4 text-center">
-          <img src="/avatars/default-avatar.webp" alt={student.name} className="h-24 w-24 rounded-full border-2 border-gold object-cover" />
+          <div className="group relative">
+            <img src={avatarUrl} alt={student.name} className="h-24 w-24 rounded-full border-2 border-gold object-cover" />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Change profile picture"
+              className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-gold text-navy shadow-card transition group-hover:scale-110"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+          </div>
           <div>
             <h1 className="text-3xl font-bold text-navy">{student.name}</h1>
             <p className="mt-2 text-sm text-muted">Grade {student.gradeLevel} · {student.section}</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">{CURRENT_QUARTER}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
-            {student.tags.map((tag) => (
+            {tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
               <span key={tag} className="rounded-full border border-base px-3 py-1 text-[11px] font-medium text-navy">
                 {tag}
               </span>
@@ -63,19 +99,19 @@ export default function StudentProfilePage() {
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">About</h2>
             <button
               type="button"
-              onClick={() => setIsEditing((prev) => !prev)}
+              onClick={() => setIsEditingBio((prev) => !prev)}
               className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-navy transition hover:border-gold"
             >
-              {isEditing ? "Done" : "Edit"}
+              {isEditingBio ? "Done" : "Edit"}
             </button>
           </div>
 
-          {isEditing ? (
+          {isEditingBio ? (
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
-              className="w-full rounded-2xl border border-base bg-surface p-4 text-sm outline-none focus:border-gold"
+              className="w-full rounded-2xl border border-base bg-surface p-4 text-sm text-navy outline-none focus:border-gold"
             />
           ) : (
             <p className="text-sm leading-6 text-muted">{bio}</p>
@@ -83,13 +119,75 @@ export default function StudentProfilePage() {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-[11px] uppercase tracking-wide text-muted">Favorite subject</p>
-              <p className="mt-2 text-sm text-navy">{student.favoriteSubject}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-wide text-muted">Favorite subject</p>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingSubject((prev) => !prev)}
+                  className="text-[11px] font-semibold text-navy underline decoration-gold underline-offset-2"
+                >
+                  {isEditingSubject ? "Done" : "Edit"}
+                </button>
+              </div>
+              {isEditingSubject ? (
+                <select
+                  value={favoriteSubject}
+                  onChange={(e) => setFavoriteSubject(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                >
+                  {SUBJECT_CHOICES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              ) : (
+                <p className="mt-2 text-sm text-navy">{favoriteSubject}</p>
+              )}
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wide text-muted">Hobbies</p>
-              <p className="mt-2 text-sm text-navy">{student.hobbies.join(", ")}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-wide text-muted">Hobbies</p>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingHobbies((prev) => !prev)}
+                  className="text-[11px] font-semibold text-navy underline decoration-gold underline-offset-2"
+                >
+                  {isEditingHobbies ? "Done" : "Edit"}
+                </button>
+              </div>
+              {isEditingHobbies ? (
+                <input
+                  value={hobbies}
+                  onChange={(e) => setHobbies(e.target.value)}
+                  placeholder="Separate with commas"
+                  className="mt-2 w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                />
+              ) : (
+                <p className="mt-2 text-sm text-navy">{hobbies}</p>
+              )}
             </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] uppercase tracking-wide text-muted">Tags</p>
+              <button
+                type="button"
+                onClick={() => setIsEditingTags((prev) => !prev)}
+                className="text-[11px] font-semibold text-navy underline decoration-gold underline-offset-2"
+              >
+                {isEditingTags ? "Done" : "Edit"}
+              </button>
+            </div>
+            {isEditingTags ? (
+              <input
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="Separate with commas"
+                className="mt-2 w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              />
+            ) : (
+              <p className="mt-2 text-sm text-navy">{tags}</p>
+            )}
           </div>
         </CornerFrame>
       </div>

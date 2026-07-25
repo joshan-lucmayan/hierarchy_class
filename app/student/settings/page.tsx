@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { LogoutButton } from "@/components/auth/LogoutButton";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function SettingsPage() {
   const [feedback, setFeedback] = useState("");
@@ -23,15 +23,26 @@ export default function SettingsPage() {
             <h1 className="mt-2 text-3xl font-bold text-navy">Account and support</h1>
           </div>
           <p className="max-w-xl text-sm text-muted">
-            Update your preferences, send feedback, or securely sign out.
+            Update your preferences and send feedback.
           </p>
+        </div>
+      </CornerFrame>
+
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Appearance</h2>
+        <div className="mt-4 flex items-center justify-between rounded-2xl border border-base p-4">
+          <div>
+            <p className="text-sm font-semibold text-navy">Dark mode</p>
+            <p className="mt-1 text-xs text-muted">Switch between light and dark theme.</p>
+          </div>
+          <ThemeToggle />
         </div>
       </CornerFrame>
 
       <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">About Hierarchy Class</h2>
         <p className="mt-4 text-sm leading-6 text-muted">
-          Hierarchy Class is a gamified learning tracker built for Grade 1-10 students, teachers, and admins. It uses ranks, materials, and library tools to keep progress visible and motivating.
+          Hierarchy Class is a gamified learning tracker built for students, teachers, and admins. It uses ranks, materials, and library tools to keep progress visible and motivating.
         </p>
       </CornerFrame>
 
@@ -55,9 +66,7 @@ export default function SettingsPage() {
         </form>
       </CornerFrame>
 
-      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-        <LogoutButton />
-      </CornerFrame>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v0.1.2</p>
     </div>
   );
 }

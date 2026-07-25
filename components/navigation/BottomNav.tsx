@@ -11,13 +11,9 @@ export function BottomNav() {
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-base bg-surface xl:hidden">
       <div className="mx-auto flex max-w-sm items-center justify-around py-2">
         {STUDENT_NAV_ITEMS.map((item) => {
-          const active = pathname?.startsWith(item.href);
+          const active = item.href ? pathname?.startsWith(item.href) : false;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex flex-col items-center gap-1 px-2 py-1.5"
-            >
+            <Link key={item.href} href={item.href ?? "#"} className="flex flex-col items-center gap-1 px-2 py-1.5">
               {item.icon(!!active)}
               <span className={`text-[10px] font-semibold uppercase tracking-wide ${active ? "text-navy" : "text-muted"}`}>
                 {item.label}

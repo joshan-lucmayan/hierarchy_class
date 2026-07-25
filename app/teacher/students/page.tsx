@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CLASS_STUDENTS, TEACHER_PROFILE } from "@/data/mockStudents";
 import { StudentDirectoryEntry } from "@/types/student";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { RankBadge } from "@/components/ui/RankBadge";
 
 export default function TeacherStudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<StudentDirectoryEntry>(CLASS_STUDENTS[0]);
@@ -47,9 +48,9 @@ export default function TeacherStudentsPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-navy">{student.name}</p>
-                    <p className="text-xs text-muted">Rank {student.overallRank} · {student.favoriteSubject}</p>
+                    <p className="text-xs text-muted">{student.favoriteSubject}</p>
                   </div>
-                  <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-[11px] font-semibold text-muted">View</span>
+                  <RankBadge rank={student.overallRank} size="sm" />
                 </div>
               </button>
             ))}
@@ -64,10 +65,10 @@ export default function TeacherStudentsPage() {
               <div>
                 <p className="text-lg font-semibold text-navy">{selectedStudent.name}</p>
                 <p className="text-sm text-muted">Grade {selectedStudent.gradeLevel} · {selectedStudent.section}</p>
+                <RankBadge rank={selectedStudent.overallRank} size="sm" className="mt-2" />
               </div>
             </div>
             <div className="mt-5 space-y-3 text-sm text-muted">
-              <p><span className="font-semibold text-navy">Rank:</span> {selectedStudent.overallRank}</p>
               <p><span className="font-semibold text-navy">Favorite subject:</span> {selectedStudent.favoriteSubject}</p>
               <p><span className="font-semibold text-navy">Tags:</span> {selectedStudent.tags.join(", ")}</p>
             </div>

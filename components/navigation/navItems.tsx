@@ -1,5 +1,5 @@
 export type NavItem = {
-  href: string;
+  href?: string;
   label: string;
   icon: (active: boolean) => React.ReactNode;
 };
@@ -14,6 +14,12 @@ const iconProps = (active: boolean) => ({
   className: active ? "text-navy" : "text-muted",
 });
 
+const messagesIcon = (active: boolean) => (
+  <svg {...iconProps(active)}>
+    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+  </svg>
+);
+
 export const STUDENT_NAV_ITEMS: NavItem[] = [
   {
     href: "/student/home",
@@ -24,6 +30,11 @@ export const STUDENT_NAV_ITEMS: NavItem[] = [
         <path d="M5 10v10h14V10" />
       </svg>
     ),
+  },
+  {
+    href: "/student/messages",
+    label: "Messages",
+    icon: messagesIcon,
   },
   {
     href: "/student/learning-materials",
@@ -107,6 +118,11 @@ export const TEACHER_NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    href: "/teacher/messages",
+    label: "Messages",
+    icon: messagesIcon,
+  },
+  {
     href: "/teacher/learning-materials",
     label: "Materials",
     icon: (active) => (
@@ -161,6 +177,11 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
         <rect x="3" y="16" width="7" height="5" rx="1" />
       </svg>
     ),
+  },
+  {
+    href: "/admin/messages",
+    label: "Messages",
+    icon: messagesIcon,
   },
   {
     href: "/admin/schools",

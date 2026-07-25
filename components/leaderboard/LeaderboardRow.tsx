@@ -15,7 +15,7 @@ export function LeaderboardRow({ entry, isCurrentUser }: { entry: LeaderboardEnt
         <p className="text-sm font-semibold text-navy">{student.name}</p>
         <p className="text-[11px] text-muted">Grade {student.gradeLevel} · {student.section}</p>
       </div>
-      <RankBadge rank={student.overallRank} size="sm" />
+      <RankBadge rank={student.overallRank} size="md" />
     </div>
   );
 }

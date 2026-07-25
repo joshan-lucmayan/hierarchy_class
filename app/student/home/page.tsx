@@ -2,13 +2,12 @@ import { RankBadge } from "@/components/ui/RankBadge";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FriendsStories } from "@/components/feed/FriendsStories";
-import { CURRENT_STUDENT, ANNOUNCEMENTS } from "@/data/mockStudents";
+import { CURRENT_STUDENT } from "@/data/mockStudents";
 import { SCHOOL_POSTS } from "@/data/schoolFeed";
 
 const STAT_META = [
   { key: "academic" as const, label: "Academic", color: "#378ADD" },
   { key: "physical" as const, label: "Physical", color: "#E24B4A" },
-  { key: "charisma" as const, label: "Charisma", color: "#EF9F27" },
 ];
 
 export default function StudentHomePage() {
@@ -31,24 +30,37 @@ export default function StudentHomePage() {
       <aside className="space-y-6">
         <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
           <div className="flex flex-col items-center text-center">
-            <img src="/avatars/default-avatar.webp" alt={student.name} className="h-16 w-16 rounded-full border-2 border-gold object-cover" />
-            <p className="mt-3 text-base font-bold text-navy">{student.name}</p>
-            <p className="mt-1 text-xs text-muted">Grade {student.gradeLevel} · {student.section} · {student.quarter}</p>
-            <div className="mt-4">
+            <p className="text-xs text-muted">Grade {student.gradeLevel} · {student.section} · {student.quarter}</p>
+
+            <div className="mt-5">
               <RankBadge rank={student.overallRank} size="lg" />
             </div>
-          </div>
 
-          <div className="mt-5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold uppercase tracking-wide text-muted">Academic Excellence</span>
-              <span className="font-semibold text-navy">{student.academicExcellence}/100</span>
+            <div className="mt-3">
+              <svg width="140" height="60" viewBox="0 0 140 60" fill="none">
+                <path
+                  d="M14 10 L70 50 L126 10"
+                  stroke="var(--surface-strong)"
+                  strokeWidth="15"
+                  strokeLinecap="butt"
+                  strokeLinejoin="miter"
+                />
+                <path
+                  d="M14 10 L70 50 L126 10"
+                  stroke="#c9962c"
+                  strokeWidth="15"
+                  strokeLinecap="butt"
+                  strokeLinejoin="miter"
+                  strokeDasharray={138}
+                  strokeDashoffset={138 * (1 - student.academicExcellence / 100)}
+                />
+              </svg>
             </div>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--surface-strong)]">
-              <div
-                className="h-full rounded-full bg-gold transition-all"
-                style={{ width: `${student.academicExcellence}%` }}
-              />
+            <div className="mt-1 flex flex-col items-center">
+              <p className="text-lg font-bold text-navy">
+                {student.academicExcellence}<span className="text-xs font-semibold text-muted">/100</span>
+              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Academic Excellence</p>
             </div>
           </div>
         </CornerFrame>
@@ -67,18 +79,6 @@ export default function StudentHomePage() {
                   />
                 </div>
                 <span className="w-8 text-right text-xs font-semibold text-navy">{student.stats[stat.key]}</span>
-              </div>
-            ))}
-          </div>
-        </CornerFrame>
-
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Announcements/Updates</h2>
-          <div className="mt-4 space-y-3">
-            {ANNOUNCEMENTS.map((a) => (
-              <div key={a.id} className="rounded-2xl border border-base p-3 transition hover:border-gold">
-                <p className="text-sm font-semibold text-navy">{a.title}</p>
-                <p className="mt-1 text-xs text-muted">{a.body}</p>
               </div>
             ))}
           </div>

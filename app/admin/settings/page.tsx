@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AdminSettingsPage() {
   const [schoolName, setSchoolName] = useState("CSA – College of Saint Amateil");
@@ -18,6 +19,17 @@ export default function AdminSettingsPage() {
         <p className="mt-3 text-sm leading-6 text-muted">
           Configure school-level defaults and runtime options for your portal.
         </p>
+      </CornerFrame>
+
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Appearance</h2>
+        <div className="mt-4 flex items-center justify-between rounded-2xl border border-base p-4">
+          <div>
+            <p className="text-sm font-semibold text-navy">Dark mode</p>
+            <p className="mt-1 text-xs text-muted">Switch between light and dark theme.</p>
+          </div>
+          <ThemeToggle />
+        </div>
       </CornerFrame>
 
       <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
@@ -74,6 +86,38 @@ export default function AdminSettingsPage() {
           {saved ? <p className="text-sm text-emerald-600">Settings saved locally.</p> : null}
         </div>
       </CornerFrame>
+
+      <CornerFrame className="rounded-3xl border border-red-300 bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-red-600">Account</h2>
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-col gap-2 rounded-2xl border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-navy">Deactivate account</p>
+              <p className="mt-1 text-xs text-muted">Temporarily disable your admin access. You can reactivate anytime.</p>
+            </div>
+            <button
+              type="button"
+              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-red-400 hover:text-red-600"
+            >
+              Deactivate account
+            </button>
+          </div>
+          <div className="flex flex-col gap-2 rounded-2xl border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-navy">Request account deletion</p>
+              <p className="mt-1 text-xs text-muted">Permanently remove your account and admin data. This cannot be undone.</p>
+            </div>
+            <button
+              type="button"
+              className="shrink-0 rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10"
+            >
+              Request deletion
+            </button>
+          </div>
+        </div>
+      </CornerFrame>
+
+      <p className="text-center text-xs text-muted">Hierarchy Class · v0.1.2</p>
     </div>
   );
 }

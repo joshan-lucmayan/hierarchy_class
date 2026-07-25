@@ -95,13 +95,13 @@ export function SideNav({
 
       <nav className="flex flex-1 flex-col gap-1 px-3">
         {items.map((item) => {
-          const active = pathname?.startsWith(item.href);
+          const active = item.href ? pathname?.startsWith(item.href) : false;
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href ?? "#"}
               title={expanded ? undefined : item.label}
-              className={`group relative flex items-center gap-3 rounded-2xl py-3 pl-3 pr-3 text-sm font-semibold transition-colors duration-150 ${
+              className={`group relative flex w-full items-center gap-3 rounded-2xl py-3 pl-3 pr-3 text-left text-sm font-semibold transition-colors duration-150 ${
                 active ? "bg-[var(--surface-strong)] text-navy" : "text-muted hover:bg-[var(--surface-strong)]"
               }`}
             >
