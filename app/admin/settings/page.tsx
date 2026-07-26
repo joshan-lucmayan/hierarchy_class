@@ -10,6 +10,14 @@ export default function AdminSettingsPage() {
   const [enableNotifications, setEnableNotifications] = useState(true);
   const [autoEnrollment, setAutoEnrollment] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [accountRequests, setAccountRequests] = useState([
+    { id: "req-1", name: "Miguel Santos", role: "Student", type: "Account deletion", date: "2026-07-20" },
+    { id: "req-2", name: "Ms. Daniela Fernandez", role: "Teacher", type: "Account deactivation", date: "2026-07-18" },
+  ]);
+
+  function resolveRequest(id: string) {
+    setAccountRequests((prev) => prev.filter((r) => r.id !== id));
+  }
 
   return (
     <div className="space-y-6">
@@ -87,33 +95,38 @@ export default function AdminSettingsPage() {
         </div>
       </CornerFrame>
 
-      <CornerFrame className="rounded-3xl border border-red-300 bg-surface p-6 shadow-card">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-red-600">Account</h2>
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Account requests</h2>
+        <p className="mt-1 text-xs text-muted">Deactivation and deletion requests from students and teachers need your confirmation.</p>
         <div className="mt-4 space-y-3">
-          <div className="flex flex-col gap-2 rounded-2xl border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-navy">Deactivate account</p>
-              <p className="mt-1 text-xs text-muted">Temporarily disable your admin access. You can reactivate anytime.</p>
-            </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-red-400 hover:text-red-600"
-            >
-              Deactivate account
-            </button>
-          </div>
-          <div className="flex flex-col gap-2 rounded-2xl border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-navy">Request account deletion</p>
-              <p className="mt-1 text-xs text-muted">Permanently remove your account and admin data. This cannot be undone.</p>
-            </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10"
-            >
-              Request deletion
-            </button>
-          </div>
+          {accountRequests.length === 0 ? (
+            <p className="rounded-2xl border border-base p-4 text-sm text-muted">No pending requests.</p>
+          ) : (
+            accountRequests.map((request) => (
+              <div key={request.id} className="flex flex-col gap-3 rounded-2xl border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-navy">{request.name} <span className="font-normal text-muted">· {request.role}</span></p>
+                  <p className="mt-1 text-xs text-muted">{request.type} requested on {request.date}</p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => resolveRequest(request.id)}
+                    className="rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => resolveRequest(request.id)}
+                    className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
+                  >
+                    Deny
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </CornerFrame>
 

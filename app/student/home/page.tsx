@@ -12,6 +12,7 @@ const STAT_META = [
 
 export default function StudentHomePage() {
   const student = CURRENT_STUDENT;
+  const weakestSubject = student.subjectStats.reduce((lowest, s) => (s.value < lowest.value ? s : lowest), student.subjectStats[0]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.7fr_0.9fr]">
@@ -38,6 +39,13 @@ export default function StudentHomePage() {
 
             <div className="mt-3">
               <svg width="140" height="60" viewBox="0 0 140 60" fill="none">
+                <path
+                  d="M14 10 L70 50 L126 10"
+                  stroke="var(--border)"
+                  strokeWidth="19"
+                  strokeLinecap="butt"
+                  strokeLinejoin="miter"
+                />
                 <path
                   d="M14 10 L70 50 L126 10"
                   stroke="var(--surface-strong)"
@@ -82,6 +90,20 @@ export default function StudentHomePage() {
               </div>
             ))}
           </div>
+        </CornerFrame>
+
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Room to Grow</h2>
+          <div className="mt-4 flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-gold bg-[var(--surface-strong)] text-lg font-bold text-navy">
+              {weakestSubject.value}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-navy">{weakestSubject.subject}</p>
+              <p className="text-xs text-muted">{weakestSubject.statLabel} · Rank {weakestSubject.rank}</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted">Your weakest subject this quarter — a good place to focus your study time.</p>
         </CornerFrame>
       </aside>
     </div>
