@@ -27,6 +27,7 @@ export function SignupForm() {
   const [password, setPassword] = useState("");
   const [school, setSchool] = useState<School | null>(null);
   const [role, setRole] = useState("student");
+  const [isLibrarian, setIsLibrarian] = useState(false);
   const [errors, setErrors] = useState<SignupFieldErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -80,6 +81,7 @@ export function SignupForm() {
           data: {
             name,
             role,
+            is_librarian: role === "teacher" ? isLibrarian : false,
             school_id: school.id,
             school_name: school.name,
           },
@@ -201,6 +203,23 @@ export function SignupForm() {
           <SchoolSelector schools={MOCK_SCHOOLS} value={school} onChange={setSchool} error={errors.school} />
         </div>
       </div>
+
+      {role === "teacher" && (
+        <label className="flex items-start gap-2.5 rounded-lg border border-base px-3.5 py-3 text-sm text-navy">
+          <input
+            type="checkbox"
+            checked={isLibrarian}
+            onChange={(e) => setIsLibrarian(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            <span className="font-semibold">I also manage the school library</span>
+            <span className="mt-0.5 block text-xs text-muted">
+              Adds Library Management to your teacher account so you can approve pickup requests and track borrowed books.
+            </span>
+          </span>
+        </label>
+      )}
 
       <button
         type="submit"

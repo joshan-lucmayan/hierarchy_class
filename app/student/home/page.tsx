@@ -93,7 +93,7 @@ export default function StudentHomePage() {
         </CornerFrame>
 
         <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Room to Grow</h2>
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Your Weakest Subject This Semester</h2>
           <div className="mt-4 flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-gold bg-[var(--surface-strong)] text-lg font-bold text-navy">
               {weakestSubject.value}
@@ -103,7 +103,7 @@ export default function StudentHomePage() {
               <p className="text-xs text-muted">{weakestSubject.statLabel} · Rank {weakestSubject.rank}</p>
             </div>
           </div>
-          <p className="mt-3 text-xs text-muted">Your weakest subject this quarter — a good place to focus your study time.</p>
+          <p className="mt-3 text-xs text-muted">A good place to focus your study time this semester.</p>
         </CornerFrame>
       </aside>
     </div>

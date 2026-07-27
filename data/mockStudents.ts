@@ -113,6 +113,8 @@ export const LIBRARY_BOOKS: LibraryBook[] = [
     genre: "Reference",
     description: "A visual guide to core physics concepts — motion, energy, and forces — explained with real-world examples.",
     status: "borrowed",
+    borrowedBy: "s-001",
+    borrowedByName: "Miguel Santos",
     borrowedDate: "2026-07-03",
     dueDate: "2026-07-17",
   },
@@ -131,6 +133,8 @@ export const LIBRARY_BOOKS: LibraryBook[] = [
     genre: "Mathematics",
     description: "Challenge problems and worked solutions for students who want to go beyond the regular curriculum.",
     status: "borrowed",
+    borrowedBy: "s-001",
+    borrowedByName: "Miguel Santos",
     borrowedDate: "2026-07-01",
     dueDate: "2026-07-15",
   },
@@ -140,7 +144,9 @@ export const LIBRARY_BOOKS: LibraryBook[] = [
     author: "Ruth D. Alvarez",
     genre: "English",
     description: "A friendly reference for grammar rules, common mistakes, and how to fix them, with practice exercises.",
-    status: "available",
+    status: "requested",
+    borrowedBy: "s-014",
+    borrowedByName: "Bea Reyes",
   },
   {
     id: "bk-006",
@@ -217,6 +223,10 @@ export const TEACHER_PROFILE = {
   office: "Room 204",
   experienceYears: 8,
   focus: "Science and robotics enrichment",
+  // TEMP: real accounts will carry this on their Supabase user profile/role
+  // assignment. Only teachers with isLibrarian get the Library Management
+  // nav item and its screens.
+  isLibrarian: true,
 };
 
 export const CLASS_STUDENTS = STUDENT_DIRECTORY;

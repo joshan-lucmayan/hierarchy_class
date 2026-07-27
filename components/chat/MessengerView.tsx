@@ -2,30 +2,33 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CONVERSATIONS, Conversation } from "@/data/chats";
-import { STUDENT_DIRECTORY } from "@/data/mockStudents";
+import { STUDENT_DIRECTORY, TEACHER_DIRECTORY } from "@/data/mockStudents";
+import { useChatStore } from "@/lib/chatStore";
 
 export function MessengerView() {
   const searchParams = useSearchParams();
   const withId = searchParams.get("with");
+  const { conversations, ensureConversation, sendUserMessage } = useChatStore();
 
-  const [conversations, setConversations] = useState<Conversation[]>(CONVERSATIONS);
-  const [activeId, setActiveId] = useState<string | null>(CONVERSATIONS[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
 
   useEffect(() => {
+    if (!activeId && conversations.length > 0) {
+      setActiveId(conversations[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversations.length]);
+
+  useEffect(() => {
     if (!withId) return;
-    setConversations((prev) => {
-      if (prev.some((c) => c.id === withId)) return prev;
-      const student = STUDENT_DIRECTORY.find((s) => s.id === withId);
-      if (!student) return prev;
-      return [
-        { id: student.id, name: student.name.split(" ")[0], initials: student.initials, lastMessage: "", messages: [] },
-        ...prev,
-      ];
-    });
+    const person = STUDENT_DIRECTORY.find((s) => s.id === withId) ?? TEACHER_DIRECTORY.find((t) => t.id === withId);
+    if (person) {
+      ensureConversation(withId, person.name.split(" ")[0], person.initials);
+    }
     setActiveId(withId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withId]);
 
   const active = conversations.find((c) => c.id === activeId) ?? null;
@@ -37,13 +40,7 @@ export function MessengerView() {
 
   function sendMessage() {
     if (!active || !draft.trim()) return;
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === active.id
-          ? { ...c, lastMessage: draft, messages: [...c.messages, { id: `m${Date.now()}`, from: "me", text: draft }] }
-          : c
-      )
-    );
+    sendUserMessage(active.id, draft);
     setDraft("");
   }
 

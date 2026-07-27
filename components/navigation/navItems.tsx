@@ -1,3 +1,5 @@
+import { TEACHER_PROFILE } from "@/data/mockStudents";
+
 export type NavItem = {
   href?: string;
   label: string;
@@ -153,6 +155,23 @@ export const TEACHER_NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
+  // TEMP: only teachers flagged as also managing the school library see this.
+  // Once accounts are real, this should be filtered by the signed-in
+  // teacher's own isLibrarian flag instead of the shared mock profile.
+  ...(TEACHER_PROFILE.isLibrarian
+    ? [
+        {
+          href: "/teacher/library-management",
+          label: "Library Management",
+          icon: (active: boolean) => (
+            <svg {...iconProps(active)}>
+              <path d="M4 19V5h4v14M16 19V5h4v14M12 5v14" />
+              <circle cx="12" cy="9" r="2" />
+            </svg>
+          ),
+        },
+      ]
+    : []),
   {
     href: "/teacher/settings",
     label: "Settings",

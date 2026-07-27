@@ -45,7 +45,7 @@ export interface LearningMaterial {
   url?: string;
 }
 
-export type LibraryStatus = "available" | "borrowed";
+export type LibraryStatus = "available" | "requested" | "borrowed";
 
 export interface LibraryBook {
   id: string;
@@ -54,6 +54,8 @@ export interface LibraryBook {
   genre: string;
   description: string;
   status: LibraryStatus;
+  borrowedBy?: string;
+  borrowedByName?: string;
   borrowedDate?: string;
   dueDate?: string;
 }
@@ -65,6 +67,27 @@ export interface BorrowRecord {
   action: "Borrowed" | "Returned";
   date: string;
   dueDate?: string;
+}
+
+export interface LibraryBorrowRequest {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  studentId: string;
+  studentName: string;
+  gradeSection: string;
+  requestedAt: string;
+}
+
+export interface LibraryBorrowLogEntry {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  studentId: string;
+  studentName: string;
+  gradeSection: string;
+  borrowedDate: string;
+  returnedDate?: string;
 }
 
 export interface StudentDirectoryEntry {
