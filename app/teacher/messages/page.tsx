@@ -4,7 +4,7 @@ import { MessengerView } from "@/components/chat/MessengerView";
 export default function TeacherMessagesPage() {
   return (
     <Suspense fallback={null}>
-      <MessengerView />
+      <MessengerView role="teacher" />
     </Suspense>
   );
 }

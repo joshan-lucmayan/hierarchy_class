@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { LIBRARY_BOOKS } from "@/data/mockStudents";
+import { LIBRARY_BOOKS, TEACHER_PROFILE } from "@/data/mockStudents";
 import { LIBRARY_BORROW_LOG_SEED, LIBRARY_BORROW_REQUESTS_SEED } from "@/data/library";
 import { LibraryBook, LibraryBorrowLogEntry, LibraryBorrowRequest } from "@/types/student";
 import { useChatStore } from "@/lib/chatStore";
@@ -10,9 +10,12 @@ const STORAGE_BOOKS = "hc-library-books";
 const STORAGE_REQUESTS = "hc-library-requests";
 const STORAGE_LOG = "hc-library-log";
 
-const LIBRARY_DESK_ID = "library-desk";
-const LIBRARY_DESK_NAME = "Library Desk";
-const LIBRARY_DESK_INITIALS = "LB";
+// TEMP: messages from the library go out under whichever teacher is flagged
+// isLibrarian. Once accounts are real, this resolves to the actual signed-in
+// librarian instead of the shared mock profile.
+const LIBRARIAN_ID = TEACHER_PROFILE.id;
+const LIBRARIAN_NAME = TEACHER_PROFILE.name;
+const LIBRARIAN_INITIALS = TEACHER_PROFILE.initials;
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -92,10 +95,11 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       )
     );
     sendSystemMessage(
-      LIBRARY_DESK_ID,
-      LIBRARY_DESK_NAME,
-      LIBRARY_DESK_INITIALS,
-      `We received your request for "${book.title}". We'll message you the pickup time once the librarian approves it.`
+      "student",
+      LIBRARIAN_ID,
+      LIBRARIAN_NAME,
+      LIBRARIAN_INITIALS,
+      `We received your request for "${book.title}". We'll message you the pickup time once it's approved.`
     );
   }
 
@@ -124,9 +128,10 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     ]);
     setRequests((prev) => prev.filter((r) => r.id !== requestId));
     sendSystemMessage(
-      LIBRARY_DESK_ID,
-      LIBRARY_DESK_NAME,
-      LIBRARY_DESK_INITIALS,
+      "student",
+      LIBRARIAN_ID,
+      LIBRARIAN_NAME,
+      LIBRARIAN_INITIALS,
       `Good news! "${request.bookTitle}" is ready for pickup: ${pickupWindow}.`
     );
   }
@@ -142,9 +147,10 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     );
     setRequests((prev) => prev.filter((r) => r.id !== requestId));
     sendSystemMessage(
-      LIBRARY_DESK_ID,
-      LIBRARY_DESK_NAME,
-      LIBRARY_DESK_INITIALS,
+      "student",
+      LIBRARIAN_ID,
+      LIBRARIAN_NAME,
+      LIBRARIAN_INITIALS,
       `Sorry, we couldn't approve your request for "${request.bookTitle}" right now. Please check back later.`
     );
   }

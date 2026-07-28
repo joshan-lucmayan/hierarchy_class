@@ -1,31 +1,52 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { CONVERSATIONS as DEFAULT_CONVERSATIONS, Conversation } from "@/data/chats";
+import {
+  STUDENT_CONVERSATIONS,
+  TEACHER_CONVERSATIONS,
+  ADMIN_CONVERSATIONS,
+  Conversation,
+} from "@/data/chats";
 
-const STORAGE_CONVERSATIONS = "hc-conversations";
+export type ChatRole = "student" | "teacher" | "admin";
+
+const STORAGE_KEY: Record<ChatRole, string> = {
+  student: "hc-conversations-student",
+  teacher: "hc-conversations-teacher",
+  admin: "hc-conversations-admin",
+};
+
+const DEFAULTS: Record<ChatRole, Conversation[]> = {
+  student: STUDENT_CONVERSATIONS,
+  teacher: TEACHER_CONVERSATIONS,
+  admin: ADMIN_CONVERSATIONS,
+};
 
 function makeMessageId() {
   return `m${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 interface ChatContextValue {
-  conversations: Conversation[];
-  ensureConversation: (id: string, name: string, initials: string) => void;
-  sendUserMessage: (conversationId: string, text: string) => void;
-  sendSystemMessage: (id: string, name: string, initials: string, text: string) => void;
+  getConversations: (role: ChatRole) => Conversation[];
+  ensureConversation: (role: ChatRole, id: string, name: string, initials: string) => void;
+  sendUserMessage: (role: ChatRole, conversationId: string, text: string) => void;
+  sendSystemMessage: (role: ChatRole, id: string, name: string, initials: string, text: string) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  const [conversations, setConversations] = useState<Conversation[]>(DEFAULT_CONVERSATIONS);
+  const [byRole, setByRole] = useState<Record<ChatRole, Conversation[]>>(DEFAULTS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_CONVERSATIONS);
-      if (saved) setConversations(JSON.parse(saved));
+      const next = { ...DEFAULTS };
+      (Object.keys(STORAGE_KEY) as ChatRole[]).forEach((role) => {
+        const saved = window.localStorage.getItem(STORAGE_KEY[role]);
+        if (saved) next[role] = JSON.parse(saved);
+      });
+      setByRole(next);
     } catch {
       // ignore corrupt storage
     }
@@ -34,38 +55,51 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_CONVERSATIONS, JSON.stringify(conversations));
-  }, [conversations, hydrated]);
+    (Object.keys(byRole) as ChatRole[]).forEach((role) => {
+      window.localStorage.setItem(STORAGE_KEY[role], JSON.stringify(byRole[role]));
+    });
+  }, [byRole, hydrated]);
 
-  function ensureConversation(id: string, name: string, initials: string) {
-    setConversations((prev) =>
-      prev.some((c) => c.id === id) ? prev : [{ id, name, initials, lastMessage: "", messages: [] }, ...prev]
-    );
+  function getConversations(role: ChatRole) {
+    return byRole[role];
   }
 
-  function sendUserMessage(conversationId: string, text: string) {
-    setConversations((prev) =>
-      prev.map((c) =>
+  function ensureConversation(role: ChatRole, id: string, name: string, initials: string) {
+    setByRole((prev) => {
+      const list = prev[role];
+      if (list.some((c) => c.id === id)) return prev;
+      return { ...prev, [role]: [{ id, name, initials, lastMessage: "", messages: [] }, ...list] };
+    });
+  }
+
+  function sendUserMessage(role: ChatRole, conversationId: string, text: string) {
+    setByRole((prev) => ({
+      ...prev,
+      [role]: prev[role].map((c) =>
         c.id === conversationId
           ? { ...c, lastMessage: text, messages: [...c.messages, { id: makeMessageId(), from: "me", text }] }
           : c
-      )
-    );
+      ),
+    }));
   }
 
-  function sendSystemMessage(id: string, name: string, initials: string, text: string) {
-    setConversations((prev) => {
+  function sendSystemMessage(role: ChatRole, id: string, name: string, initials: string, text: string) {
+    setByRole((prev) => {
+      const list = prev[role];
       const msg = { id: makeMessageId(), from: "them" as const, text };
-      if (prev.some((c) => c.id === id)) {
-        return prev.map((c) => (c.id === id ? { ...c, lastMessage: text, messages: [...c.messages, msg] } : c));
+      if (list.some((c) => c.id === id)) {
+        return {
+          ...prev,
+          [role]: list.map((c) => (c.id === id ? { ...c, lastMessage: text, messages: [...c.messages, msg] } : c)),
+        };
       }
-      return [{ id, name, initials, lastMessage: text, messages: [msg] }, ...prev];
+      return { ...prev, [role]: [{ id, name, initials, lastMessage: text, messages: [msg] }, ...list] };
     });
   }
 
   const value = useMemo(
-    () => ({ conversations, ensureConversation, sendUserMessage, sendSystemMessage }),
-    [conversations]
+    () => ({ getConversations, ensureConversation, sendUserMessage, sendSystemMessage }),
+    [byRole]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

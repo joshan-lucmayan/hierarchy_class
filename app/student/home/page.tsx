@@ -94,13 +94,16 @@ export default function StudentHomePage() {
 
         <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Your Weakest Subject This Semester</h2>
-          <div className="mt-4 flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border-2 border-gold bg-[var(--surface-strong)] text-lg font-bold text-navy">
-              {weakestSubject.value}
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-navy">{weakestSubject.subject}</span>
+              <span className="text-xs text-muted">{weakestSubject.statLabel} · Rank {weakestSubject.rank}</span>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-navy">{weakestSubject.subject}</p>
-              <p className="text-xs text-muted">{weakestSubject.statLabel} · Rank {weakestSubject.rank}</p>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--surface-strong)]">
+              <div
+                className="h-full rounded-full bg-red-400 transition-all"
+                style={{ width: `${weakestSubject.value}%` }}
+              />
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">A good place to focus your study time this semester.</p>

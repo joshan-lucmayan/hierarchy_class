@@ -4,7 +4,7 @@ import { MessengerView } from "@/components/chat/MessengerView";
 export default function AdminMessagesPage() {
   return (
     <Suspense fallback={null}>
-      <MessengerView />
+      <MessengerView role="admin" />
     </Suspense>
   );
 }

@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { STUDENT_DIRECTORY, TEACHER_DIRECTORY } from "@/data/mockStudents";
-import { useChatStore } from "@/lib/chatStore";
+import { useChatStore, ChatRole } from "@/lib/chatStore";
 
-export function MessengerView() {
+export function MessengerView({ role }: { role: ChatRole }) {
   const searchParams = useSearchParams();
   const withId = searchParams.get("with");
-  const { conversations, ensureConversation, sendUserMessage } = useChatStore();
+  const { getConversations, ensureConversation, sendUserMessage } = useChatStore();
+  const conversations = getConversations(role);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -25,7 +26,7 @@ export function MessengerView() {
     if (!withId) return;
     const person = STUDENT_DIRECTORY.find((s) => s.id === withId) ?? TEACHER_DIRECTORY.find((t) => t.id === withId);
     if (person) {
-      ensureConversation(withId, person.name.split(" ")[0], person.initials);
+      ensureConversation(role, withId, person.name.split(" ")[0], person.initials);
     }
     setActiveId(withId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,7 +41,7 @@ export function MessengerView() {
 
   function sendMessage() {
     if (!active || !draft.trim()) return;
-    sendUserMessage(active.id, draft);
+    sendUserMessage(role, active.id, draft);
     setDraft("");
   }
 

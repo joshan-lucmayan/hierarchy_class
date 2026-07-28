@@ -73,8 +73,24 @@ function BookModal({
 export default function LibraryPage() {
   const { books, log, requestBorrow } = useLibraryStore();
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
+  const [query, setQuery] = useState("");
+  const [genreFilter, setGenreFilter] = useState("All");
 
-  const availableBooks = useMemo(() => books.filter((book) => book.status === "available"), [books]);
+  const genres = useMemo(() => ["All", ...Array.from(new Set(books.map((b) => b.genre))).sort()], [books]);
+
+  const availableBooks = useMemo(() => {
+    const normalized = query.toLowerCase();
+    return books.filter((book) => {
+      if (book.status !== "available") return false;
+      const matchesQuery =
+        !normalized ||
+        book.title.toLowerCase().includes(normalized) ||
+        book.author.toLowerCase().includes(normalized);
+      const matchesGenre = genreFilter === "All" || book.genre === genreFilter;
+      return matchesQuery && matchesGenre;
+    });
+  }, [books, query, genreFilter]);
+
   const myActiveBooks = useMemo(
     () => books.filter((book) => book.borrowedBy === CURRENT_STUDENT.id && book.status !== "available"),
     [books]
@@ -101,7 +117,7 @@ export default function LibraryPage() {
             <h1 className="mt-2 text-3xl font-bold text-navy">System Management</h1>
           </div>
           <p className="max-w-xl text-sm text-muted">
-            Request a book to borrow — the librarian will confirm a pickup time by message.
+            Search our full catalog and request a book — the librarian will confirm a pickup time by message.
           </p>
         </div>
       </CornerFrame>
@@ -111,29 +127,50 @@ export default function LibraryPage() {
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Available books</h2>
             <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
-              {availableBooks.length} available
+              {availableBooks.length} of {books.length} in catalog
             </span>
           </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search title or author..."
+              className="flex-1 rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+            />
+            <select
+              value={genreFilter}
+              onChange={(e) => setGenreFilter(e.target.value)}
+              className="rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+            >
+              {genres.map((genre) => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
+            </select>
+          </div>
           <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
-            {availableBooks.map((book) => (
-              <button
-                key={book.id}
-                type="button"
-                onClick={() => setSelectedBook(book)}
-                className="block w-full rounded-3xl border border-base p-4 text-left transition hover:border-gold hover:bg-[var(--surface-strong)]"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-navy">{book.title}</p>
-                    <p className="mt-1 text-xs text-muted">{book.author} · {book.genre}</p>
-                    <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
+            {availableBooks.length === 0 ? (
+              <p className="text-sm text-muted">No books match your search.</p>
+            ) : (
+              availableBooks.map((book) => (
+                <button
+                  key={book.id}
+                  type="button"
+                  onClick={() => setSelectedBook(book)}
+                  className="block w-full rounded-3xl border border-base p-4 text-left transition hover:border-gold hover:bg-[var(--surface-strong)]"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-navy">{book.title}</p>
+                      <p className="mt-1 text-xs text-muted">{book.author} · {book.genre}</p>
+                      <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy">
+                      View
+                    </span>
                   </div>
-                  <span className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy">
-                    View
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
         </CornerFrame>
 
