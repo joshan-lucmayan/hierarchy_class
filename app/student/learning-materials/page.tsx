@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { LEARNING_MATERIALS } from "@/data/mockStudents";
 import { LearningMaterial } from "@/types/student";
-import { CornerFrame } from "@/components/ui/CornerFrame";
 
 const SUBJECT_OPTIONS = ["All", "Mathematics", "English", "Science", "PE"];
 const GRADE_OPTIONS = ["All", "9", "10"];
@@ -24,79 +23,69 @@ export default function LearningMaterialsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Learning Materials</p>
-            <h1 className="mt-2 text-3xl font-bold text-navy">Browse resources</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-              Filter by grade level and subject to find the resources your teachers uploaded.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <select
-              value={subjectFilter}
-              onChange={(e) => setSubjectFilter(e.target.value)}
-              className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
-            >
-              {SUBJECT_OPTIONS.map((subject) => (
-                <option key={subject} value={subject}>{subject}</option>
-              ))}
-            </select>
-            <select
-              value={gradeFilter}
-              onChange={(e) => setGradeFilter(e.target.value)}
-              className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
-            >
-              {GRADE_OPTIONS.map((grade) => (
-                <option key={grade} value={grade}>{grade === "All" ? "All grades" : `Grade ${grade}`}</option>
-              ))}
-            </select>
-          </div>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-6">
+          <select
+            value={subjectFilter}
+            onChange={(e) => setSubjectFilter(e.target.value)}
+            className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-gold"
+          >
+            {SUBJECT_OPTIONS.map((subject) => (
+              <option key={subject} value={subject}>{subject}</option>
+            ))}
+          </select>
+          <select
+            value={gradeFilter}
+            onChange={(e) => setGradeFilter(e.target.value)}
+            className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-gold"
+          >
+            {GRADE_OPTIONS.map((grade) => (
+              <option key={grade} value={grade}>{grade === "All" ? "All grades" : `Grade ${grade}`}</option>
+            ))}
+          </select>
         </div>
-      </CornerFrame>
+        <span className="text-xs font-semibold text-muted">
+          {materials.length} resource{materials.length === 1 ? "" : "s"}
+        </span>
+      </div>
 
       {materials.length === 0 ? (
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 text-muted shadow-card">
-          No matching learning materials found. Try a different grade or subject filter.
-        </CornerFrame>
+        <p className="text-sm text-muted">No matching learning materials found. Try a different grade or subject filter.</p>
       ) : (
-        <section className="grid gap-4 xl:grid-cols-2">
+        <div className="divide-y divide-[var(--border)]">
           {materials.map((material: LearningMaterial) => (
-            <CornerFrame key={material.id} className="rounded-3xl border border-base bg-surface p-6 shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg">
+            <div key={material.id} className="py-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.25em] text-muted">{material.subject}</p>
-                  <h2 className="mt-3 text-lg font-semibold text-navy">{material.title}</h2>
+                  <h2 className="mt-2 text-lg font-semibold text-navy">{material.title}</h2>
                 </div>
-                <span className="rounded-full border border-gold bg-[var(--surface-strong)] px-3 py-1 text-[11px] font-semibold text-navy">
+                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-gold">
                   {material.type}
                 </span>
               </div>
-              <p className="mt-4 text-sm leading-6 text-muted">{material.description}</p>
-              <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted">
+              <p className="mt-3 text-sm leading-6 text-muted">{material.description}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
                 <span>Grade {material.gradeLevel}</span>
                 <span>Uploaded by {material.uploadedBy}</span>
-                <span>• {material.uploadDate}</span>
+                <span>{material.uploadDate}</span>
               </div>
-              <div className="mt-5">
-                <button
-                  type="button"
-                  onClick={() => setOpenId(openId === material.id ? null : material.id)}
-                  className="inline-flex items-center rounded-full border border-base bg-surface px-4 py-2 text-sm font-semibold text-navy transition hover:border-gold"
-                >
-                  {openId === material.id ? "Close resource" : "Open resource"}
-                </button>
-                {openId === material.id && (
-                  <p className="mt-3 rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-sm text-muted">
-                    File isn&apos;t connected yet — this will open the actual {material.type.toLowerCase()} once uploads are wired up to storage.
-                  </p>
-                )}
-              </div>
-            </CornerFrame>
+              <button
+                type="button"
+                onClick={() => setOpenId(openId === material.id ? null : material.id)}
+                className="mt-4 text-xs font-semibold text-muted transition hover:text-gold"
+              >
+                {openId === material.id ? "Close resource ↑" : "Open resource →"}
+              </button>
+              {openId === material.id && (
+                <p className="mt-3 text-xs text-muted">
+                  File isn&apos;t connected yet - this will open the actual {material.type.toLowerCase()} once uploads are wired up to storage.
+                </p>
+              )}
+            </div>
           ))}
-        </section>
+        </div>
       )}
     </div>
   );

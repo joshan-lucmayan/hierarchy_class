@@ -29,7 +29,7 @@ export default function StudentHomePage() {
       </section>
 
       <aside className="space-y-6">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+        <div className="pb-2">
           <div className="flex flex-col items-center text-center">
             <p className="text-xs text-muted">Grade {student.gradeLevel} · {student.section} · {student.quarter}</p>
 
@@ -71,7 +71,7 @@ export default function StudentHomePage() {
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Academic Excellence</p>
             </div>
           </div>
-        </CornerFrame>
+        </div>
 
         <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Stat Snapshot</h2>

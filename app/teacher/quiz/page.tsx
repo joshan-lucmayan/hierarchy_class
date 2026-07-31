@@ -58,7 +58,7 @@ export default function TeacherQuizPage() {
     });
     setTitle("");
     setQuestions([emptyQuestion()]);
-    setMessage("Quiz published — students in this grade can now play it.");
+    setMessage("Quiz published - students in this grade can now play it.");
   }
 
   return (

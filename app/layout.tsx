@@ -6,7 +6,7 @@ import { LibraryProvider } from "@/lib/libraryStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
-  description: "Climb the ranks — gamified academic tracking for Grade 1-10 students",
+  description: "Climb the ranks - gamified academic tracking for Grade 1-10 students",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

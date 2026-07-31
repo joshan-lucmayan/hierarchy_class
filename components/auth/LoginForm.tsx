@@ -47,7 +47,7 @@ export function LoginForm() {
         !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       if (!supabaseConfigured) {
-        // TEMP: no Supabase project wired up yet — simulate the network delay
+        // TEMP: no Supabase project wired up yet - simulate the network delay
         // so the full click-through (including the loading state) still works.
         await new Promise((resolve) => setTimeout(resolve, 700));
         window.location.href = "/student/home";

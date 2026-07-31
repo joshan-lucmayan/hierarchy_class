@@ -111,7 +111,7 @@ export const LIBRARY_BOOKS: LibraryBook[] = [
     title: "Science Explorer: Physics",
     author: "Anna V. Lee",
     genre: "Reference",
-    description: "A visual guide to core physics concepts — motion, energy, and forces — explained with real-world examples.",
+    description: "A visual guide to core physics concepts - motion, energy, and forces - explained with real-world examples.",
     status: "borrowed",
     borrowedBy: "s-001",
     borrowedByName: "Miguel Santos",
@@ -169,7 +169,7 @@ export const LIBRARY_BOOKS: LibraryBook[] = [
     title: "The Chemistry of Everyday Life",
     author: "Dr. Liza Montano",
     genre: "Science",
-    description: "Explains the chemistry behind everyday things — cooking, cleaning, weather — in plain language.",
+    description: "Explains the chemistry behind everyday things - cooking, cleaning, weather - in plain language.",
     status: "available",
   },
   {

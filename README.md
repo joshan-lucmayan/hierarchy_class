@@ -4,8 +4,8 @@
 
 Hierarchy Class is a gamified academic tracking platform for students,
 teachers, and admins following the Philippine DepEd curriculum for Grades
-1–10. It reimagines the school report card as an RPG-style character
-sheet — academic subjects and personal attributes are converted into
+1-10. It reimagines the school report card as an RPG-style character
+sheet - academic subjects and personal attributes are converted into
 stats and tiered ranks (S++, S, A, B, C, D), similar to a game character
 profile, while grading data itself remains strictly controlled by
 teachers and administrators.
@@ -14,7 +14,7 @@ The platform blends the customization and social feel of a profile-based
 app with the structure and accountability of a school information
 system.
 
-**Current version:** `0.1.2` (frontend/UI phase — see [Project status](#project-status))
+**Current version:** `0.1.2` (frontend/UI phase - see [Project status](#project-status))
 
 ## Concept
 
@@ -28,12 +28,12 @@ Stats are ranked on a tier scale (S++, S, A, B, C, D), and an overall
 composite **Academic Excellence** score reflects a student's standing
 across all subjects. Alongside academic performance, a **Social** stat
 (internally tracked as `charisma`) captures social and engagement
-activity — participation, library use, event attendance.
+activity - participation, library use, event attendance.
 
-Students cannot edit their own grades or ranks — those are fed
+Students cannot edit their own grades or ranks - those are fed
 exclusively by teachers and confirmed by admins. What students *can*
 customize is their bio, hobbies, interests, favorite subject,
-self-assigned tags (e.g. "Math Wizard"), and their profile picture —
+self-assigned tags (e.g. "Math Wizard"), and their profile picture -
 similar to a social media profile, but layered on top of verified
 academic data. Sensitive information (home address, contact details) is
 never displayed on any profile, public or private.
@@ -42,7 +42,7 @@ never displayed on any profile, public or private.
 
 Search profiles include a "Send Charisma" flow where one student can
 gift another a real-money coin package that boosts the recipient's
-Social stat — similar to in-game currency systems (e.g. diamonds in
+Social stat - similar to in-game currency systems (e.g. diamonds in
 MLBB). **This is currently a UI-only preview**: the coin packages and
 "Sent!" confirmation are mocked, and no real payment processor, wallet,
 or ledger is wired up yet. That integration is scoped as a separate
@@ -76,7 +76,7 @@ deletion request)
 
 ## Navigation
 
-- Persistent collapsible left sidebar on desktop — icon-only by
+- Persistent collapsible left sidebar on desktop - icon-only by
   default, expands to show labels on hover, with a pin toggle to keep it
   expanded. A bottom tab bar is used on mobile instead.
 - A notification bell in the top header replaces the old inline
@@ -84,12 +84,12 @@ deletion request)
 - Dark mode is the default appearance; it's toggled from Settings and
   persists across navigation and reloads (only changes when the user
   explicitly switches it).
-- Messaging is a dedicated full page (`/[role]/messages`), not a popup —
+- Messaging is a dedicated full page (`/[role]/messages`), not a popup -
   contact list on the left, conversation thread on the right.
 
 ## Design direction
 
-The tone sits between a game character sheet and a school portal —
+The tone sits between a game character sheet and a school portal -
 gamified, but professional and school-appropriate rather than a
 hardcore RPG aesthetic. Visual language includes stat bars, animated
 rank badges, and tier-based color coding (blue for academic stats, red
@@ -106,7 +106,7 @@ layout patterns, populated with role-appropriate content.
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Charts:** Recharts (stat radar visualization)
-- **Backend / Auth / Database:** Supabase (Postgres, Row-Level Security, Auth) — client is wired up, but most screens still run on local mock data (see below)
+- **Backend / Auth / Database:** Supabase (Postgres, Row-Level Security, Auth) - client is wired up, but most screens still run on local mock data (see below)
 - **Hosting:** Vercel
 
 ## Project status

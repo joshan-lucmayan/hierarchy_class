@@ -5,7 +5,7 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AdminSettingsPage() {
-  const [schoolName, setSchoolName] = useState("CSA – College of Saint Amateil");
+  const [schoolName, setSchoolName] = useState("CSA - College of Saint Amateil");
   const [academicYear, setAcademicYear] = useState("2026-2027");
   const [enableNotifications, setEnableNotifications] = useState(true);
   const [autoEnrollment, setAutoEnrollment] = useState(false);

@@ -14,7 +14,7 @@ function ApproveRow({
   onApprove: (id: string, pickupWindow: string) => void;
   onDecline: (id: string) => void;
 }) {
-  const [pickupWindow, setPickupWindow] = useState("Today, 2:00 PM – 4:00 PM at the Library Desk");
+  const [pickupWindow, setPickupWindow] = useState("Today, 2:00 PM - 4:00 PM at the Library Desk");
 
   return (
     <div className="rounded-3xl border border-base p-4">
@@ -30,7 +30,7 @@ function ApproveRow({
         <input
           value={pickupWindow}
           onChange={(e) => setPickupWindow(e.target.value)}
-          placeholder="Pickup window, e.g. Today 2–4 PM"
+          placeholder="Pickup window, e.g. Today 2-4 PM"
           className="flex-1 rounded-2xl border border-base bg-surface px-4 py-2 text-sm text-navy outline-none focus:border-gold"
         />
         <div className="flex gap-2">
@@ -125,7 +125,7 @@ export default function LibraryManagementPage() {
       <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Book history lookup</h2>
         <p className="text-xs text-muted">
-          Search a book title to see everyone who has borrowed it — useful for tracking down a missing copy.
+          Search a book title to see everyone who has borrowed it - useful for tracking down a missing copy.
         </p>
         <input
           value={searchQuery}

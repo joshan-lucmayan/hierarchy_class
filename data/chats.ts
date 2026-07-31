@@ -73,7 +73,7 @@ export const TEACHER_CONVERSATIONS: Conversation[] = [
     initials: "MC",
     lastMessage: "Thank you for the update on Andrea's progress.",
     messages: [
-      { id: "m1", from: "me", text: "Hi Mrs. Cruz, Andrea's Science grade improved this quarter — great work on her part." },
+      { id: "m1", from: "me", text: "Hi Mrs. Cruz, Andrea's Science grade improved this quarter - great work on her part." },
       { id: "m2", from: "them", text: "Thank you for the update on Andrea's progress." },
     ],
   },

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CornerFrame } from "@/components/ui/CornerFrame";
 import { useQuizStore, Quiz } from "@/lib/quizStore";
 import { CURRENT_STUDENT } from "@/data/mockStudents";
 
@@ -76,33 +75,36 @@ export default function StudentQuizPage() {
 
     return (
       <div className="mx-auto max-w-xl">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
-          <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-base pb-4">
+          <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{activeQuiz.title}</p>
-            <span className={`rounded-full px-3 py-1 text-sm font-bold ${timeLeft <= 10 ? "bg-red-500/15 text-red-600" : "bg-[var(--surface-strong)] text-navy"}`}>
-              {minutes}:{seconds.toString().padStart(2, "0")}
-            </span>
+            <p className="mt-1 text-xs text-muted">
+              Question {questionIndex + 1} of {activeQuiz.questions.length}
+            </p>
           </div>
-          <p className="mt-2 text-xs text-muted">
-            Question {questionIndex + 1} of {activeQuiz.questions.length}
-          </p>
-        </CornerFrame>
+          <span className={`text-sm font-bold ${timeLeft <= 10 ? "text-red-600" : "text-navy"}`}>
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </span>
+        </div>
 
-        <CornerFrame className="mt-6 rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <div className="mt-6">
           <p className="text-lg font-semibold text-navy">{question.question}</p>
-          <div className="mt-5 space-y-3">
+          <div className="mt-5 divide-y divide-[var(--border)]">
             {question.options.map((opt, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => selectAnswer(i)}
-                className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                  answers[questionIndex] === i
-                    ? "border-gold bg-[var(--surface-strong)] font-semibold text-navy"
-                    : "border-base bg-surface text-navy hover:border-gold"
-                }`}
+                className="flex w-full items-center gap-3 py-3.5 text-left text-sm transition"
               >
-                {opt}
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${
+                    answers[questionIndex] === i ? "bg-gold" : "border border-base"
+                  }`}
+                />
+                <span className={answers[questionIndex] === i ? "font-semibold text-navy" : "text-navy"}>
+                  {opt}
+                </span>
               </button>
             ))}
           </div>
@@ -114,7 +116,7 @@ export default function StudentQuizPage() {
           >
             {questionIndex < activeQuiz.questions.length - 1 ? "Next question" : "Submit quiz"}
           </button>
-        </CornerFrame>
+        </div>
       </div>
     );
   }
@@ -122,52 +124,44 @@ export default function StudentQuizPage() {
   if (result) {
     const bonus = Math.round((result.score / result.total) * 3);
     return (
-      <div className="mx-auto max-w-xl">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-8 text-center shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz complete</p>
-          <p className="mt-3 text-4xl font-bold text-navy">{result.score} / {result.total}</p>
-          <p className="mt-2 text-sm text-muted">+{bonus} pts added toward your rank</p>
-          <button
-            type="button"
-            onClick={() => { setActiveQuiz(null); setResult(null); }}
-            className="mt-6 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
-          >
-            Back to quizzes
-          </button>
-        </CornerFrame>
+      <div className="mx-auto max-w-xl py-10 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz complete</p>
+        <p className="mt-3 text-5xl font-bold text-navy">{result.score} / {result.total}</p>
+        <p className="mt-2 text-sm text-muted">+{bonus} pts added toward your rank</p>
+        <button
+          type="button"
+          onClick={() => { setActiveQuiz(null); setResult(null); }}
+          className="mt-6 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+        >
+          Back to quizzes
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz</p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">Test your knowledge</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          Play anytime. Your score contributes to your Academic Excellence rank.
-        </p>
-      </CornerFrame>
+    <div className="space-y-8">
+      <p className="text-sm text-muted">Play anytime. Your score contributes to your Academic Excellence rank.</p>
 
       {available.length === 0 ? (
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 text-muted shadow-card">
-          No quizzes available for your grade yet. Check back soon.
-        </CornerFrame>
+        <p className="text-sm text-muted">No quizzes available for your grade yet. Check back soon.</p>
       ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="divide-y divide-[var(--border)]">
           {available.map((quiz) => (
-            <CornerFrame key={quiz.id} className="rounded-3xl border border-base bg-surface p-6 shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg">
-              <p className="text-xs uppercase tracking-[0.25em] text-muted">{quiz.subject}</p>
-              <p className="mt-2 text-lg font-semibold text-navy">{quiz.title}</p>
-              <p className="mt-2 text-sm text-muted">{quiz.questions.length} questions · {quiz.timeLimitSeconds}s timer</p>
+            <div key={quiz.id} className="flex items-center justify-between gap-4 py-5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-muted">{quiz.subject}</p>
+                <p className="mt-1 text-lg font-semibold text-navy">{quiz.title}</p>
+                <p className="mt-1 text-sm text-muted">{quiz.questions.length} questions · {quiz.timeLimitSeconds}s timer</p>
+              </div>
               <button
                 type="button"
                 onClick={() => startQuiz(quiz)}
-                className="mt-4 inline-flex items-center rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+                className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
               >
                 Start quiz
               </button>
-            </CornerFrame>
+            </div>
           ))}
         </div>
       )}

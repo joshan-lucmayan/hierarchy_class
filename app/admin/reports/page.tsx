@@ -11,9 +11,9 @@ const SUMMARY_STATS = [
 
 const RECENT_REPORTS = [
   { id: "r1", title: "Q3 academic performance summary", school: "CSA", date: "2026-07-18", type: "Performance" },
-  { id: "r2", title: "Cafeteria incident — Grade 9", school: "CSA", date: "2026-07-15", type: "Incident" },
+  { id: "r2", title: "Cafeteria incident - Grade 9", school: "CSA", date: "2026-07-15", type: "Incident" },
   { id: "r3", title: "Teacher feedback: Ms. Fernandez", school: "CSA", date: "2026-07-12", type: "Feedback" },
-  { id: "r4", title: "Enrollment audit — new campus", school: "GIS", date: "2026-07-09", type: "Audit" },
+  { id: "r4", title: "Enrollment audit - new campus", school: "GIS", date: "2026-07-09", type: "Audit" },
 ];
 
 const TYPE_STYLES: Record<string, string> = {

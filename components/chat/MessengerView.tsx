@@ -92,7 +92,7 @@ export function MessengerView({ role }: { role: ChatRole }) {
             </div>
             <div className="flex-1 space-y-3 overflow-y-auto p-5">
               {active.messages.length === 0 ? (
-                <p className="text-center text-sm text-muted">No messages yet — say hi!</p>
+                <p className="text-center text-sm text-muted">No messages yet - say hi!</p>
               ) : (
                 active.messages.map((m) => (
                   <div key={m.id} className={`flex ${m.from === "me" ? "justify-end" : "justify-start"}`}>

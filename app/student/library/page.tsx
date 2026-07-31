@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { CURRENT_STUDENT } from "@/data/mockStudents";
 import { LibraryBook } from "@/types/student";
-import { CornerFrame } from "@/components/ui/CornerFrame";
 import { useLibraryStore } from "@/lib/libraryStore";
 
 function statusLabel(book: LibraryBook, isMine: boolean) {
@@ -28,19 +27,23 @@ function BookModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-3xl border-2 border-gold bg-surface p-6 shadow-xl"
+        className="w-full max-w-md rounded-2xl bg-surface p-7 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{book.genre}</p>
-          <button type="button" onClick={onClose} className="text-muted">✕</button>
+          <div>
+            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{book.genre}</p>
+          </div>
+          <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
         </div>
         <h2 className="mt-2 text-2xl font-bold text-navy">{book.title}</h2>
         <p className="mt-1 text-sm text-muted">by {book.author}</p>
         <p className="mt-4 text-sm leading-6 text-muted">{book.description}</p>
 
         {label && (
-          <p className="mt-4 rounded-2xl border border-base bg-[var(--surface-strong)] p-3 text-xs text-muted">
+          <p className="mt-4 flex items-center gap-2 text-xs text-muted">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
             {label}
           </p>
         )}
@@ -109,126 +112,108 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Library</p>
-            <h1 className="mt-2 text-3xl font-bold text-navy">System Management</h1>
-          </div>
-          <p className="max-w-xl text-sm text-muted">
-            Search our full catalog and request a book — the librarian will confirm a pickup time by message.
-          </p>
-        </div>
-      </CornerFrame>
-
-      <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
+    <div className="space-y-8">
+      <section className="grid gap-10 xl:grid-cols-[1.2fr_0.8fr] xl:divide-x xl:divide-[var(--border)]">
+        <div className="space-y-4 xl:pr-10">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Available books</h2>
-            <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
-              {availableBooks.length} of {books.length} in catalog
+            <span className="text-xs font-semibold text-muted">
+              {availableBooks.length} of {books.length}
             </span>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search title or author..."
-              className="flex-1 rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="flex-1 border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none placeholder:text-muted focus:border-gold"
             />
             <select
               value={genreFilter}
               onChange={(e) => setGenreFilter(e.target.value)}
-              className="rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none focus:border-gold"
             >
               {genres.map((genre) => (
                 <option key={genre} value={genre}>{genre}</option>
               ))}
             </select>
           </div>
-          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
+          <div className="max-h-[420px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
             {availableBooks.length === 0 ? (
-              <p className="text-sm text-muted">No books match your search.</p>
+              <p className="py-4 text-sm text-muted">No books match your search.</p>
             ) : (
               availableBooks.map((book) => (
                 <button
                   key={book.id}
                   type="button"
                   onClick={() => setSelectedBook(book)}
-                  className="block w-full rounded-3xl border border-base p-4 text-left transition hover:border-gold hover:bg-[var(--surface-strong)]"
+                  className="group flex w-full items-start justify-between gap-4 py-4 text-left transition hover:bg-[var(--surface-strong)]"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-navy">{book.title}</p>
-                      <p className="mt-1 text-xs text-muted">{book.author} · {book.genre}</p>
-                      <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
-                    </div>
-                    <span className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy">
-                      View
-                    </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-navy">{book.title}</p>
+                    <p className="mt-1 text-xs text-muted">{book.author} · {book.genre}</p>
+                    <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
                   </div>
+                  <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
+                    View →
+                  </span>
                 </button>
               ))
             )}
           </div>
-        </CornerFrame>
+        </div>
 
-        <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <div className="space-y-4 xl:pl-10">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">My requests &amp; loans</h2>
-            <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
-              {myActiveBooks.length}
-            </span>
+            <span className="text-xs font-semibold text-muted">{myActiveBooks.length}</span>
           </div>
-          <div className="space-y-3">
+          <div className="divide-y divide-[var(--border)]">
             {myActiveBooks.length === 0 ? (
-              <p className="text-sm text-muted">No pending requests or borrowed books right now.</p>
+              <p className="py-4 text-sm text-muted">No pending requests or borrowed books right now.</p>
             ) : (
               myActiveBooks.map((book) => (
                 <button
                   key={book.id}
                   type="button"
                   onClick={() => setSelectedBook(book)}
-                  className="block w-full rounded-3xl border border-base p-4 text-left transition hover:border-gold hover:bg-[var(--surface-strong)]"
+                  className="group flex w-full items-start justify-between gap-4 py-4 text-left transition hover:bg-[var(--surface-strong)]"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-navy">{book.title}</p>
-                      <p className="mt-1 text-xs text-muted">{statusLabel(book, true)}</p>
-                    </div>
-                    <span className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy">
-                      View
-                    </span>
+                  <div>
+                    <p className="text-sm font-semibold text-navy">{book.title}</p>
+                    <p className="mt-1 text-xs text-muted">{statusLabel(book, true)}</p>
                   </div>
+                  <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
+                    View →
+                  </span>
                 </button>
               ))
             )}
           </div>
-        </CornerFrame>
+        </div>
       </section>
 
-      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+      <section className="space-y-4 border-t border-base pt-8">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Borrow history</h2>
-        <p className="mt-1 text-xs text-muted">Everything you&apos;ve borrowed and returned this semester.</p>
-        <div className="mt-4 max-h-[320px] space-y-3 overflow-y-auto pr-1">
+        <p className="text-xs text-muted">Everything you&apos;ve borrowed and returned this semester.</p>
+        <div className="max-h-[320px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
           {myHistory.length === 0 ? (
-            <p className="text-sm text-muted">No borrow history yet.</p>
+            <p className="py-4 text-sm text-muted">No borrow history yet.</p>
           ) : (
             myHistory.map((record) => (
-              <div key={record.id} className="rounded-3xl border border-base p-4">
-                <div className="flex items-center justify-between gap-4 text-sm">
+              <div key={record.id} className="flex items-center justify-between gap-4 py-4 text-sm">
+                <div>
                   <p className="font-semibold text-navy">{record.bookTitle}</p>
-                  <span className="text-muted">{record.borrowedDate}</span>
+                  <p className="mt-1 text-xs text-muted">
+                    {record.returnedDate ? `Returned ${record.returnedDate}` : "Still out"}
+                  </p>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted">
-                  <span>{record.returnedDate ? `Returned ${record.returnedDate}` : "Still out"}</span>
-                </div>
+                <span className="shrink-0 text-xs text-muted">{record.borrowedDate}</span>
               </div>
             ))
           )}
         </div>
-      </CornerFrame>
+      </section>
 
       {selectedBook && (
         <BookModal

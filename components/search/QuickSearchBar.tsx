@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { STUDENT_DIRECTORY, TEACHER_DIRECTORY } from "@/data/mockStudents";
 import { StudentDirectoryEntry } from "@/types/student";
@@ -14,6 +14,8 @@ const COIN_PACKAGES = [
   { coins: 50, price: 199 },
   { coins: 100, price: 349 },
 ];
+
+const RESULT_LIMIT = 5;
 
 function SendCharismaModal({ student, onClose }: { student: StudentDirectoryEntry; onClose: () => void }) {
   const [selected, setSelected] = useState(COIN_PACKAGES[1].coins);
@@ -218,79 +220,15 @@ function TeacherModal({
   );
 }
 
-function ProfileCard({
-  student,
-  isFriend,
-  onToggleFriend,
-  onOpenProfile,
-}: {
-  student: StudentDirectoryEntry;
-  isFriend: boolean;
-  onToggleFriend: (id: string) => void;
-  onOpenProfile: (student: StudentDirectoryEntry) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <button
-        type="button"
-        onClick={() => onOpenProfile(student)}
-        className="flex flex-1 min-w-0 items-center gap-3 text-left"
-      >
-        <img src="/avatars/default-avatar.webp" alt={student.name} className="h-12 w-12 shrink-0 rounded-full object-cover" />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-navy">{student.name}</p>
-          <p className="text-xs text-muted">Grade {student.gradeLevel} · {student.section}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <RankBadge rank={student.overallRank} size="sm" />
-            <span className="text-xs text-muted">{student.favoriteSubject}</span>
-          </div>
-        </div>
-      </button>
-      <button
-        type="button"
-        onClick={() => onToggleFriend(student.id)}
-        className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
-          isFriend
-            ? "border border-base bg-surface text-muted hover:border-red-400 hover:text-red-600"
-            : "bg-gold text-navy hover:opacity-90"
-        }`}
-      >
-        {isFriend ? "Friends" : "Add Friend"}
-      </button>
-    </div>
-  );
-}
-
-function TeacherCard({
-  teacher,
-  onOpenProfile,
-}: {
-  teacher: TeacherEntry;
-  onOpenProfile: (teacher: TeacherEntry) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onOpenProfile(teacher)}
-      className="flex w-full items-center gap-3 py-4 text-left"
-    >
-      <img src="/avatars/default-avatar.webp" alt={teacher.name} className="h-12 w-12 shrink-0 rounded-full object-cover" />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-navy">{teacher.name}</p>
-        <p className="text-xs text-muted">{teacher.subject} Teacher · {teacher.office}</p>
-        <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-gold">Faculty</p>
-      </div>
-    </button>
-  );
-}
-
-export default function SearchPage() {
+export function QuickSearchBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
   const [friendIds, setFriendIds] = useState<string[]>(["s-010", "s-014", "s-022", "s-042"]);
   const [openProfile, setOpenProfile] = useState<StudentDirectoryEntry | null>(null);
   const [openTeacherProfile, setOpenTeacherProfile] = useState<TeacherEntry | null>(null);
   const [charismaTarget, setCharismaTarget] = useState<StudentDirectoryEntry | null>(null);
+  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function toggleFriend(id: string) {
     setFriendIds((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
@@ -307,66 +245,111 @@ export default function SearchPage() {
   }
 
   const studentResults = useMemo(() => {
+    if (!query.trim()) return [];
     const normalized = query.toLowerCase();
-    return STUDENT_DIRECTORY.filter((student) =>
-      student.name.toLowerCase().includes(normalized) ||
-      student.section.toLowerCase().includes(normalized) ||
-      student.favoriteSubject.toLowerCase().includes(normalized)
-    );
+    return STUDENT_DIRECTORY.filter(
+      (student) =>
+        student.name.toLowerCase().includes(normalized) ||
+        student.section.toLowerCase().includes(normalized) ||
+        student.favoriteSubject.toLowerCase().includes(normalized)
+    ).slice(0, RESULT_LIMIT);
   }, [query]);
 
   const teacherResults = useMemo(() => {
+    if (!query.trim()) return [];
     const normalized = query.toLowerCase();
-    return TEACHER_DIRECTORY.filter((teacher) =>
-      teacher.name.toLowerCase().includes(normalized) ||
-      teacher.subject.toLowerCase().includes(normalized) ||
-      teacher.office.toLowerCase().includes(normalized)
-    );
+    return TEACHER_DIRECTORY.filter(
+      (teacher) =>
+        teacher.name.toLowerCase().includes(normalized) ||
+        teacher.subject.toLowerCase().includes(normalized) ||
+        teacher.office.toLowerCase().includes(normalized)
+    ).slice(0, RESULT_LIMIT);
   }, [query]);
 
+  const showDropdown = focused && query.trim().length > 0;
   const hasResults = studentResults.length > 0 || teacherResults.length > 0;
 
+  function handleFocus() {
+    if (blurTimeout.current) clearTimeout(blurTimeout.current);
+    setFocused(true);
+  }
+
+  function handleBlur() {
+    blurTimeout.current = setTimeout(() => setFocused(false), 150);
+  }
+
+  function openStudent(student: StudentDirectoryEntry) {
+    if (blurTimeout.current) clearTimeout(blurTimeout.current);
+    setOpenProfile(student);
+    setFocused(false);
+  }
+
+  function openTeacher(teacher: TeacherEntry) {
+    if (blurTimeout.current) clearTimeout(blurTimeout.current);
+    setOpenTeacherProfile(teacher);
+    setFocused(false);
+  }
+
   return (
-    <div className="space-y-8">
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by name, section, or subject..."
-        className="w-full max-w-md border-b border-base bg-transparent px-1 py-2 text-sm text-navy placeholder:text-muted outline-none focus:border-gold"
-      />
+    <div className="relative">
+      <div className="relative">
+        <svg
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder="Search Hierarchy Class"
+          className="w-full rounded-full bg-[var(--surface-strong)] py-2.5 pl-11 pr-4 text-sm text-navy placeholder:text-muted outline-none transition focus:ring-1 focus:ring-gold"
+        />
+      </div>
 
-      {!hasResults ? (
-        <p className="text-sm text-muted">No matching profiles found.</p>
-      ) : (
-        <>
-          {studentResults.length > 0 && (
-            <section className="space-y-1">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Students</h2>
-              <div className="divide-y divide-[var(--border)]">
-                {studentResults.map((student) => (
-                  <ProfileCard
-                    key={student.id}
-                    student={student}
-                    isFriend={friendIds.includes(student.id)}
-                    onToggleFriend={toggleFriend}
-                    onOpenProfile={setOpenProfile}
-                  />
-                ))}
-              </div>
-            </section>
+      {showDropdown && (
+        <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-96 overflow-y-auto rounded-2xl bg-surface py-2 shadow-2xl">
+          {!hasResults ? (
+            <p className="px-4 py-3 text-sm text-muted">No matching profiles found.</p>
+          ) : (
+            <>
+              {studentResults.map((student) => (
+                <button
+                  key={student.id}
+                  type="button"
+                  onClick={() => openStudent(student)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)]"
+                >
+                  <img src="/avatars/default-avatar.webp" alt={student.name} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-navy">{student.name}</p>
+                    <p className="truncate text-xs text-muted">Grade {student.gradeLevel} · {student.section}</p>
+                  </div>
+                </button>
+              ))}
+              {teacherResults.map((teacher) => (
+                <button
+                  key={teacher.id}
+                  type="button"
+                  onClick={() => openTeacher(teacher)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)]"
+                >
+                  <img src="/avatars/default-avatar.webp" alt={teacher.name} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-navy">{teacher.name}</p>
+                    <p className="truncate text-xs text-gold">{teacher.subject} Teacher</p>
+                  </div>
+                </button>
+              ))}
+            </>
           )}
-
-          {teacherResults.length > 0 && (
-            <section className="space-y-1 border-t border-base pt-6">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Teachers</h2>
-              <div className="divide-y divide-[var(--border)]">
-                {teacherResults.map((teacher) => (
-                  <TeacherCard key={teacher.id} teacher={teacher} onOpenProfile={setOpenTeacherProfile} />
-                ))}
-              </div>
-            </section>
-          )}
-        </>
+        </div>
       )}
 
       {openProfile && (
