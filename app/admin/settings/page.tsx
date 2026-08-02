@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BannerEditor } from "@/components/admin/BannerEditor";
 
 export default function AdminSettingsPage() {
   const [schoolName, setSchoolName] = useState("CSA - College of Saint Amateil");
@@ -37,6 +38,13 @@ export default function AdminSettingsPage() {
             <p className="mt-1 text-xs text-muted">Switch between light and dark theme.</p>
           </div>
           <ThemeToggle />
+        </div>
+      </CornerFrame>
+
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Site banner</h2>
+        <div className="mt-4">
+          <BannerEditor />
         </div>
       </CornerFrame>
 

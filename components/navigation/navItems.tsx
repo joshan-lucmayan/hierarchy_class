@@ -57,16 +57,6 @@ export const STUDENT_NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    href: "/student/search",
-    label: "Search",
-    icon: (active) => (
-      <svg {...iconProps(active)}>
-        <circle cx="11" cy="11" r="7" />
-        <path d="M21 21l-4.35-4.35" />
-      </svg>
-    ),
-  },
-  {
     href: "/student/quiz",
     label: "Quiz",
     icon: (active) => (

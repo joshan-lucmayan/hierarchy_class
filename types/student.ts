@@ -19,6 +19,7 @@ export interface StudentProfile {
   quarter: string; // e.g. "4th Quarter"
   overallRank: TierRank;
   academicExcellence: number; // 0-100 composite
+  florinBalance: number; // Florin coins, the app's gifting currency
   stats: Record<StatCategory, number>; // 0-100 each
   subjectStats: SubjectStat[];
   bio: string;

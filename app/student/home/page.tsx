@@ -2,6 +2,7 @@ import { RankBadge } from "@/components/ui/RankBadge";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FriendsStories } from "@/components/feed/FriendsStories";
+import { QuickSearchBar } from "@/components/search/QuickSearchBar";
 import { CURRENT_STUDENT } from "@/data/mockStudents";
 import { SCHOOL_POSTS } from "@/data/schoolFeed";
 
@@ -15,7 +16,12 @@ export default function StudentHomePage() {
   const weakestSubject = student.subjectStats.reduce((lowest, s) => (s.value < lowest.value ? s : lowest), student.subjectStats[0]);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.7fr_0.9fr]">
+    <div className="space-y-6">
+      <div className="mx-auto w-full max-w-md xl:mx-0">
+        <QuickSearchBar />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.7fr_0.9fr]">
       <section className="space-y-4">
         <FriendsStories />
 
@@ -109,6 +115,7 @@ export default function StudentHomePage() {
           <p className="mt-3 text-xs text-muted">A good place to focus your study time this semester.</p>
         </CornerFrame>
       </aside>
+      </div>
     </div>
   );
 }

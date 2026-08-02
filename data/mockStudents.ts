@@ -20,6 +20,7 @@ export const CURRENT_STUDENT: StudentProfile = {
   quarter: CURRENT_QUARTER,
   overallRank: "S",
   academicExcellence: 91,
+  florinBalance: 120,
   stats: { academic: 88, physical: 72, charisma: 80 },
   subjectStats: [
     { subject: "Mathematics", statLabel: "Logic", category: "academic", value: 92, rank: "S" },

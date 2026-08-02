@@ -58,7 +58,7 @@ export function AppShell({
         style={{ ["--sidebar-gap" as string]: expanded ? "280px" : "100px" }}
         className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-24 transition-[padding-left] duration-300 ease-in-out xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-6"
       >
-        <SiteHeader href={brandHref} />
+        <SiteHeader href={brandHref} showFlorin={role === "student"} />
         <main className="flex-1 rounded-[28px] border border-base bg-surface p-6 pb-24 xl:p-8 xl:pb-8">
           {children}
         </main>

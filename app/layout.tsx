@@ -3,6 +3,8 @@ import "./globals.css";
 import { QuizProvider } from "@/lib/quizStore";
 import { ChatProvider } from "@/lib/chatStore";
 import { LibraryProvider } from "@/lib/libraryStore";
+import { BannerProvider } from "@/lib/bannerStore";
+import { FlorinProvider } from "@/lib/florinStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
@@ -31,7 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <QuizProvider>
           <ChatProvider>
-            <LibraryProvider>{children}</LibraryProvider>
+            <LibraryProvider>
+              <BannerProvider>
+                <FlorinProvider>{children}</FlorinProvider>
+              </BannerProvider>
+            </LibraryProvider>
           </ChatProvider>
         </QuizProvider>
       </body>
