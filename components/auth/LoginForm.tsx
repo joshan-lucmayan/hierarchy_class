@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { School, LoginFieldErrors } from "@/types/school";
-import { MOCK_SCHOOLS } from "@/data/schools";
+import { useSchools } from "@/lib/useSchools";
 import { SchoolSelector } from "./SchoolSelector";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,6 +17,9 @@ function FieldLabel({ icon, children }: { icon: React.ReactNode; children: React
 }
 
 export function LoginForm() {
+  const searchParams = useSearchParams();
+  const justConfirmed = searchParams.get("confirmed") === "1";
+  const { schools, loading: schoolsLoading, error: schoolsError } = useSchools();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -101,6 +105,11 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-5">
+      {justConfirmed && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700">
+          Email confirmed! You can now log in.
+        </div>
+      )}
       {errors.form && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
           {errors.form}
@@ -176,7 +185,9 @@ export function LoginForm() {
         {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
       </div>
 
-      <SchoolSelector schools={MOCK_SCHOOLS} value={school} onChange={setSchool} error={errors.school} />
+      <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
+      {schoolsLoading && <p className="text-xs text-muted">Loading schools...</p>}
+      {schoolsError && <p className="text-xs text-red-500">{schoolsError}</p>}
 
       <button
         type="submit"

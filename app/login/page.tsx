@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LogoLockup } from "@/components/auth/LogoLockup";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -31,7 +32,9 @@ export default function LoginPage() {
           <div className="w-full border-t border-gold opacity-60" />
 
           {/* Login form */}
-          <LoginForm />
+          <Suspense fallback={null}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </main>

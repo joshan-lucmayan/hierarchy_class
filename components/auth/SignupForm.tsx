@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { School } from "@/types/school";
-import { MOCK_SCHOOLS } from "@/data/schools";
+import { useSchools } from "@/lib/useSchools";
 import { SchoolSelector } from "./SchoolSelector";
-import { createClient } from "@/lib/supabase/client";
+import { signUpWithProfile } from "@/app/actions/auth";
 
 const ROLES = [
   { value: "student", label: "Student" },
@@ -22,6 +23,8 @@ type SignupFieldErrors = {
 };
 
 export function SignupForm() {
+  const router = useRouter();
+  const { schools, loading: schoolsLoading, error: schoolsError } = useSchools();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +66,7 @@ export function SignupForm() {
 
       if (!supabaseConfigured) {
         await new Promise((resolve) => setTimeout(resolve, 700));
-        window.location.href = "/student/home";
+        router.push("/student/home");
         return;
       }
 
@@ -73,39 +76,33 @@ export function SignupForm() {
         return;
       }
 
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signUp({
+      // Call server action to sign up with profile creation
+      const result = await signUpWithProfile(
         email,
         password,
-        options: {
-          data: {
-            name,
-            role,
-            is_librarian: role === "teacher" ? isLibrarian : false,
-            school_id: school.id,
-            school_name: school.name,
-          },
-        },
-      });
+        name,
+        school.id,
+        role as "student" | "teacher" | "admin",
+        role === "teacher" ? isLibrarian : false
+      );
 
-      if (error) {
-        setErrors({ form: error.message || "Unable to complete sign up." });
+      if (result.error) {
+        setErrors({ form: result.error });
         return;
       }
 
-      const user = data?.user;
-      const session = data?.session;
-      const nextRole = (user?.user_metadata as Record<string, unknown> | null)?.role as string | undefined;
-      const landing = nextRole === "teacher" ? "teacher" : nextRole === "admin" ? "admin" : "student";
+      // Determine landing page based on role
+      const landing = role === "teacher" ? "teacher" : role === "admin" ? "admin" : "student";
 
-      if (session) {
-        window.location.href = `/${landing}/home`;
-        return;
-      }
-
+      // Show confirmation message
       setStatusMessage(
         "A confirmation email was sent. Verify your address and then sign in to continue."
       );
+
+      // Redirect to login after a delay
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (error) {
       setErrors({ form: "Something went wrong. Try again." });
     } finally {
@@ -200,7 +197,9 @@ export function SignupForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <SchoolSelector schools={MOCK_SCHOOLS} value={school} onChange={setSchool} error={errors.school} />
+          <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
+          {schoolsLoading && <p className="text-xs text-muted">Loading schools...</p>}
+          {schoolsError && <p className="text-xs text-red-500">{schoolsError}</p>}
         </div>
       </div>
 

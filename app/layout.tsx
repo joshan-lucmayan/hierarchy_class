@@ -8,7 +8,7 @@ import { FlorinProvider } from "@/lib/florinStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
-  description: "Climb the ranks - gamified academic tracking for Grade 1-10 students",
+  description: "Climb the ranks - gamified academic tracking for students, teachers, and campuses",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

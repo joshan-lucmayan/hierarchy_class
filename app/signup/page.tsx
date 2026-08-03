@@ -24,7 +24,7 @@ export default function SignupPage() {
           <LogoLockup />
           <div className="w-full">
             <h1 className="text-xl font-bold uppercase tracking-[0.15em] text-navy">
-              Create an account
+              Create an account. If you have not created yet.
             </h1>
             <p className="mt-2 text-sm text-muted">
               Register a new school account. If email confirmation is required, verify your address before signing in.
