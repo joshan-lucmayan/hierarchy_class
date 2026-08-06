@@ -279,7 +279,7 @@ export type BannerConfigInsert = {
 
 export type FlorinBalanceInsert = {
   student_id: string;
-  balance?: number;
+  balance?: number;  
 };
 
 export type FlorinTransactionInsert = {

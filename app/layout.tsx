@@ -5,6 +5,10 @@ import { ChatProvider } from "@/lib/chatStore";
 import { LibraryProvider } from "@/lib/libraryStore";
 import { BannerProvider } from "@/lib/bannerStore";
 import { FlorinProvider } from "@/lib/florinStore";
+import { TeacherWorkspaceProvider } from "@/lib/teacherWorkspaceStore";
+import { ClassroomProvider } from "@/lib/classroomStore";
+import { TeacherTasksProvider } from "@/lib/teacherTasksStore";
+import { ClassroomHierarchyProvider } from "@/lib/classroomHierarchyStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
@@ -35,7 +39,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ChatProvider>
             <LibraryProvider>
               <BannerProvider>
-                <FlorinProvider>{children}</FlorinProvider>
+                <FlorinProvider>
+                  <TeacherWorkspaceProvider>
+                    <ClassroomProvider>
+                      <ClassroomHierarchyProvider><TeacherTasksProvider>{children}</TeacherTasksProvider></ClassroomHierarchyProvider>
+                    </ClassroomProvider>
+                  </TeacherWorkspaceProvider>
+                </FlorinProvider>
               </BannerProvider>
             </LibraryProvider>
           </ChatProvider>

@@ -193,12 +193,45 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: messagesIcon,
   },
   {
-    href: "/admin/schools",
-    label: "Schools",
+    href: "/admin/users",
+    label: "Users",
     icon: (active) => (
       <svg {...iconProps(active)}>
-        <path d="M3 21V9l9-6 9 6v12" />
-        <path d="M9 21v-6h6v6" />
+        <circle cx="9" cy="7" r="3" />
+        <path d="M2 21c0-3.5 3-6 7-6s7 2.5 7 6" />
+        <circle cx="17" cy="8" r="2.5" />
+        <path d="M15.5 21c.2-2.5 1.8-4.3 4-5" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin/programs",
+    label: "Programs",
+    icon: (active) => (
+      <svg {...iconProps(active)}>
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin/students",
+    label: "Students",
+    icon: (active) => (
+      <svg {...iconProps(active)}>
+        <path d="M22 10L12 5 2 10l10 5 10-5z" />
+        <path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin/teachers",
+    label: "Teachers",
+    icon: (active) => (
+      <svg {...iconProps(active)}>
+        <rect x="3" y="4" width="18" height="14" rx="2" />
+        <path d="M3 9h18" />
+        <path d="M8 4v5" />
       </svg>
     ),
   },

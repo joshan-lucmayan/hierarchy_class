@@ -31,6 +31,33 @@ export default function AdminSettingsPage() {
       </CornerFrame>
 
       <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">My school</h2>
+        <p className="mt-1 text-xs text-muted">Overview of the school registered to your admin account.</p>
+        <div className="mt-4 flex items-center gap-4 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-gold bg-navy text-base font-bold text-gold">
+            CSA
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-navy">{schoolName}</p>
+            <p className="mt-1 text-xs text-muted">Academic year {academicYear}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-semibold text-emerald-600">
+            Active
+          </span>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-center">
+            <p className="text-2xl font-bold text-navy">842</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted">Students</p>
+          </div>
+          <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-center">
+            <p className="text-2xl font-bold text-navy">46</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted">Teachers</p>
+          </div>
+        </div>
+      </CornerFrame>
+
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Appearance</h2>
         <div className="mt-4 flex items-center justify-between rounded-2xl border border-base p-4">
           <div>
