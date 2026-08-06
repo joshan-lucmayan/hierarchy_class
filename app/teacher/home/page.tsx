@@ -101,8 +101,17 @@ export default function TeacherHomePage() {
     removeLessonPlan,
   } = useTeacherWorkspace();
 
-  const { getTasksByTeacher, toggleTaskStatus } = useTeacherTasks();
+  const { getTasksByTeacher, acceptTask, declineTask, markTaskDone, reopenTask } = useTeacherTasks();
   const assignedTasks = getTasksByTeacher(TEACHER_PROFILE.id);
+  const [decliningTaskId, setDecliningTaskId] = useState<string | null>(null);
+  const [declineReasonDraft, setDeclineReasonDraft] = useState("");
+
+  function handleDeclineSubmit(taskId: string) {
+    if (!declineReasonDraft.trim()) return;
+    declineTask(taskId, declineReasonDraft);
+    setDecliningTaskId(null);
+    setDeclineReasonDraft("");
+  }
 
   const now = useNow();
   const [activeModal, setActiveModal] = useState<ModalKind>(null);
@@ -168,6 +177,112 @@ export default function TeacherHomePage() {
 
       <section className="space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Today · {today}, {formatDisplayDate(now)}</h2>
+
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Assigned by admin</p>
+            {assignedTasks.filter((t) => t.status === "pending").length > 0 && (
+              <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-semibold text-gold">
+                {assignedTasks.filter((t) => t.status === "pending").length} pending
+              </span>
+            )}
+          </div>
+          <div className="mt-4 space-y-2">
+            {assignedTasks.length === 0 && <p className="text-sm text-muted">No tasks assigned yet.</p>}
+            {assignedTasks.map((task) => (
+              <div key={task.id} className="rounded-2xl border border-base p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className={`text-sm font-semibold ${task.status === "done" ? "text-muted line-through" : "text-navy"}`}>
+                      {task.title}
+                    </p>
+                    {task.description && <p className="mt-0.5 text-xs text-muted">{task.description}</p>}
+                    {task.dueDate && <p className="mt-0.5 text-xs text-gold">Due {task.dueDate}</p>}
+                    {task.status === "declined" && task.declineReason && (
+                      <p className="mt-1 text-xs text-red-500">Declined: {task.declineReason}</p>
+                    )}
+                  </div>
+
+                  {task.status === "pending" && (
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => acceptTask(task.id)}
+                        className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setDecliningTaskId(task.id); setDeclineReasonDraft(""); }}
+                        className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-muted transition hover:border-red-400 hover:text-red-600"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  )}
+
+                  {task.status === "accepted" && (
+                    <button
+                      type="button"
+                      onClick={() => markTaskDone(task.id)}
+                      className="shrink-0 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                    >
+                      Mark done
+                    </button>
+                  )}
+
+                  {task.status === "done" && (
+                    <button
+                      type="button"
+                      onClick={() => reopenTask(task.id)}
+                      className="shrink-0 rounded-full border border-base px-3 py-1 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold"
+                    >
+                      Reopen
+                    </button>
+                  )}
+
+                  {task.status === "declined" && (
+                    <span className="shrink-0 rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-600">
+                      Declined
+                    </span>
+                  )}
+                </div>
+
+                {decliningTaskId === task.id && (
+                  <div className="mt-3 space-y-2 rounded-xl border border-base bg-[var(--surface-strong)] p-3">
+                    <p className="text-xs text-muted">Why are you declining this task?</p>
+                    <textarea
+                      value={declineReasonDraft}
+                      onChange={(e) => setDeclineReasonDraft(e.target.value)}
+                      placeholder="e.g. Conflicts with my class schedule"
+                      rows={2}
+                      className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDeclineSubmit(task.id)}
+                        disabled={!declineReasonDraft.trim()}
+                        className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-600 disabled:opacity-40"
+                      >
+                        Submit decline
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDecliningTaskId(null)}
+                        className="rounded-full border border-base px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CornerFrame>
+
         <div className="grid items-start gap-4 xl:grid-cols-3">
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
             <div className="flex items-center justify-between gap-2">
@@ -219,42 +334,6 @@ export default function TeacherHomePage() {
             </div>
           </CornerFrame>
         </div>
-
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Assigned by admin</p>
-            {assignedTasks.filter((t) => t.status === "pending").length > 0 && (
-              <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-semibold text-gold">
-                {assignedTasks.filter((t) => t.status === "pending").length} pending
-              </span>
-            )}
-          </div>
-          <div className="mt-4 space-y-2">
-            {assignedTasks.length === 0 && <p className="text-sm text-muted">No tasks assigned yet.</p>}
-            {assignedTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between gap-3 rounded-2xl border border-base p-3">
-                <div>
-                  <p className={`text-sm font-semibold ${task.status === "done" ? "text-muted line-through" : "text-navy"}`}>
-                    {task.title}
-                  </p>
-                  {task.description && <p className="mt-0.5 text-xs text-muted">{task.description}</p>}
-                  {task.dueDate && <p className="mt-0.5 text-xs text-gold">Due {task.dueDate}</p>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => toggleTaskStatus(task.id)}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${
-                    task.status === "done"
-                      ? "border border-base text-muted hover:border-gold hover:text-gold"
-                      : "bg-navy text-white hover:bg-gold hover:text-navy"
-                  }`}
-                >
-                  {task.status === "done" ? "Reopen" : "Mark done"}
-                </button>
-              </div>
-            ))}
-          </div>
-        </CornerFrame>
       </section>
 
       {activeModal === "note" && (

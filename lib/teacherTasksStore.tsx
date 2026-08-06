@@ -9,14 +9,18 @@ export interface TeacherTask {
   title: string;
   description?: string;
   dueDate?: string;
-  status: "pending" | "done";
+  status: "pending" | "accepted" | "declined" | "done";
+  declineReason?: string;
   assignedDate: string;
 }
 
 interface TeacherTasksContextType {
   tasks: TeacherTask[];
   addTask: (task: Omit<TeacherTask, "id" | "status" | "assignedDate">) => void;
-  toggleTaskStatus: (id: string) => void;
+  acceptTask: (id: string) => void;
+  declineTask: (id: string, reason: string) => void;
+  markTaskDone: (id: string) => void;
+  reopenTask: (id: string) => void;
   getTasksByTeacher: (teacherId: string) => TeacherTask[];
 }
 
@@ -48,10 +52,20 @@ export function TeacherTasksProvider({ children }: { children: ReactNode }) {
     setTasks((prev) => [newTask, ...prev]);
   }, []);
 
-  const toggleTaskStatus = useCallback((id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status: t.status === "pending" ? "done" : "pending" } : t))
-    );
+  const acceptTask = useCallback((id: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "accepted", declineReason: undefined } : t)));
+  }, []);
+
+  const declineTask = useCallback((id: string, reason: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "declined", declineReason: reason } : t)));
+  }, []);
+
+  const markTaskDone = useCallback((id: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "done" } : t)));
+  }, []);
+
+  const reopenTask = useCallback((id: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "accepted" } : t)));
   }, []);
 
   const getTasksByTeacher = useCallback(
@@ -60,7 +74,7 @@ export function TeacherTasksProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TeacherTasksContext.Provider value={{ tasks, addTask, toggleTaskStatus, getTasksByTeacher }}>
+    <TeacherTasksContext.Provider value={{ tasks, addTask, acceptTask, declineTask, markTaskDone, reopenTask, getTasksByTeacher }}>
       {children}
     </TeacherTasksContext.Provider>
   );

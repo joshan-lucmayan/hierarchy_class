@@ -60,19 +60,34 @@ export default function AdminTeachersPage() {
 
               {tasks.length > 0 && (
                 <div className="mt-4 space-y-2">
-                  {tasks.map((t) => (
-                    <div key={t.id} className="flex items-center justify-between rounded-2xl border border-base bg-[var(--surface-strong)] px-3 py-2">
-                      <div>
-                        <p className="text-xs font-semibold text-navy">{t.title}</p>
-                        {t.dueDate && <p className="text-[10px] text-muted">Due {t.dueDate}</p>}
+                  {tasks.map((t) => {
+                    const statusStyle =
+                      t.status === "done" ? "bg-emerald-500/15 text-emerald-600" :
+                      t.status === "accepted" ? "bg-blue-500/15 text-blue-600" :
+                      t.status === "declined" ? "bg-red-500/15 text-red-600" :
+                      "bg-gold/20 text-gold";
+                    const statusLabel =
+                      t.status === "done" ? "Done" :
+                      t.status === "accepted" ? "Accepted" :
+                      t.status === "declined" ? "Declined" :
+                      "Pending";
+                    return (
+                      <div key={t.id} className="rounded-2xl border border-base bg-[var(--surface-strong)] px-3 py-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-semibold text-navy">{t.title}</p>
+                            {t.dueDate && <p className="text-[10px] text-muted">Due {t.dueDate}</p>}
+                          </div>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyle}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                        {t.status === "declined" && t.declineReason && (
+                          <p className="mt-1 text-[11px] text-red-500">Reason: {t.declineReason}</p>
+                        )}
                       </div>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        t.status === "done" ? "bg-emerald-500/15 text-emerald-600" : "bg-gold/20 text-gold"
-                      }`}>
-                        {t.status === "done" ? "Done" : "Pending"}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
