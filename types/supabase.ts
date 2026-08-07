@@ -168,6 +168,67 @@ export type FlorinTransactionRow = {
   created_at: string;
 };
 
+
+export interface ProgramRow {
+  id: string;
+  school_id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+}
+
+export interface SectionRow {
+  id: string;
+  school_id: string;
+  program_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface CourseRow {
+  id: string;
+  school_id: string;
+  section_id: string;
+  name: string;
+  code: string | null;
+  teacher_id: string | null;
+  created_at: string;
+}
+
+export interface CourseEnrollmentRow {
+  id: string;
+  school_id: string;
+  course_id: string;
+  student_id: string;
+  created_at: string;
+}
+
+export interface GradeEntryRow {
+  id: string;
+  school_id: string;
+  course_id: string;
+  student_id: string;
+  submitted_by: string;
+  type: "Exam" | "Quiz" | "Activity" | "Assignment";
+  label: string | null;
+  score: number;
+  entry_date: string;
+  created_at: string;
+}
+
+export interface TeacherTaskRow {
+  id: string;
+  school_id: string;
+  teacher_id: string;
+  assigned_by: string;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  status: "pending" | "accepted" | "declined" | "done";
+  decline_reason: string | null;
+  created_at: string;
+}
+
 // ============================================================================
 // INSERT TYPES (for creating new rows)
 // ============================================================================
@@ -287,6 +348,55 @@ export type FlorinTransactionInsert = {
   student_id: string;
   amount: number;
   reason?: string | null;
+};
+
+
+export type ProgramInsert = {
+  school_id: string;
+  name: string;
+  description?: string | null;
+};
+
+export type SectionInsert = {
+  school_id: string;
+  program_id: string;
+  name: string;
+};
+
+export type CourseInsert = {
+  school_id: string;
+  section_id: string;
+  name: string;
+  code?: string | null;
+  teacher_id?: string | null;
+};
+
+export type CourseEnrollmentInsert = {
+  school_id: string;
+  course_id: string;
+  student_id: string;
+};
+
+export type GradeEntryInsert = {
+  school_id: string;
+  course_id: string;
+  student_id: string;
+  submitted_by: string;
+  type: "Exam" | "Quiz" | "Activity" | "Assignment";
+  label?: string | null;
+  score: number;
+  entry_date?: string;
+};
+
+export type TeacherTaskInsert = {
+  school_id: string;
+  teacher_id: string;
+  assigned_by: string;
+  title: string;
+  description?: string | null;
+  due_date?: string | null;
+  status?: "pending" | "accepted" | "declined" | "done";
+  decline_reason?: string | null;
 };
 
 // ============================================================================
@@ -418,6 +528,54 @@ export interface Database {
         Insert: FlorinTransactionInsert;
         Update: Partial<Omit<FlorinTransactionRow, "id">> & {
           id?: string;
+        };
+      };
+      programs: {
+        Row: ProgramRow;
+        Insert: ProgramInsert;
+        Update: Partial<Omit<ProgramRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      sections: {
+        Row: SectionRow;
+        Insert: SectionInsert;
+        Update: Partial<Omit<SectionRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      courses: {
+        Row: CourseRow;
+        Insert: CourseInsert;
+        Update: Partial<Omit<CourseRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      course_enrollments: {
+        Row: CourseEnrollmentRow;
+        Insert: CourseEnrollmentInsert;
+        Update: Partial<Omit<CourseEnrollmentRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      grade_entries: {
+        Row: GradeEntryRow;
+        Insert: GradeEntryInsert;
+        Update: Partial<Omit<GradeEntryRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      teacher_tasks: {
+        Row: TeacherTaskRow;
+        Insert: TeacherTaskInsert;
+        Update: Partial<Omit<TeacherTaskRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
         };
       };
     };

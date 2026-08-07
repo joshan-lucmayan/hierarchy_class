@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useMyProfile } from "@/lib/useMyProfile";
 
 export interface TeacherTask {
   id: string;
@@ -16,57 +18,111 @@ export interface TeacherTask {
 
 interface TeacherTasksContextType {
   tasks: TeacherTask[];
-  addTask: (task: Omit<TeacherTask, "id" | "status" | "assignedDate">) => void;
-  acceptTask: (id: string) => void;
-  declineTask: (id: string, reason: string) => void;
-  markTaskDone: (id: string) => void;
-  reopenTask: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  addTask: (task: Omit<TeacherTask, "id" | "status" | "assignedDate">) => Promise<void>;
+  acceptTask: (id: string) => Promise<void>;
+  declineTask: (id: string, reason: string) => Promise<void>;
+  markTaskDone: (id: string) => Promise<void>;
+  reopenTask: (id: string) => Promise<void>;
   getTasksByTeacher: (teacherId: string) => TeacherTask[];
 }
 
 const TeacherTasksContext = createContext<TeacherTasksContextType | null>(null);
 
-const MOCK_TASKS: TeacherTask[] = [
-  {
-    id: "task-1",
-    teacherId: "t-001",
-    teacherName: "Ms. Daniela Fernandez",
-    title: "Submit Q4 science lab grades",
-    description: "Encode grades for the energy transformation lab activity.",
-    dueDate: "2026-08-10",
-    status: "pending",
-    assignedDate: "2026-08-05",
-  },
-];
-
 export function TeacherTasksProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<TeacherTask[]>(MOCK_TASKS);
+  const { profile } = useMyProfile();
+  const [tasks, setTasks] = useState<TeacherTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refetchTick, setRefetchTick] = useState(0);
 
-  const addTask = useCallback((task: Omit<TeacherTask, "id" | "status" | "assignedDate">) => {
-    const newTask: TeacherTask = {
-      ...task,
-      id: `task-${Date.now()}`,
-      status: "pending",
-      assignedDate: new Date().toISOString().split("T")[0],
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  useEffect(() => {
+    if (!supabaseConfigured) {
+      setLoading(false);
+      setError("Supabase isn't configured yet.");
+      return;
+    }
+    if (!profile) return;
+
+    let cancelled = false;
+    const supabase = createClient();
+
+    supabase
+      .from("teacher_tasks")
+      .select("*, teacher:profiles!teacher_id(full_name)")
+      .order("created_at", { ascending: false })
+      .then(({ data, error: fetchError }) => {
+        if (cancelled) return;
+        if (fetchError) {
+          setError("Couldn't load tasks. Please refresh and try again.");
+          setTasks([]);
+        } else {
+          setTasks(
+            ((data ?? []) as any[]).map((t: any) => ({
+              id: t.id,
+              teacherId: t.teacher_id,
+              teacherName: t.teacher?.full_name ?? "Unknown teacher",
+              title: t.title,
+              description: t.description ?? undefined,
+              dueDate: t.due_date ?? undefined,
+              status: t.status,
+              declineReason: t.decline_reason ?? undefined,
+              assignedDate: t.created_at?.split("T")[0] ?? "",
+            }))
+          );
+          setError(null);
+        }
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
     };
-    setTasks((prev) => [newTask, ...prev]);
-  }, []);
+  }, [supabaseConfigured, profile, refetchTick]);
 
-  const acceptTask = useCallback((id: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "accepted", declineReason: undefined } : t)));
-  }, []);
+  const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
-  const declineTask = useCallback((id: string, reason: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "declined", declineReason: reason } : t)));
-  }, []);
+  const addTask = useCallback(async (task: Omit<TeacherTask, "id" | "status" | "assignedDate">) => {
+    if (!profile) return;
+    const supabase = createClient();
+    await supabase.from("teacher_tasks").insert({
+      school_id: profile.school_id,
+      teacher_id: task.teacherId,
+      assigned_by: profile.id,
+      title: task.title,
+      description: task.description ?? null,
+      due_date: task.dueDate ?? null,
+    } as any);
+    refetch();
+  }, [profile, refetch]);
 
-  const markTaskDone = useCallback((id: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "done" } : t)));
-  }, []);
+  const acceptTask = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await (supabase.from("teacher_tasks") as any).update({ status: "accepted", decline_reason: null }).eq("id", id);
+    refetch();
+  }, [refetch]);
 
-  const reopenTask = useCallback((id: string) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "accepted" } : t)));
-  }, []);
+  const declineTask = useCallback(async (id: string, reason: string) => {
+    const supabase = createClient();
+    await (supabase.from("teacher_tasks") as any).update({ status: "declined", decline_reason: reason }).eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const markTaskDone = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await (supabase.from("teacher_tasks") as any).update({ status: "done" }).eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const reopenTask = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await (supabase.from("teacher_tasks") as any).update({ status: "accepted" }).eq("id", id);
+    refetch();
+  }, [refetch]);
 
   const getTasksByTeacher = useCallback(
     (teacherId: string) => tasks.filter((t) => t.teacherId === teacherId),
@@ -74,7 +130,9 @@ export function TeacherTasksProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TeacherTasksContext.Provider value={{ tasks, addTask, acceptTask, declineTask, markTaskDone, reopenTask, getTasksByTeacher }}>
+    <TeacherTasksContext.Provider
+      value={{ tasks, loading, error, addTask, acceptTask, declineTask, markTaskDone, reopenTask, getTasksByTeacher }}
+    >
       {children}
     </TeacherTasksContext.Provider>
   );

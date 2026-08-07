@@ -47,13 +47,14 @@ export default function AdminProgramsPage() {
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
 
   const [showCourseForm, setShowCourseForm] = useState(false);
-  const [courseDraft, setCourseDraft] = useState({ name: "", code: "" });
+  const [courseDraft, setCourseDraft] = useState({ name: "", code: "", teacherId: "", teacherName: "" });
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
   const [showEnrollPicker, setShowEnrollPicker] = useState(false);
   const [enrollQuery, setEnrollQuery] = useState("");
 
   const { profiles: signedUpStudents, loading: profilesLoading, error: profilesError } = useSchoolProfiles({ role: "student" });
+  const { profiles: signedUpTeachers } = useSchoolProfiles({ role: "teacher" });
 
   const sections = selectedProgram ? getSectionsByProgram(selectedProgram) : [];
   const courses = selectedSection ? getCoursesBySection(selectedSection) : [];
@@ -121,24 +122,31 @@ export default function AdminProgramsPage() {
 
   function openCourseForm() {
     setEditingCourseId(null);
-    setCourseDraft({ name: "", code: "" });
+    setCourseDraft({ name: "", code: "", teacherId: "", teacherName: "" });
     setShowCourseForm(!showCourseForm);
   }
-  function startEditCourse(e: React.MouseEvent, id: string, name: string, code?: string) {
+  function startEditCourse(e: React.MouseEvent, id: string, name: string, code?: string, teacherId?: string, teacherName?: string) {
     e.stopPropagation();
     setEditingCourseId(id);
-    setCourseDraft({ name, code: code ?? "" });
+    setCourseDraft({ name, code: code ?? "", teacherId: teacherId ?? "", teacherName: teacherName ?? "" });
     setShowCourseForm(true);
   }
   function handleCourseSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!courseDraft.name.trim() || !selectedSection) return;
+    const payload = {
+      sectionId: selectedSection,
+      name: courseDraft.name,
+      code: courseDraft.code,
+      teacherId: courseDraft.teacherId || undefined,
+      teacherName: courseDraft.teacherName || undefined,
+    };
     if (editingCourseId) {
-      updateCourse(editingCourseId, { sectionId: selectedSection, ...courseDraft });
+      updateCourse(editingCourseId, payload);
     } else {
-      addCourse({ sectionId: selectedSection, ...courseDraft });
+      addCourse(payload);
     }
-    setCourseDraft({ name: "", code: "" });
+    setCourseDraft({ name: "", code: "", teacherId: "", teacherName: "" });
     setEditingCourseId(null);
     setShowCourseForm(false);
   }
@@ -306,6 +314,19 @@ export default function AdminProgramsPage() {
                 placeholder="Course code (optional)"
                 className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
+              <select
+                value={courseDraft.teacherId}
+                onChange={(e) => {
+                  const t = signedUpTeachers.find((p) => p.id === e.target.value);
+                  setCourseDraft((d) => ({ ...d, teacherId: e.target.value, teacherName: t?.full_name ?? "" }));
+                }}
+                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              >
+                <option value="">Assign teacher (optional)</option>
+                {signedUpTeachers.map((t) => (
+                  <option key={t.id} value={t.id}>{t.full_name}</option>
+                ))}
+              </select>
               <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
                 {editingCourseId ? "Save changes" : "Create"}
               </button>
@@ -322,11 +343,12 @@ export default function AdminProgramsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-lg font-bold text-navy">{crs.name}</p>
                   <div className="flex shrink-0 gap-1.5">
-                    <IconBtn onClick={(e) => startEditCourse(e, crs.id, crs.name, crs.code)} label="Edit course" variant="edit">✎</IconBtn>
+                    <IconBtn onClick={(e) => startEditCourse(e, crs.id, crs.name, crs.code, crs.teacherId, crs.teacherName)} label="Edit course" variant="edit">✎</IconBtn>
                     <IconBtn onClick={(e) => handleDeleteCourse(e, crs.id, crs.name)} label="Delete course" variant="delete">✕</IconBtn>
                   </div>
                 </div>
                 {crs.code && <p className="mt-2 text-xs text-muted">{crs.code}</p>}
+                <p className="mt-1 text-xs text-gold">{crs.teacherName ? `Taught by ${crs.teacherName}` : "No teacher assigned"}</p>
               </div>
             ))}
           </div>

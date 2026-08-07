@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useTeacherWorkspace, TeacherNote, ScheduleItem, LessonPlanItem } from "@/lib/teacherWorkspaceStore";
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
-import { TEACHER_PROFILE } from "@/data/mockStudents";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -102,7 +101,7 @@ export default function TeacherHomePage() {
   } = useTeacherWorkspace();
 
   const { getTasksByTeacher, acceptTask, declineTask, markTaskDone, reopenTask } = useTeacherTasks();
-  const assignedTasks = getTasksByTeacher(TEACHER_PROFILE.id);
+  const assignedTasks = profile ? getTasksByTeacher(profile.id) : [];
   const [decliningTaskId, setDecliningTaskId] = useState<string | null>(null);
   const [declineReasonDraft, setDeclineReasonDraft] = useState("");
 

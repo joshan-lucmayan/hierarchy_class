@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useMyProfile } from "@/lib/useMyProfile";
 
 export type TierRank = "S++" | "S" | "A" | "B" | "C" | "D";
 export type GradeType = "Exam" | "Quiz" | "Activity" | "Assignment";
@@ -22,13 +24,15 @@ export interface Course {
   sectionId: string;
   name: string;
   code?: string;
+  teacherId?: string;
+  teacherName?: string;
 }
 
 export interface Student {
   id: string;
   courseId: string;
   name: string;
-  profileId?: string; // links to the real signed-up profile in Supabase
+  profileId?: string;
 }
 
 export interface GradeEntry {
@@ -56,28 +60,35 @@ interface ClassroomHierarchyContextType {
   courses: Course[];
   students: Student[];
   gradeEntries: GradeEntry[];
+  loading: boolean;
+  error: string | null;
 
-  addProgram: (p: Omit<Program, "id">) => void;
-  updateProgram: (id: string, p: Omit<Program, "id">) => void;
-  deleteProgram: (id: string) => void;
+  addProgram: (p: Omit<Program, "id">) => Promise<void>;
+  updateProgram: (id: string, p: Omit<Program, "id">) => Promise<void>;
+  deleteProgram: (id: string) => Promise<void>;
 
-  addSection: (s: Omit<Section, "id">) => void;
-  updateSection: (id: string, s: Omit<Section, "id">) => void;
-  deleteSection: (id: string) => void;
+  addSection: (s: Omit<Section, "id">) => Promise<void>;
+  updateSection: (id: string, s: Omit<Section, "id">) => Promise<void>;
+  deleteSection: (id: string) => Promise<void>;
 
-  addCourse: (c: Omit<Course, "id">) => void;
-  updateCourse: (id: string, c: Omit<Course, "id">) => void;
-  deleteCourse: (id: string) => void;
+  addCourse: (c: Omit<Course, "id">) => Promise<void>;
+  updateCourse: (id: string, c: Omit<Course, "id">) => Promise<void>;
+  deleteCourse: (id: string) => Promise<void>;
 
-  addStudent: (s: Omit<Student, "id">) => void;
-  deleteStudent: (id: string) => void;
+  addStudent: (s: Omit<Student, "id">) => Promise<void>;
+  deleteStudent: (id: string) => Promise<void>;
 
-  submitGrades: (entries: Omit<GradeEntry, "id">[]) => void;
-  deleteGradeEntry: (id: string) => void;
+  submitGrades: (entries: Omit<GradeEntry, "id">[]) => Promise<void>;
+  deleteGradeEntry: (id: string) => Promise<void>;
 
   getSectionsByProgram: (programId: string) => Section[];
   getCoursesBySection: (sectionId: string) => Course[];
+  getCoursesByTeacher: (teacherId: string) => Course[];
   getStudentsByCourse: (courseId: string) => Student[];
+  getStudentRecordsByProfile: (profileId: string) => Student[];
+  getStudentAverageByProfile: (profileId: string) => number | null;
+  getStudentRankByProfile: (profileId: string) => TierRank | null;
+  getEntriesByProfile: (profileId: string) => GradeEntry[];
   getEntriesByStudent: (studentId: string) => GradeEntry[];
   getEntriesByCourse: (courseId: string) => GradeEntry[];
   getStudentAverage: (studentId: string) => number | null;
@@ -87,149 +98,267 @@ interface ClassroomHierarchyContextType {
 
 const ClassroomHierarchyContext = createContext<ClassroomHierarchyContextType | null>(null);
 
-const MOCK_PROGRAMS: Program[] = [
-  { id: "prog-1", name: "Senior High School - Science Track", description: "Grades 11-12" },
-  { id: "prog-2", name: "Senior High School - Humanities Track", description: "Grades 11-12" },
-];
-
-const MOCK_SECTIONS: Section[] = [
-  { id: "sec-1", programId: "prog-1", name: "Grade 11" },
-  { id: "sec-2", programId: "prog-1", name: "Grade 12" },
-  { id: "sec-3", programId: "prog-2", name: "Grade 11" },
-  { id: "sec-4", programId: "prog-2", name: "Grade 12" },
-];
-
-const MOCK_COURSES: Course[] = [
-  { id: "crs-1", sectionId: "sec-1", name: "Physics", code: "PHY101" },
-  { id: "crs-2", sectionId: "sec-1", name: "Chemistry", code: "CHM101" },
-  { id: "crs-3", sectionId: "sec-2", name: "Physics", code: "PHY201" },
-  { id: "crs-4", sectionId: "sec-3", name: "English Literature", code: "ENG101" },
-];
-
-const MOCK_STUDENTS: Student[] = [
-  { id: "std-1", courseId: "crs-1", name: "Alice Johnson" },
-  { id: "std-2", courseId: "crs-1", name: "Bob Smith" },
-  { id: "std-3", courseId: "crs-1", name: "Carol Davis" },
-  { id: "std-4", courseId: "crs-2", name: "Diana Lopez" },
-  { id: "std-5", courseId: "crs-3", name: "Eve Martinez" },
-];
-
-const MOCK_GRADES: GradeEntry[] = [
-  { id: "g-1", studentId: "std-1", courseId: "crs-1", type: "Quiz", score: 88, date: "2026-07-28", label: "Quiz 1" },
-  { id: "g-2", studentId: "std-1", courseId: "crs-1", type: "Exam", score: 91, date: "2026-07-30", label: "Midterm" },
-  { id: "g-3", studentId: "std-2", courseId: "crs-1", type: "Quiz", score: 75, date: "2026-07-28", label: "Quiz 1" },
-  { id: "g-4", studentId: "std-2", courseId: "crs-1", type: "Exam", score: 82, date: "2026-07-30", label: "Midterm" },
-  { id: "g-5", studentId: "std-3", courseId: "crs-1", type: "Quiz", score: 95, date: "2026-07-28", label: "Quiz 1" },
-  { id: "g-6", studentId: "std-3", courseId: "crs-1", type: "Exam", score: 97, date: "2026-07-30", label: "Midterm" },
-];
-
 export function ClassroomHierarchyProvider({ children }: { children: ReactNode }) {
-  const [programs, setPrograms] = useState<Program[]>(MOCK_PROGRAMS);
-  const [sections, setSections] = useState<Section[]>(MOCK_SECTIONS);
-  const [courses, setCourses] = useState<Course[]>(MOCK_COURSES);
-  const [students, setStudents] = useState<Student[]>(MOCK_STUDENTS);
-  const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>(MOCK_GRADES);
+  const { profile } = useMyProfile();
 
-  const addProgram = useCallback((p: Omit<Program, "id">) => {
-    setPrograms((prev) => [...prev, { ...p, id: `prog-${Date.now()}` }]);
-  }, []);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refetchTick, setRefetchTick] = useState(0);
 
-  const updateProgram = useCallback((id: string, p: Omit<Program, "id">) => {
-    setPrograms((prev) => prev.map((prog) => (prog.id === id ? { ...prog, ...p } : prog)));
-  }, []);
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const deleteProgram = useCallback((id: string) => {
-    const sectionIdsToRemove = sections.filter((s) => s.programId === id).map((s) => s.id);
-    const courseIdsToRemove = courses.filter((c) => sectionIdsToRemove.includes(c.sectionId)).map((c) => c.id);
-    const studentIdsToRemove = students.filter((s) => courseIdsToRemove.includes(s.courseId)).map((s) => s.id);
+  useEffect(() => {
+    if (!supabaseConfigured) {
+      setLoading(false);
+      setError("Supabase isn't configured yet.");
+      return;
+    }
+    if (!profile) return;
 
-    setPrograms((prev) => prev.filter((prog) => prog.id !== id));
-    setSections((prev) => prev.filter((s) => s.programId !== id));
-    setCourses((prev) => prev.filter((c) => !sectionIdsToRemove.includes(c.sectionId)));
-    setStudents((prev) => prev.filter((s) => !courseIdsToRemove.includes(s.courseId)));
-    setGradeEntries((prev) => prev.filter((e) => !studentIdsToRemove.includes(e.studentId)));
-  }, [sections, courses, students]);
+    let cancelled = false;
+    const supabase = createClient();
 
-  const addSection = useCallback((s: Omit<Section, "id">) => {
-    setSections((prev) => [...prev, { ...s, id: `sec-${Date.now()}` }]);
-  }, []);
+    async function loadAll() {
+      setLoading(true);
 
-  const updateSection = useCallback((id: string, s: Omit<Section, "id">) => {
-    setSections((prev) => prev.map((sec) => (sec.id === id ? { ...sec, ...s } : sec)));
-  }, []);
+      const [
+        { data: programsData, error: programsErr },
+        { data: sectionsData, error: sectionsErr },
+        { data: coursesData, error: coursesErr },
+        { data: enrollData, error: enrollErr },
+        { data: gradesData, error: gradesErr },
+      ] = (await Promise.all([
+        supabase.from("programs").select("*").order("created_at"),
+        supabase.from("sections").select("*").order("created_at"),
+        supabase.from("courses").select("*, teacher:profiles!teacher_id(full_name)").order("created_at"),
+        supabase.from("course_enrollments").select("*, student:profiles!student_id(full_name)").order("created_at"),
+        supabase.from("grade_entries").select("*").order("entry_date", { ascending: false }),
+      ])) as any[];
 
-  const deleteSection = useCallback((id: string) => {
-    const courseIdsToRemove = courses.filter((c) => c.sectionId === id).map((c) => c.id);
-    const studentIdsToRemove = students.filter((s) => courseIdsToRemove.includes(s.courseId)).map((s) => s.id);
+      if (cancelled) return;
 
-    setSections((prev) => prev.filter((s) => s.id !== id));
-    setCourses((prev) => prev.filter((c) => c.sectionId !== id));
-    setStudents((prev) => prev.filter((s) => !courseIdsToRemove.includes(s.courseId)));
-    setGradeEntries((prev) => prev.filter((e) => !studentIdsToRemove.includes(e.studentId)));
-  }, [courses, students]);
+      if (programsErr || sectionsErr || coursesErr || enrollErr || gradesErr) {
+        setError("Couldn't load classroom data. Please refresh and try again.");
+        setLoading(false);
+        return;
+      }
 
-  const addCourse = useCallback((c: Omit<Course, "id">) => {
-    setCourses((prev) => [...prev, { ...c, id: `crs-${Date.now()}` }]);
-  }, []);
+      setPrograms(
+        ((programsData ?? []) as any[]).map((p) => ({ id: p.id, name: p.name, description: p.description ?? undefined }))
+      );
+      setSections(
+        ((sectionsData ?? []) as any[]).map((s) => ({ id: s.id, programId: s.program_id, name: s.name }))
+      );
+      setCourses(
+        ((coursesData ?? []) as any[]).map((c: any) => ({
+          id: c.id,
+          sectionId: c.section_id,
+          name: c.name,
+          code: c.code ?? undefined,
+          teacherId: c.teacher_id ?? undefined,
+          teacherName: c.teacher?.full_name ?? undefined,
+        }))
+      );
+      setStudents(
+        ((enrollData ?? []) as any[]).map((e: any) => ({
+          id: e.id,
+          courseId: e.course_id,
+          name: e.student?.full_name ?? "Unknown student",
+          profileId: e.student_id,
+        }))
+      );
+      setGradeEntries(
+        ((gradesData ?? []) as any[]).map((g: any) => ({
+          id: g.id,
+          studentId: g.student_id,
+          courseId: g.course_id,
+          type: g.type,
+          score: g.score,
+          date: g.entry_date,
+          label: g.label ?? undefined,
+        }))
+      );
+      setError(null);
+      setLoading(false);
+    }
 
-  const updateCourse = useCallback((id: string, c: Omit<Course, "id">) => {
-    setCourses((prev) => prev.map((crs) => (crs.id === id ? { ...crs, ...c } : crs)));
-  }, []);
+    loadAll();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseConfigured, profile, refetchTick]);
 
-  const deleteCourse = useCallback((id: string) => {
-    const studentIdsToRemove = students.filter((s) => s.courseId === id).map((s) => s.id);
+  const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
-    setCourses((prev) => prev.filter((c) => c.id !== id));
-    setStudents((prev) => prev.filter((s) => s.courseId !== id));
-    setGradeEntries((prev) => prev.filter((e) => !studentIdsToRemove.includes(e.studentId) && e.courseId !== id));
-  }, [students]);
+  const addProgram = useCallback(async (p: Omit<Program, "id">) => {
+    if (!profile) return;
+    const supabase = createClient();
+    await supabase.from("programs").insert({ school_id: profile.school_id, name: p.name, description: p.description ?? null } as any);
+    refetch();
+  }, [profile, refetch]);
 
-  const addStudent = useCallback((s: Omit<Student, "id">) => {
-    setStudents((prev) => [...prev, { ...s, id: `std-${Date.now()}` }]);
-  }, []);
+  const updateProgram = useCallback(async (id: string, p: Omit<Program, "id">) => {
+    const supabase = createClient();
+    await (supabase.from("programs") as any).update({ name: p.name, description: p.description ?? null }).eq("id", id);
+    refetch();
+  }, [refetch]);
 
-  const deleteStudent = useCallback((id: string) => {
-    setStudents((prev) => prev.filter((s) => s.id !== id));
-    setGradeEntries((prev) => prev.filter((e) => e.studentId !== id));
-  }, []);
+  const deleteProgram = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await supabase.from("programs").delete().eq("id", id);
+    refetch();
+  }, [refetch]);
 
-  const submitGrades = useCallback((entries: Omit<GradeEntry, "id">[]) => {
-    const stamped: GradeEntry[] = entries.map((e, i) => ({
-      ...e,
-      id: `g-${Date.now()}-${i}`,
-    }));
-    setGradeEntries((prev) => [...prev, ...stamped]);
-  }, []);
+  const addSection = useCallback(async (s: Omit<Section, "id">) => {
+    if (!profile) return;
+    const supabase = createClient();
+    await supabase.from("sections").insert({ school_id: profile.school_id, program_id: s.programId, name: s.name } as any);
+    refetch();
+  }, [profile, refetch]);
 
-  const deleteGradeEntry = useCallback((id: string) => {
-    setGradeEntries((prev) => prev.filter((e) => e.id !== id));
-  }, []);
+  const updateSection = useCallback(async (id: string, s: Omit<Section, "id">) => {
+    const supabase = createClient();
+    await (supabase.from("sections") as any).update({ name: s.name }).eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const deleteSection = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await supabase.from("sections").delete().eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const addCourse = useCallback(async (c: Omit<Course, "id">) => {
+    if (!profile) return;
+    const supabase = createClient();
+    await supabase.from("courses").insert({
+      school_id: profile.school_id,
+      section_id: c.sectionId,
+      name: c.name,
+      code: c.code ?? null,
+      teacher_id: c.teacherId ?? null,
+    } as any);
+    refetch();
+  }, [profile, refetch]);
+
+  const updateCourse = useCallback(async (id: string, c: Omit<Course, "id">) => {
+    const supabase = createClient();
+    await (supabase.from("courses") as any).update({
+      name: c.name,
+      code: c.code ?? null,
+      teacher_id: c.teacherId ?? null,
+    }).eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const deleteCourse = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await supabase.from("courses").delete().eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const addStudent = useCallback(async (s: Omit<Student, "id">) => {
+    if (!profile || !s.profileId) return;
+    const supabase = createClient();
+    await supabase.from("course_enrollments").insert({
+      school_id: profile.school_id,
+      course_id: s.courseId,
+      student_id: s.profileId,
+    } as any);
+    refetch();
+  }, [profile, refetch]);
+
+  const deleteStudent = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await supabase.from("course_enrollments").delete().eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id">[]) => {
+    if (!profile) return;
+    const supabase = createClient();
+    await supabase.from("grade_entries").insert(
+      entries.map((e) => ({
+        school_id: profile.school_id,
+        course_id: e.courseId,
+        student_id: e.studentId,
+        submitted_by: profile.id,
+        type: e.type,
+        label: e.label ?? null,
+        score: e.score,
+        entry_date: e.date,
+      })) as any
+    );
+    refetch();
+  }, [profile, refetch]);
+
+  const deleteGradeEntry = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await supabase.from("grade_entries").delete().eq("id", id);
+    refetch();
+  }, [refetch]);
 
   const getSectionsByProgram = useCallback(
     (programId: string) => sections.filter((s) => s.programId === programId),
     [sections]
   );
-
   const getCoursesBySection = useCallback(
     (sectionId: string) => courses.filter((c) => c.sectionId === sectionId),
     [courses]
   );
-
+  const getCoursesByTeacher = useCallback(
+    (teacherId: string) => courses.filter((c) => c.teacherId === teacherId),
+    [courses]
+  );
   const getStudentsByCourse = useCallback(
     (courseId: string) => students.filter((s) => s.courseId === courseId),
     [students]
   );
-
+  const getStudentRecordsByProfile = useCallback(
+    (profileId: string) => students.filter((s) => s.profileId === profileId),
+    [students]
+  );
+  const getEntriesByProfile = useCallback(
+    (profileId: string) => {
+      const studentIds = students.filter((s) => s.profileId === profileId).map((s) => s.id);
+      return gradeEntries.filter((e) => studentIds.includes(e.studentId));
+    },
+    [students, gradeEntries]
+  );
+  const getStudentAverageByProfile = useCallback(
+    (profileId: string): number | null => {
+      const studentIds = students.filter((s) => s.profileId === profileId).map((s) => s.id);
+      const entries = gradeEntries.filter((e) => studentIds.includes(e.studentId));
+      if (entries.length === 0) return null;
+      const sum = entries.reduce((acc, e) => acc + e.score, 0);
+      return Math.round((sum / entries.length) * 10) / 10;
+    },
+    [students, gradeEntries]
+  );
+  const getStudentRankByProfile = useCallback(
+    (profileId: string): TierRank | null => {
+      const studentIds = students.filter((s) => s.profileId === profileId).map((s) => s.id);
+      const entries = gradeEntries.filter((e) => studentIds.includes(e.studentId));
+      if (entries.length === 0) return null;
+      const sum = entries.reduce((acc, e) => acc + e.score, 0);
+      return computeRank(Math.round((sum / entries.length) * 10) / 10);
+    },
+    [students, gradeEntries]
+  );
   const getEntriesByStudent = useCallback(
     (studentId: string) => gradeEntries.filter((e) => e.studentId === studentId),
     [gradeEntries]
   );
-
   const getEntriesByCourse = useCallback(
     (courseId: string) => gradeEntries.filter((e) => e.courseId === courseId),
     [gradeEntries]
   );
-
   const getStudentAverage = useCallback(
     (studentId: string): number | null => {
       const entries = gradeEntries.filter((e) => e.studentId === studentId);
@@ -239,7 +368,6 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     },
     [gradeEntries]
   );
-
   const getStudentRank = useCallback(
     (studentId: string): TierRank | null => {
       const avg = getStudentAverage(studentId);
@@ -248,7 +376,6 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     },
     [getStudentAverage]
   );
-
   const getCourseLeaderboard = useCallback(
     (courseId: string) => {
       const courseStudents = students.filter((s) => s.courseId === courseId);
@@ -270,6 +397,8 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         courses,
         students,
         gradeEntries,
+        loading,
+        error,
         addProgram,
         updateProgram,
         deleteProgram,
@@ -285,7 +414,12 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         deleteGradeEntry,
         getSectionsByProgram,
         getCoursesBySection,
+        getCoursesByTeacher,
         getStudentsByCourse,
+        getStudentRecordsByProfile,
+        getStudentAverageByProfile,
+        getStudentRankByProfile,
+        getEntriesByProfile,
         getEntriesByStudent,
         getEntriesByCourse,
         getStudentAverage,

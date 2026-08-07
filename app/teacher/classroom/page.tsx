@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useClassroomHierarchy, GradeType } from "@/lib/classroomHierarchyStore";
+import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useMyProfile } from "@/lib/useMyProfile";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 
 type Step = "programs" | "sections" | "courses" | "students";
+type GradeType = "Exam" | "Quiz" | "Activity" | "Assignment";
 const GRADE_TYPES: GradeType[] = ["Quiz", "Exam", "Activity", "Assignment"];
 const TODAY = new Date().toISOString().split("T")[0];
 
 export default function TeacherClassroomPage() {
+  const { profile } = useMyProfile();
   const {
     programs,
+    sections,
     getSectionsByProgram,
     getCoursesBySection,
+    getCoursesByTeacher,
     getStudentsByCourse,
     getEntriesByStudent,
     getStudentAverage,
@@ -32,8 +37,19 @@ export default function TeacherClassroomPage() {
   const [scoreInputs, setScoreInputs] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const sections = selectedProgram ? getSectionsByProgram(selectedProgram) : [];
-  const courses = selectedSection ? getCoursesBySection(selectedSection) : [];
+  // Only courses assigned to this teacher's real signed-up profile
+  const myCourses = profile ? getCoursesByTeacher(profile.id) : [];
+  const mySectionIds = new Set(myCourses.map((c) => c.sectionId));
+  const mySections = sections.filter((s) => mySectionIds.has(s.id));
+  const myProgramIds = new Set(mySections.map((s) => s.programId));
+  const myPrograms = programs.filter((p) => myProgramIds.has(p.id));
+
+  const sectionsForProgram = selectedProgram
+    ? getSectionsByProgram(selectedProgram).filter((s) => mySectionIds.has(s.id))
+    : [];
+  const coursesForSection = selectedSection
+    ? getCoursesBySection(selectedSection).filter((c) => c.teacherId === profile?.id)
+    : [];
   const students = selectedCourse ? getStudentsByCourse(selectedCourse) : [];
   const leaderboard = selectedCourse ? getCourseLeaderboard(selectedCourse) : [];
 
@@ -63,31 +79,45 @@ export default function TeacherClassroomPage() {
     setSubmitted(true);
   }
 
+  if (!profile) {
+    return (
+      <div className="space-y-6">
+        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+          <p className="text-sm text-muted">Loading your profile...</p>
+        </CornerFrame>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Classroom</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">Grade submission</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          Select your program, section, and course to submit daily grades. Each submission updates student ranks immediately.
+          Showing only the programs, sections, and courses assigned to you by admin.
         </p>
       </CornerFrame>
 
       {step === "programs" && (
         <div className="space-y-3">
           <p className="text-sm font-semibold text-navy">Select your program:</p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {programs.map((prog) => (
-              <button
-                key={prog.id}
-                onClick={() => { setSelectedProgram(prog.id); setStep("sections"); }}
-                className="flex flex-col items-start rounded-3xl border border-base bg-surface p-6 text-left shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                <p className="text-lg font-bold text-navy">{prog.name}</p>
-                {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
-              </button>
-            ))}
-          </div>
+          {myPrograms.length === 0 ? (
+            <p className="text-sm text-muted">No courses have been assigned to you yet. Contact admin.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {myPrograms.map((prog) => (
+                <button
+                  key={prog.id}
+                  onClick={() => { setSelectedProgram(prog.id); setStep("sections"); }}
+                  className="flex flex-col items-start rounded-3xl border border-base bg-surface p-6 text-left shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  <p className="text-lg font-bold text-navy">{prog.name}</p>
+                  {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -96,7 +126,7 @@ export default function TeacherClassroomPage() {
           <button onClick={handleBack} className="text-sm font-semibold text-gold hover:text-gold/80">← Back</button>
           <p className="text-sm font-semibold text-navy">Select section:</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {sections.map((sec) => (
+            {sectionsForProgram.map((sec) => (
               <button
                 key={sec.id}
                 onClick={() => { setSelectedSection(sec.id); setStep("courses"); }}
@@ -114,7 +144,7 @@ export default function TeacherClassroomPage() {
           <button onClick={handleBack} className="text-sm font-semibold text-gold hover:text-gold/80">← Back</button>
           <p className="text-sm font-semibold text-navy">Select course:</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.map((crs) => (
+            {coursesForSection.map((crs) => (
               <button
                 key={crs.id}
                 onClick={() => { setSelectedCourse(crs.id); setStep("students"); setSubmitted(false); }}
@@ -132,7 +162,6 @@ export default function TeacherClassroomPage() {
         <div className="space-y-6">
           <button onClick={handleBack} className="text-sm font-semibold text-gold hover:text-gold/80">← Back</button>
 
-          {/* Grade submission form */}
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Submit grades</p>
 
@@ -222,7 +251,6 @@ export default function TeacherClassroomPage() {
             </button>
           </CornerFrame>
 
-          {/* Live leaderboard */}
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Course leaderboard</p>
             <div className="mt-4 space-y-2">
@@ -246,7 +274,6 @@ export default function TeacherClassroomPage() {
             </div>
           </CornerFrame>
 
-          {/* Per-student grade history */}
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Grade history</p>
             <div className="mt-4 space-y-4">

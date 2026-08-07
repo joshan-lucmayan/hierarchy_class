@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { TEACHER_DIRECTORY } from "@/data/mockStudents";
+import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 
 export default function AdminTeachersPage() {
+  const { profiles: teachers, loading: teachersLoading, error: teachersError } = useSchoolProfiles({ role: "teacher" });
   const { getTasksByTeacher, addTask } = useTeacherTasks();
   const [assigningTo, setAssigningTo] = useState<string | null>(null);
   const [taskDraft, setTaskDraft] = useState({ title: "", description: "", dueDate: "" });
@@ -32,8 +33,14 @@ export default function AdminTeachersPage() {
         </p>
       </CornerFrame>
 
+      {teachersLoading && <p className="text-sm text-muted">Loading teacher roster...</p>}
+      {teachersError && <p className="text-sm text-muted">{teachersError}</p>}
+      {!teachersLoading && !teachersError && teachers.length === 0 && (
+        <p className="text-sm text-muted">No teachers have signed up for your school yet.</p>
+      )}
+
       <div className="grid gap-4 xl:grid-cols-2">
-        {TEACHER_DIRECTORY.map((teacher) => {
+        {teachers.map((teacher) => {
           const tasks = getTasksByTeacher(teacher.id);
           const pendingCount = tasks.filter((t) => t.status === "pending").length;
 
@@ -42,11 +49,11 @@ export default function AdminTeachersPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-gold bg-navy text-sm font-bold text-gold">
-                    {teacher.initials}
+                    {teacher.initials ?? teacher.full_name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-navy">{teacher.name}</p>
-                    <p className="text-xs text-muted">{teacher.subject} · {teacher.office}</p>
+                    <p className="text-sm font-semibold text-navy">{teacher.full_name}</p>
+                    <p className="text-xs text-muted">{teacher.favorite_subject ?? "No subject listed"}</p>
                   </div>
                 </div>
                 {pendingCount > 0 && (
@@ -56,7 +63,7 @@ export default function AdminTeachersPage() {
                 )}
               </div>
 
-              <p className="mt-3 text-xs text-muted">{teacher.bio}</p>
+              {teacher.bio && <p className="mt-3 text-xs text-muted">{teacher.bio}</p>}
 
               {tasks.length > 0 && (
                 <div className="mt-4 space-y-2">
@@ -101,7 +108,7 @@ export default function AdminTeachersPage() {
 
               {assigningTo === teacher.id && (
                 <form
-                  onSubmit={(e) => handleAssign(e, teacher.id, teacher.name)}
+                  onSubmit={(e) => handleAssign(e, teacher.id, teacher.full_name)}
                   className="mt-3 space-y-2 rounded-2xl border border-base bg-[var(--surface-strong)] p-4"
                 >
                   <input

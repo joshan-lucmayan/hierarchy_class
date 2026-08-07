@@ -9,20 +9,19 @@ import { FriendsStories } from "@/components/feed/FriendsStories";
 import { QuickSearchBar } from "@/components/search/QuickSearchBar";
 import { SCHOOL_POSTS } from "@/data/schoolFeed";
 
-const MOCK_STUDENT_ID = "std-1"; // TODO: replace with real auth user → student id mapping
-
 export default function StudentHomePage() {
   const { profile, loading, error } = useMyProfile();
-  const { getStudentAverage, getStudentRank, getEntriesByStudent } = useClassroomHierarchy();
+  const { getStudentAverageByProfile, getStudentRankByProfile, getEntriesByProfile } = useClassroomHierarchy();
 
-  const avg = getStudentAverage(MOCK_STUDENT_ID);
-  const rank = getStudentRank(MOCK_STUDENT_ID);
-  const entries = getEntriesByStudent(MOCK_STUDENT_ID).sort((a, b) => b.date.localeCompare(a.date));
+  const avg = profile ? getStudentAverageByProfile(profile.id) : null;
+  const rank = profile ? getStudentRankByProfile(profile.id) : null;
+  const entries = profile
+    ? getEntriesByProfile(profile.id).sort((a, b) => b.date.localeCompare(a.date))
+    : [];
 
   const academicExcellence = avg ?? 0;
   const displayRank = rank ?? "C";
 
-  // group entries by subject (course) for weakest subject
   const courseScores: Record<string, number[]> = {};
   entries.forEach((e) => {
     if (!courseScores[e.courseId]) courseScores[e.courseId] = [];
@@ -52,7 +51,6 @@ export default function StudentHomePage() {
         </section>
 
         <aside className="space-y-6">
-          {/* Rank section */}
           <div className="pb-2">
             <div className="flex flex-col items-center text-center">
               {loading ? (
@@ -98,7 +96,6 @@ export default function StudentHomePage() {
             </div>
           </div>
 
-          {/* Recent grades */}
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Recent grades</h2>
             {entries.length === 0 ? (
@@ -120,7 +117,6 @@ export default function StudentHomePage() {
             )}
           </CornerFrame>
 
-          {/* Weakest subject */}
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Weakest Subject</h2>
             {weakest ? (
