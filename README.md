@@ -2,12 +2,7 @@
 
 **Climb the ranks.**
 
-Hierarchy Class is a gamified academic tracking platform for students,
-teachers, and admins following the Philippine DepEd curriculum for Grades
-1-10. It reimagines the school report card as an RPG-style character
-sheet - academic subjects and personal attributes are converted into
-stats and tiered ranks (S++, S, A, B, C, D), similar to a game character
-profile, while grading data itself remains strictly controlled by
+Hierarchy Class is a gamified academic tracking platform for students, teachers/professors, and admins at any school or campus that wants to help students improve academically. It reimagines the school report card as an RPG-style character sheet - academic subjects and personal attributes are converted into stats and tiered ranks (S++, S, A, B, C, D), similar to a game character profile, while grading data itself remains strictly controlled by
 teachers and administrators.
 
 The platform blends the customization and social feel of a profile-based
