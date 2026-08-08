@@ -9,29 +9,31 @@ The platform blends the customization and social feel of a profile-based
 app with the structure and accountability of a school information
 system.
 
-**Current version:** `0.1.2` (frontend/UI phase - see [Project status](#project-status))
+**Current version:** `0.2.0` (backend migration phase - see [Project status](#project-status))
 
 ## Concept
 
-Each subject grade converts into a stat:
-- **Mathematics → Logic**
-- **English → Communication**
-- **Science → Insight**
-- **PE → Physical**
+Each school builds its own academic hierarchy - **Programs** (e.g. a
+track or grade band) contain **Sections** (a year or grade level), which
+contain **Courses** (individual subjects), each assigned to one teacher
+and enrolled with students. Nothing about subject names or grade levels
+is hardcoded, so the same platform works for a K-12 school, a senior
+high school with tracks/strands, or a college department.
 
-Stats are ranked on a tier scale (S++, S, A, B, C, D), and an overall
-composite **Academic Excellence** score reflects a student's standing
-across all subjects. Alongside academic performance, a **Social** stat
-(internally tracked as `charisma`) captures social and engagement
-activity - participation, library use, event attendance.
+Teachers submit **daily grade entries** (Exam, Quiz, Activity,
+Assignment) per student per course. Every submission immediately
+recalculates that student's course average and overall rank - there is
+no separate "publish" step. A student's overall **Academic Excellence**
+score and **Rank** (S++ down to D) are a live average across every
+course they're enrolled in, computed straight from real grade data.
 
 Students cannot edit their own grades or ranks - those are fed
-exclusively by teachers and confirmed by admins. What students *can*
-customize is their bio, hobbies, interests, favorite subject,
-self-assigned tags (e.g. "Math Wizard"), and their profile picture -
-similar to a social media profile, but layered on top of verified
-academic data. Sensitive information (home address, contact details) is
-never displayed on any profile, public or private.
+exclusively by teachers and reflected instantly once submitted. What
+students *can* customize is their bio, hobbies, interests, favorite
+subject, self-assigned tags (e.g. "Math Wizard"), and their profile
+picture - similar to a social media profile, but layered on top of
+verified academic data. Sensitive information (home address, contact
+details) is never displayed on any profile, public or private.
 
 ### Coin Charisma (planned)
 
@@ -47,27 +49,42 @@ project phase alongside backend and security work.
 
 | Role | Can View | Can Edit | Key Actions |
 |---|---|---|---|
-| **Student** | Own profile, other students' and teachers' profiles, leaderboard, learning materials, library | Bio, hobbies, interests, tags, favorite subject, profile picture | Borrow/return books, browse materials, message classmates/teachers, view rank |
-| **Teacher** | Student grades/subjects for their class | Submit grades, upload learning materials | Send grades to admin, manage learning material uploads, message students |
-| **Admin** | All system data | Grades, ranks, system configuration, tenant schools | Approve/reconfigure grades, manage schools, review reports, deactivate/delete own account |
+| **Student** | Own profile, other students' and teachers' profiles, leaderboard, learning materials, library | Bio, hobbies, interests, tags, favorite subject, profile picture | Borrow/return books, browse materials, message classmates/teachers, view live rank & recent grades |
+| **Teacher** | Their assigned programs/sections/courses only, their own roster and grade history | Submit daily grades, manage assigned tasks (accept/decline/mark done), manage the library catalog | Submit exam/quiz/activity/assignment scores, accept or decline admin-assigned tasks (with a required reason on decline), scan or manually add library books, approve/decline book pickup requests |
+| **Admin** | All system data for their own school | Grades (via approval queue), programs/sections/courses/enrollment, teacher-to-course assignments, tasks assigned to teachers | Build the program/section/course hierarchy, enroll real signed-up students, assign a teacher to each course, monitor student progress and teacher performance, assign tasks to teachers, review reports and school-wide academic excellence |
+
+Each admin account is scoped to exactly **one school** - the one
+registered against their account when the school signed up. Multi-admin
+schools are handled by issuing a second admin account for that same
+school, not by giving one admin visibility into other schools.
 
 ## Screens
 
-**Student:** Home (school feed + stat snapshot), Messages (full inbox),
-Profile (editable bio/tags/hobbies/picture, stat radar), Learning
-Materials, Library (expanded catalog, book detail view, borrow/return,
-borrow history), Leaderboard (animated rank badges), Search (students
-and teachers, profile view, add friend, message, send charisma),
-Settings (appearance, feedback, about)
+**Student:** Home (school feed, live rank badge, academic excellence
+gauge, recent grades, weakest subject), Messages (full inbox), Profile
+(editable bio/tags/hobbies/picture, stat radar), Learning Materials,
+Library (catalog with cover art, book detail view, borrow/return, borrow
+history), Leaderboard (animated rank badges), Search (students and
+teachers, profile view, add friend, message, send charisma), Settings
+(appearance, feedback, about)
 
-**Teacher:** Home, Messages, Learning Materials (upload/manage),
-Classroom (grade submission), Students (roster with animated rank
-badges), Settings
+**Teacher:** Home (notes, schedule, lesson plan, tasks assigned by
+admin with accept/decline/mark-done), Messages, Learning Materials
+(upload/manage), Classroom (Program → Section → Course → Students
+navigation, daily grade submission by type, live course leaderboard,
+per-student grade history), Library Management (add books via camera
+barcode scan, physical USB/Bluetooth scanner, or manual entry; approve
+pickup requests; track borrowed books; edit/delete catalog entries),
+Settings
 
-**Admin:** Home (pending grade approvals), Messages, Schools (tenant
-management with per-school stats), Reports (summary stats + recent
-reports), Settings (system configuration, account deactivation /
-deletion request)
+**Admin:** Home (pending grade-submission approvals), Messages,
+Programs (create/edit/delete programs, sections, and courses; assign a
+teacher to each course; enroll real signed-up students), Students (live
+progress and rank monitoring across the school), Teachers (performance
+overview, assign tasks with due dates), Reports (live school-wide
+academic excellence, rank distribution, per-course averages), Settings
+(school overview card, appearance, account deactivation / deletion
+request)
 
 ## Navigation
 
@@ -101,23 +118,60 @@ layout patterns, populated with role-appropriate content.
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Charts:** Recharts (stat radar visualization)
-- **Backend / Auth / Database:** Supabase (Postgres, Row-Level Security, Auth) - client is wired up, but most screens still run on local mock data (see below)
+- **Backend / Auth / Database:** Supabase (Postgres, Row-Level Security, Auth)
+- **Barcode scanning:** `html5-qrcode` (camera-based ISBN scan), plus a plain-text input mode that accepts input from USB/Bluetooth HID barcode scanners with no extra driver
+- **Book metadata lookup:** Open Library API (auto-fills title/author/genre/cover from a scanned ISBN)
 - **Hosting:** Vercel
 
 ## Project status
 
-This build has been through a UI/UX-first pass: navigation, page layouts,
-light/dark theming, profile and library features, messaging, and
-teacher/admin parity are largely in place, all running on local mock
-data (`data/*.ts`) rather than live Supabase queries.
+The classroom/grading core and the library are now real, Supabase-backed
+features - not mock data:
 
-**Not yet implemented** (planned as a follow-up phase):
-- Real Supabase-backed data (students, grades, materials, library,
-  messages) in place of mock data
-- Authentication-gated routes and role-based access control
+- **Programs, sections, courses, enrollment, and grade entries** -
+  fully live. Admin builds the hierarchy and assigns teachers; teachers
+  only see courses assigned to them; grade submissions write straight to
+  Postgres and drive each student's real rank.
+- **Teacher tasks** (admin assigns → teacher accepts/declines with a
+  reason/marks done/deletes) - fully live, with RLS scoping each teacher
+  to only their own tasks.
+- **Quiz** - fully live.
+- **Library** - fully live, including the new add-book flow (camera
+  scan, physical scanner device, or manual entry) and full catalog
+  edit/delete for the assigned librarian.
+
+**Still running on local mock data** (next up for conversion):
+- Chat / messaging (admin task-response notifications currently piggyback
+  on this mock system, so they're local-browser-only until this is
+  converted)
+- School feed, friends, stories
+- Banner image / header customization
+- Florin coin balances and purchases
+
+**Not yet implemented:**
 - Real payment processing for Coin Charisma (wallet, ledger, fraud/spend
   limits)
 - Account deactivation / deletion actually removing or disabling data
+
+## Database
+
+SQL migrations live in `migrations/`, applied in order against your
+Supabase project's SQL editor (or `supabase db push` if using the CLI):
+
+1. `001_init_schema.sql` - core schema: schools, profiles, learning
+   materials, library, quizzes, chat, friends, school feed, banner,
+   Florin
+2. `003_auto_create_profile.sql` - `SECURITY DEFINER` trigger that
+   creates a `profiles` row on signup
+3. `005_fix_jwt_syntax.sql` - corrects `auth.jwt()` RLS syntax across
+   several tables
+4. `006_classroom_hierarchy.sql` - programs, sections, courses,
+   course_enrollments, grade_entries, teacher_tasks
+5. `007_library_description.sql` - adds `library_books.description`
+6. `008_library_add_book.sql` - adds `cover_url`/`isbn` to
+   `library_books`, plus its missing INSERT/DELETE policies
+7. `009_teacher_tasks_delete.sql` - adds the missing DELETE policy for
+   `teacher_tasks`
 
 ## Getting started
 
