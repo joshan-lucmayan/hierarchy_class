@@ -59,6 +59,8 @@ export interface LibraryBook {
   borrowedByName?: string;
   borrowedDate?: string;
   dueDate?: string;
+  coverUrl?: string;
+  isbn?: string;
 }
 
 export interface BorrowRecord {

@@ -5,6 +5,38 @@ import { CURRENT_STUDENT } from "@/data/mockStudents";
 import { LibraryBook } from "@/types/student";
 import { useLibraryStore } from "@/lib/libraryStore";
 
+// Librarians sometimes type multiple genres separated by commas into the
+// single "genre" field (e.g. "Dystopian, political fiction, sci-fi").
+// Split those apart everywhere we filter/display genres.
+function splitGenres(genre: string): string[] {
+  return genre
+    .split(",")
+    .map((g) => g.trim())
+    .filter(Boolean);
+}
+
+function BookCover({ book, size = "sm" }: { book: LibraryBook; size?: "sm" | "lg" }) {
+  const [failed, setFailed] = useState(false);
+  const dims = size === "lg" ? "h-32 w-24" : "h-14 w-10";
+
+  if (!book.coverUrl || failed) {
+    return (
+      <div className={`flex ${dims} shrink-0 items-center justify-center rounded-lg border border-base bg-[var(--surface-strong)]`}>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">No cover</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={book.coverUrl}
+      alt=""
+      onError={() => setFailed(true)}
+      className={`${dims} shrink-0 rounded-lg border border-base object-cover`}
+    />
+  );
+}
+
 function statusLabel(book: LibraryBook, isMine: boolean) {
   if (book.status === "available") return null;
   if (book.status === "requested") return isMine ? "Pending librarian approval" : "Requested by another student";
@@ -33,12 +65,23 @@ function BookModal({
         <div className="flex items-start justify-between">
           <div>
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{book.genre}</p>
+            <div className="flex flex-wrap gap-1">
+              {splitGenres(book.genre).map((g) => (
+                <span key={g} className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  {g}
+                </span>
+              ))}
+            </div>
           </div>
           <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
         </div>
-        <h2 className="mt-2 text-2xl font-bold text-navy">{book.title}</h2>
-        <p className="mt-1 text-sm text-muted">by {book.author}</p>
+        <div className="mt-3 flex gap-4">
+          <BookCover book={book} size="lg" />
+          <div>
+            <h2 className="text-2xl font-bold text-navy">{book.title}</h2>
+            <p className="mt-1 text-sm text-muted">by {book.author}</p>
+          </div>
+        </div>
         <p className="mt-4 text-sm leading-6 text-muted">{book.description}</p>
 
         {label && (
@@ -79,7 +122,10 @@ export default function LibraryPage() {
   const [query, setQuery] = useState("");
   const [genreFilter, setGenreFilter] = useState("All");
 
-  const genres = useMemo(() => ["All", ...Array.from(new Set(books.map((b) => b.genre))).sort()], [books]);
+  const genres = useMemo(
+    () => ["All", ...Array.from(new Set(books.flatMap((b) => splitGenres(b.genre)))).sort()],
+    [books]
+  );
 
   const availableBooks = useMemo(() => {
     const normalized = query.toLowerCase();
@@ -89,7 +135,7 @@ export default function LibraryPage() {
         !normalized ||
         book.title.toLowerCase().includes(normalized) ||
         book.author.toLowerCase().includes(normalized);
-      const matchesGenre = genreFilter === "All" || book.genre === genreFilter;
+      const matchesGenre = genreFilter === "All" || splitGenres(book.genre).includes(genreFilter);
       return matchesQuery && matchesGenre;
     });
   }, [books, query, genreFilter]);
@@ -149,10 +195,20 @@ export default function LibraryPage() {
                   onClick={() => setSelectedBook(book)}
                   className="group flex w-full items-start justify-between gap-4 py-4 text-left transition hover:bg-[var(--surface-strong)]"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-navy">{book.title}</p>
-                    <p className="mt-1 text-xs text-muted">{book.author} · {book.genre}</p>
-                    <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <BookCover book={book} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-navy">{book.title}</p>
+                      <p className="mt-1 text-xs text-muted">{book.author}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {splitGenres(book.genre).map((g) => (
+                          <span key={g} className="rounded-full bg-[var(--surface-strong)] px-2 py-0.5 text-[10px] font-semibold text-muted">
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
+                    </div>
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
                     View →
@@ -179,9 +235,12 @@ export default function LibraryPage() {
                   onClick={() => setSelectedBook(book)}
                   className="group flex w-full items-start justify-between gap-4 py-4 text-left transition hover:bg-[var(--surface-strong)]"
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-navy">{book.title}</p>
-                    <p className="mt-1 text-xs text-muted">{statusLabel(book, true)}</p>
+                  <div className="flex items-start gap-3">
+                    <BookCover book={book} />
+                    <div>
+                      <p className="text-sm font-semibold text-navy">{book.title}</p>
+                      <p className="mt-1 text-xs text-muted">{statusLabel(book, true)}</p>
+                    </div>
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
                     View →

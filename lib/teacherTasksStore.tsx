@@ -25,6 +25,7 @@ interface TeacherTasksContextType {
   declineTask: (id: string, reason: string) => Promise<void>;
   markTaskDone: (id: string) => Promise<void>;
   reopenTask: (id: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
   getTasksByTeacher: (teacherId: string) => TeacherTask[];
 }
 
@@ -124,6 +125,12 @@ export function TeacherTasksProvider({ children }: { children: ReactNode }) {
     refetch();
   }, [refetch]);
 
+  const deleteTask = useCallback(async (id: string) => {
+    const supabase = createClient();
+    await (supabase.from("teacher_tasks") as any).delete().eq("id", id);
+    refetch();
+  }, [refetch]);
+
   const getTasksByTeacher = useCallback(
     (teacherId: string) => tasks.filter((t) => t.teacherId === teacherId),
     [tasks]
@@ -131,7 +138,7 @@ export function TeacherTasksProvider({ children }: { children: ReactNode }) {
 
   return (
     <TeacherTasksContext.Provider
-      value={{ tasks, loading, error, addTask, acceptTask, declineTask, markTaskDone, reopenTask, getTasksByTeacher }}
+      value={{ tasks, loading, error, addTask, acceptTask, declineTask, markTaskDone, reopenTask, deleteTask, getTasksByTeacher }}
     >
       {children}
     </TeacherTasksContext.Provider>

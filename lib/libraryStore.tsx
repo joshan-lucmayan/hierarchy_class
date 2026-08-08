@@ -1,21 +1,37 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { LIBRARY_BOOKS, TEACHER_PROFILE } from "@/data/mockStudents";
-import { LIBRARY_BORROW_LOG_SEED, LIBRARY_BORROW_REQUESTS_SEED } from "@/data/library";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useMyProfile } from "@/lib/useMyProfile";
 import { LibraryBook, LibraryBorrowLogEntry, LibraryBorrowRequest } from "@/types/student";
 import { useChatStore } from "@/lib/chatStore";
 
-const STORAGE_BOOKS = "hc-library-books";
-const STORAGE_REQUESTS = "hc-library-requests";
-const STORAGE_LOG = "hc-library-log";
+// TEMP: library messages go out under whichever teacher is flagged
+// is_librarian for this school. Falls back to no message if none is set.
+// This shim goes away once chat is wired to Supabase (next conversion step).
+function useLibrarian() {
+  const [librarian, setLibrarian] = useState<{ id: string; name: string; initials: string } | null>(null);
+  const { profile } = useMyProfile();
 
-// TEMP: messages from the library go out under whichever teacher is flagged
-// isLibrarian. Once accounts are real, this resolves to the actual signed-in
-// librarian instead of the shared mock profile.
-const LIBRARIAN_ID = TEACHER_PROFILE.id;
-const LIBRARIAN_NAME = TEACHER_PROFILE.name;
-const LIBRARIAN_INITIALS = TEACHER_PROFILE.initials;
+  useEffect(() => {
+    if (!profile) return;
+    const supabase = createClient();
+    supabase
+      .from("profiles")
+      .select("id, full_name, initials")
+      .eq("school_id", profile.school_id)
+      .eq("is_librarian", true)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data) {
+          setLibrarian({ id: data.id, name: data.full_name, initials: data.initials ?? data.full_name.slice(0, 2).toUpperCase() });
+        }
+      });
+  }, [profile]);
+
+  return librarian;
+}
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -33,154 +49,333 @@ interface LibraryContextValue {
   books: LibraryBook[];
   requests: LibraryBorrowRequest[];
   log: LibraryBorrowLogEntry[];
-  requestBorrow: (book: LibraryBook, borrower: Borrower) => void;
-  approveRequest: (requestId: string, pickupWindow: string) => void;
-  declineRequest: (requestId: string) => void;
-  returnBook: (bookId: string) => void;
+  loading: boolean;
+  error: string | null;
+  addBook: (book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; isbn?: string }) => Promise<void>;
+  updateBook: (id: string, book: { title: string; author: string; genre: string; description?: string; coverUrl?: string }) => Promise<void>;
+  deleteBook: (id: string) => Promise<void>;
+  requestBorrow: (book: LibraryBook, borrower: Borrower) => Promise<void>;
+  approveRequest: (requestId: string, pickupWindow: string) => Promise<void>;
+  declineRequest: (requestId: string) => Promise<void>;
+  returnBook: (bookId: string) => Promise<void>;
   historyForBook: (bookTitle: string) => LibraryBorrowLogEntry[];
 }
 
 const LibraryContext = createContext<LibraryContextValue | null>(null);
 
 export function LibraryProvider({ children }: { children: React.ReactNode }) {
+  const { profile } = useMyProfile();
   const { sendSystemMessage } = useChatStore();
-  const [books, setBooks] = useState<LibraryBook[]>(LIBRARY_BOOKS);
-  const [requests, setRequests] = useState<LibraryBorrowRequest[]>(LIBRARY_BORROW_REQUESTS_SEED);
-  const [log, setLog] = useState<LibraryBorrowLogEntry[]>(LIBRARY_BORROW_LOG_SEED);
-  const [hydrated, setHydrated] = useState(false);
+  const librarian = useLibrarian();
+
+  const [books, setBooks] = useState<LibraryBook[]>([]);
+  const [requests, setRequests] = useState<LibraryBorrowRequest[]>([]);
+  const [log, setLog] = useState<LibraryBorrowLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refetchTick, setRefetchTick] = useState(0);
+
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   useEffect(() => {
-    try {
-      const savedBooks = window.localStorage.getItem(STORAGE_BOOKS);
-      const savedRequests = window.localStorage.getItem(STORAGE_REQUESTS);
-      const savedLog = window.localStorage.getItem(STORAGE_LOG);
-      if (savedBooks) setBooks(JSON.parse(savedBooks));
-      if (savedRequests) setRequests(JSON.parse(savedRequests));
-      if (savedLog) setLog(JSON.parse(savedLog));
-    } catch {
-      // ignore corrupt storage
+    if (!supabaseConfigured) {
+      setLoading(false);
+      setError("Supabase isn't configured yet.");
+      return;
     }
-    setHydrated(true);
-  }, []);
+    if (!profile) return;
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_BOOKS, JSON.stringify(books));
-  }, [books, hydrated]);
+    let cancelled = false;
+    const supabase = createClient();
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_REQUESTS, JSON.stringify(requests));
-  }, [requests, hydrated]);
+    async function loadAll() {
+      setLoading(true);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_LOG, JSON.stringify(log));
-  }, [log, hydrated]);
+      const [
+        { data: booksData, error: booksErr },
+        { data: requestsData, error: requestsErr },
+        { data: logData, error: logErr },
+      ] = (await Promise.all([
+        supabase.from("library_books").select("*").order("title"),
+        supabase
+          .from("library_borrow_requests")
+          .select("*, student:profiles!student_id(full_name, level_label, section)")
+          .eq("status", "pending")
+          .order("requested_at", { ascending: false }),
+        supabase
+          .from("library_borrow_log")
+          .select("*, student:profiles!student_id(full_name, level_label, section)")
+          .order("date", { ascending: true }),
+      ])) as any[];
 
-  function requestBorrow(book: LibraryBook, borrower: Borrower) {
-    const request: LibraryBorrowRequest = {
-      id: `req-${Date.now()}`,
-      bookId: book.id,
-      bookTitle: book.title,
-      studentId: borrower.id,
-      studentName: borrower.name,
-      gradeSection: borrower.gradeSection,
-      requestedAt: new Date().toLocaleString("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
+      if (cancelled) return;
+
+      if (booksErr || requestsErr || logErr) {
+        setError("Couldn't load library data. Please refresh and try again.");
+        setLoading(false);
+        return;
+      }
+
+      setBooks(
+        ((booksData ?? []) as any[]).map((b: any) => ({
+          id: b.id,
+          title: b.title,
+          author: b.author,
+          genre: b.genre,
+          description: b.description ?? "",
+          status: b.status,
+          borrowedBy: b.borrowed_by ?? undefined,
+          borrowedByName: b.borrowed_by_name ?? undefined,
+          borrowedDate: b.borrowed_date ? b.borrowed_date.slice(0, 10) : undefined,
+          dueDate: b.due_date ? b.due_date.slice(0, 10) : undefined,
+          coverUrl: b.cover_url ?? undefined,
+          isbn: b.isbn ?? undefined,
+        }))
+      );
+
+      setRequests(
+        ((requestsData ?? []) as any[]).map((r: any) => ({
+          id: r.id,
+          bookId: r.book_id,
+          bookTitle: (booksData as any[]).find((b) => b.id === r.book_id)?.title ?? "Unknown book",
+          studentId: r.student_id,
+          studentName: r.student?.full_name ?? "Unknown student",
+          gradeSection: [r.student?.level_label, r.student?.section].filter(Boolean).join(" · "),
+          requestedAt: new Date(r.requested_at).toLocaleString("en-PH", {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+        }))
+      );
+
+      // library_borrow_log stores "borrowed" and "returned" as separate event
+      // rows. Pair each "borrowed" row with the next "returned" row for the
+      // same book+student to reconstruct a single loan entry for the UI.
+      const rawLog = (logData ?? []) as any[];
+      const pairedLog: LibraryBorrowLogEntry[] = [];
+      const usedReturnIds = new Set<string>();
+
+      rawLog
+        .filter((l) => l.action === "borrowed")
+        .forEach((borrowRow) => {
+          const returnRow = rawLog.find(
+            (r) =>
+              r.action === "returned" &&
+              r.book_id === borrowRow.book_id &&
+              r.student_id === borrowRow.student_id &&
+              new Date(r.date) >= new Date(borrowRow.date) &&
+              !usedReturnIds.has(r.id)
+          );
+          if (returnRow) usedReturnIds.add(returnRow.id);
+
+          pairedLog.push({
+            id: borrowRow.id,
+            bookId: borrowRow.book_id,
+            bookTitle: (booksData as any[]).find((b) => b.id === borrowRow.book_id)?.title ?? "Unknown book",
+            studentId: borrowRow.student_id,
+            studentName: borrowRow.student?.full_name ?? "Unknown student",
+            gradeSection: [borrowRow.student?.level_label, borrowRow.student?.section].filter(Boolean).join(" · "),
+            borrowedDate: borrowRow.date ? borrowRow.date.slice(0, 10) : "",
+            returnedDate: returnRow?.date ? returnRow.date.slice(0, 10) : undefined,
+          });
+        });
+
+      setLog(pairedLog.reverse());
+
+      setError(null);
+      setLoading(false);
+    }
+
+    loadAll();
+    return () => {
+      cancelled = true;
     };
-    setRequests((prev) => [request, ...prev]);
-    setBooks((prev) =>
-      prev.map((b) =>
-        b.id === book.id ? { ...b, status: "requested", borrowedBy: borrower.id, borrowedByName: borrower.name } : b
-      )
-    );
-    sendSystemMessage(
-      "student",
-      LIBRARIAN_ID,
-      LIBRARIAN_NAME,
-      LIBRARIAN_INITIALS,
-      `We received your request for "${book.title}". We'll message you the pickup time once it's approved.`
-    );
-  }
+  }, [supabaseConfigured, profile, refetchTick]);
 
-  function approveRequest(requestId: string, pickupWindow: string) {
-    const request = requests.find((r) => r.id === requestId);
-    if (!request) return;
+  const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
-    setBooks((prev) =>
-      prev.map((b) =>
-        b.id === request.bookId
-          ? { ...b, status: "borrowed", borrowedDate: todayISO(), dueDate: addDaysISO(14) }
-          : b
-      )
-    );
-    setLog((prev) => [
-      {
-        id: `log-${Date.now()}`,
-        bookId: request.bookId,
-        bookTitle: request.bookTitle,
-        studentId: request.studentId,
-        studentName: request.studentName,
-        gradeSection: request.gradeSection,
-        borrowedDate: todayISO(),
-      },
-      ...prev,
-    ]);
-    setRequests((prev) => prev.filter((r) => r.id !== requestId));
-    sendSystemMessage(
-      "student",
-      LIBRARIAN_ID,
-      LIBRARIAN_NAME,
-      LIBRARIAN_INITIALS,
-      `Good news! "${request.bookTitle}" is ready for pickup: ${pickupWindow}.`
-    );
-  }
+  const addBook = useCallback(
+    async (book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; isbn?: string }) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase.from("library_books") as any).insert({
+        school_id: profile.school_id,
+        title: book.title,
+        author: book.author,
+        genre: book.genre,
+        description: book.description ?? null,
+        cover_url: book.coverUrl ?? null,
+        isbn: book.isbn ?? null,
+        status: "available",
+      });
+      refetch();
+    },
+    [profile, refetch]
+  );
 
-  function declineRequest(requestId: string) {
-    const request = requests.find((r) => r.id === requestId);
-    if (!request) return;
+  const updateBook = useCallback(
+    async (id: string, book: { title: string; author: string; genre: string; description?: string; coverUrl?: string }) => {
+      const supabase = createClient();
+      await (supabase.from("library_books") as any)
+        .update({
+          title: book.title,
+          author: book.author,
+          genre: book.genre,
+          description: book.description ?? null,
+          cover_url: book.coverUrl ?? null,
+        })
+        .eq("id", id);
+      refetch();
+    },
+    [refetch]
+  );
 
-    setBooks((prev) =>
-      prev.map((b) =>
-        b.id === request.bookId ? { ...b, status: "available", borrowedBy: undefined, borrowedByName: undefined } : b
-      )
-    );
-    setRequests((prev) => prev.filter((r) => r.id !== requestId));
-    sendSystemMessage(
-      "student",
-      LIBRARIAN_ID,
-      LIBRARIAN_NAME,
-      LIBRARIAN_INITIALS,
-      `Sorry, we couldn't approve your request for "${request.bookTitle}" right now. Please check back later.`
-    );
-  }
+  const deleteBook = useCallback(
+    async (id: string) => {
+      const supabase = createClient();
+      await (supabase.from("library_books") as any).delete().eq("id", id);
+      refetch();
+    },
+    [refetch]
+  );
 
-  function returnBook(bookId: string) {
-    setBooks((prev) =>
-      prev.map((b) =>
-        b.id === bookId
-          ? { ...b, status: "available", borrowedBy: undefined, borrowedByName: undefined, borrowedDate: undefined, dueDate: undefined }
-          : b
-      )
-    );
-    setLog((prev) => {
-      const idx = prev.findIndex((entry) => entry.bookId === bookId && !entry.returnedDate);
-      if (idx === -1) return prev;
-      const next = [...prev];
-      next[idx] = { ...next[idx], returnedDate: todayISO() };
-      return next;
-    });
-  }
+  const requestBorrow = useCallback(
+    async (book: LibraryBook, borrower: Borrower) => {
+      if (!profile) return;
+      const supabase = createClient();
 
-  function historyForBook(bookTitle: string) {
-    const normalized = bookTitle.trim().toLowerCase();
-    if (!normalized) return [];
-    return log.filter((entry) => entry.bookTitle.toLowerCase().includes(normalized));
-  }
+      await (supabase.from("library_borrow_requests") as any).insert({
+        school_id: profile.school_id,
+        book_id: book.id,
+        student_id: borrower.id,
+        status: "pending",
+      });
+
+      await (supabase.from("library_books") as any)
+        .update({ status: "requested", borrowed_by: borrower.id, borrowed_by_name: borrower.name })
+        .eq("id", book.id);
+
+      if (librarian) {
+        sendSystemMessage(
+          "student",
+          librarian.id,
+          librarian.name,
+          librarian.initials,
+          `We received your request for "${book.title}". We'll message you the pickup time once it's approved.`
+        );
+      }
+
+      refetch();
+    },
+    [profile, librarian, sendSystemMessage, refetch]
+  );
+
+  const approveRequest = useCallback(
+    async (requestId: string, pickupWindow: string) => {
+      if (!profile) return;
+      const request = requests.find((r) => r.id === requestId);
+      if (!request) return;
+      const supabase = createClient();
+
+      await (supabase.from("library_books") as any)
+        .update({ status: "borrowed", borrowed_date: todayISO(), due_date: addDaysISO(14) })
+        .eq("id", request.bookId);
+
+      await (supabase.from("library_borrow_log") as any).insert({
+        school_id: profile.school_id,
+        book_id: request.bookId,
+        student_id: request.studentId,
+        action: "borrowed",
+      });
+
+      await (supabase.from("library_borrow_requests") as any)
+        .update({ status: "approved" })
+        .eq("id", requestId);
+
+      if (librarian) {
+        sendSystemMessage(
+          "student",
+          librarian.id,
+          librarian.name,
+          librarian.initials,
+          `Good news! "${request.bookTitle}" is ready for pickup: ${pickupWindow}.`
+        );
+      }
+
+      refetch();
+    },
+    [profile, requests, librarian, sendSystemMessage, refetch]
+  );
+
+  const declineRequest = useCallback(
+    async (requestId: string) => {
+      const request = requests.find((r) => r.id === requestId);
+      if (!request) return;
+      const supabase = createClient();
+
+      await (supabase.from("library_books") as any)
+        .update({ status: "available", borrowed_by: null, borrowed_by_name: null })
+        .eq("id", request.bookId);
+
+      await (supabase.from("library_borrow_requests") as any)
+        .update({ status: "declined" })
+        .eq("id", requestId);
+
+      if (librarian) {
+        sendSystemMessage(
+          "student",
+          librarian.id,
+          librarian.name,
+          librarian.initials,
+          `Sorry, we couldn't approve your request for "${request.bookTitle}" right now. Please check back later.`
+        );
+      }
+
+      refetch();
+    },
+    [requests, librarian, sendSystemMessage, refetch]
+  );
+
+  const returnBook = useCallback(
+    async (bookId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+
+      const openLogEntry = log.find((entry) => entry.bookId === bookId && !entry.returnedDate);
+
+      await (supabase.from("library_books") as any)
+        .update({ status: "available", borrowed_by: null, borrowed_by_name: null, borrowed_date: null, due_date: null })
+        .eq("id", bookId);
+
+      if (openLogEntry) {
+        await (supabase.from("library_borrow_log") as any).insert({
+          school_id: profile.school_id,
+          book_id: bookId,
+          student_id: openLogEntry.studentId,
+          action: "returned",
+        });
+      }
+
+      refetch();
+    },
+    [profile, log, refetch]
+  );
+
+  const historyForBook = useCallback(
+    (bookTitle: string) => {
+      const normalized = bookTitle.trim().toLowerCase();
+      if (!normalized) return [];
+      return log.filter((entry) => entry.bookTitle.toLowerCase().includes(normalized));
+    },
+    [log]
+  );
 
   const value = useMemo(
-    () => ({ books, requests, log, requestBorrow, approveRequest, declineRequest, returnBook, historyForBook }),
-    [books, requests, log]
+    () => ({ books, requests, log, loading, error, addBook, updateBook, deleteBook, requestBorrow, approveRequest, declineRequest, returnBook, historyForBook }),
+    [books, requests, log, loading, error, addBook, updateBook, deleteBook, requestBorrow, approveRequest, declineRequest, returnBook, historyForBook]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

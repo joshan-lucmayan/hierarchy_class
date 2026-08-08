@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useTeacherWorkspace, TeacherNote, ScheduleItem, LessonPlanItem } from "@/lib/teacherWorkspaceStore";
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
+import { useChatStore } from "@/lib/chatStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -100,14 +101,32 @@ export default function TeacherHomePage() {
     removeLessonPlan,
   } = useTeacherWorkspace();
 
-  const { getTasksByTeacher, acceptTask, declineTask, markTaskDone, reopenTask } = useTeacherTasks();
+  const { getTasksByTeacher, acceptTask, declineTask, markTaskDone, reopenTask, deleteTask } = useTeacherTasks();
+  const { sendSystemMessage } = useChatStore();
   const assignedTasks = profile ? getTasksByTeacher(profile.id) : [];
+
+  function notifyAdmin(text: string) {
+    if (!profile) return;
+    sendSystemMessage(
+      "admin",
+      profile.id,
+      profile.full_name,
+      profile.initials ?? profile.full_name.slice(0, 2).toUpperCase(),
+      text
+    );
+  }
+
+  function handleAccept(taskId: string, taskTitle: string) {
+    acceptTask(taskId);
+    notifyAdmin(`I accepted the task "${taskTitle}".`);
+  }
   const [decliningTaskId, setDecliningTaskId] = useState<string | null>(null);
   const [declineReasonDraft, setDeclineReasonDraft] = useState("");
 
-  function handleDeclineSubmit(taskId: string) {
+  function handleDeclineSubmit(taskId: string, taskTitle: string) {
     if (!declineReasonDraft.trim()) return;
     declineTask(taskId, declineReasonDraft);
+    notifyAdmin(`I declined the task "${taskTitle}". Reason: ${declineReasonDraft}`);
     setDecliningTaskId(null);
     setDeclineReasonDraft("");
   }
@@ -206,7 +225,7 @@ export default function TeacherHomePage() {
                     <div className="flex shrink-0 gap-2">
                       <button
                         type="button"
-                        onClick={() => acceptTask(task.id)}
+                        onClick={() => handleAccept(task.id, task.title)}
                         className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
                       >
                         Accept
@@ -232,19 +251,37 @@ export default function TeacherHomePage() {
                   )}
 
                   {task.status === "done" && (
-                    <button
-                      type="button"
-                      onClick={() => reopenTask(task.id)}
-                      className="shrink-0 rounded-full border border-base px-3 py-1 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold"
-                    >
-                      Reopen
-                    </button>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => reopenTask(task.id)}
+                        className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold"
+                      >
+                        Reopen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTask(task.id)}
+                        className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-muted transition hover:border-red-400 hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
 
                   {task.status === "declined" && (
-                    <span className="shrink-0 rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-600">
-                      Declined
-                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-600">
+                        Declined
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => deleteTask(task.id)}
+                        className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-muted transition hover:border-red-400 hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -261,7 +298,7 @@ export default function TeacherHomePage() {
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => handleDeclineSubmit(task.id)}
+                        onClick={() => handleDeclineSubmit(task.id, task.title)}
                         disabled={!declineReasonDraft.trim()}
                         className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-600 disabled:opacity-40"
                       >
