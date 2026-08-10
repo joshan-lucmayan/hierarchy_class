@@ -1,4 +1,3 @@
-import { TEACHER_PROFILE } from "@/data/mockStudents";
 
 export type NavItem = {
   href?: string;
@@ -134,6 +133,17 @@ export const TEACHER_NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    href: "/teacher/quiz",
+    label: "Quiz",
+    icon: (active) => (
+      <svg {...iconProps(active)}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2 1.8-2 3.5" />
+        <path d="M12 17h.01" />
+      </svg>
+    ),
+  },
+  {
     href: "/teacher/students",
     label: "Students",
     icon: (active) => (
@@ -145,23 +155,18 @@ export const TEACHER_NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
-  // TEMP: only teachers flagged as also managing the school library see this.
-  // Once accounts are real, this should be filtered by the signed-in
-  // teacher's own isLibrarian flag instead of the shared mock profile.
-  ...(TEACHER_PROFILE.isLibrarian
-    ? [
-        {
-          href: "/teacher/library-management",
-          label: "Library Management",
-          icon: (active: boolean) => (
-            <svg {...iconProps(active)}>
-              <path d="M4 19V5h4v14M16 19V5h4v14M12 5v14" />
-              <circle cx="12" cy="9" r="2" />
-            </svg>
-          ),
-        },
-      ]
-    : []),
+  // Visibility of this item is gated by the real logged-in teacher's
+  // is_librarian flag in SideNav.tsx, not here (this array is static).
+  {
+    href: "/teacher/library-management",
+    label: "Library Management",
+    icon: (active: boolean) => (
+      <svg {...iconProps(active)}>
+        <path d="M4 19V5h4v14M16 19V5h4v14M12 5v14" />
+        <circle cx="12" cy="9" r="2" />
+      </svg>
+    ),
+  },
   {
     href: "/teacher/settings",
     label: "Settings",

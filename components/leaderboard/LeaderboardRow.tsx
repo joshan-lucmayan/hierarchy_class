@@ -1,8 +1,24 @@
 import { RankBadge } from "@/components/ui/RankBadge";
-import { LeaderboardEntry } from "@/types/student";
+import type { TierRank } from "@/lib/classroomHierarchyStore";
 
-export function LeaderboardRow({ entry, isCurrentUser }: { entry: LeaderboardEntry; isCurrentUser?: boolean }) {
-  const { rank, student } = entry;
+interface LeaderboardRowStudent {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  levelLabel: string;
+  section: string;
+  overallRank: TierRank;
+}
+
+export function LeaderboardRow({
+  rank,
+  student,
+  isCurrentUser,
+}: {
+  rank: number;
+  student: LeaderboardRowStudent;
+  isCurrentUser?: boolean;
+}) {
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 ${
@@ -10,10 +26,16 @@ export function LeaderboardRow({ entry, isCurrentUser }: { entry: LeaderboardEnt
       }`}
     >
       <span className="w-5 text-center text-sm font-bold text-muted">{rank}</span>
-      <img src="/avatars/default-avatar.webp" alt={student.name} className="h-9 w-9 rounded-full object-cover" />
+      <img
+        src={student.avatarUrl || "/avatars/default-avatar.webp"}
+        alt={student.name}
+        className="h-9 w-9 shrink-0 rounded-full object-cover"
+      />
       <div className="flex-1">
         <p className="text-sm font-semibold text-navy">{student.name}</p>
-        <p className="text-[11px] text-muted">Grade {student.gradeLevel} · {student.section}</p>
+        <p className="text-[11px] text-muted">
+          {[student.levelLabel, student.section].filter(Boolean).join(" · ")}
+        </p>
       </div>
       <RankBadge rank={student.overallRank} size="md" />
     </div>

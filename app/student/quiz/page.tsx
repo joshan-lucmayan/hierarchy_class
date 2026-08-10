@@ -2,17 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { useQuizStore, Quiz } from "@/lib/quizStore";
-import { CURRENT_STUDENT } from "@/data/mockStudents";
+import { useMyProfile } from "@/lib/useMyProfile";
+import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 
 export default function StudentQuizPage() {
   const { quizzes, addAttempt } = useQuizStore();
+  const { profile } = useMyProfile();
+  const { getStudentRecordsByProfile } = useClassroomHierarchy();
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [result, setResult] = useState<{ score: number; total: number } | null>(null);
 
-  const available = quizzes.filter((q) => q.gradeLevel === CURRENT_STUDENT.gradeLevel);
+  const myCourseIds = profile
+    ? getStudentRecordsByProfile(profile.id).map((s) => s.courseId)
+    : [];
+  const available = quizzes.filter((q) => myCourseIds.includes(q.courseId));
 
   useEffect(() => {
     if (!activeQuiz || result) return;
@@ -58,12 +64,10 @@ export default function StudentQuizPage() {
     );
     const total = activeQuiz.questions.length;
     addAttempt({
-      id: `attempt-${Date.now()}`,
       quizId: activeQuiz.id,
       quizTitle: activeQuiz.title,
       score,
       total,
-      completedAt: new Date().toISOString(),
     });
     setResult({ score, total });
   }
@@ -144,13 +148,13 @@ export default function StudentQuizPage() {
       <p className="text-sm text-muted">Play anytime. Your score contributes to your Academic Excellence rank.</p>
 
       {available.length === 0 ? (
-        <p className="text-sm text-muted">No quizzes available for your grade yet. Check back soon.</p>
+        <p className="text-sm text-muted">No quizzes available for your courses yet. Check back soon.</p>
       ) : (
         <div className="divide-y divide-[var(--border)]">
           {available.map((quiz) => (
             <div key={quiz.id} className="flex items-center justify-between gap-4 py-5">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted">{quiz.subject}</p>
+                <p className="text-xs uppercase tracking-[0.25em] text-muted">{quiz.courseName}</p>
                 <p className="mt-1 text-lg font-semibold text-navy">{quiz.title}</p>
                 <p className="mt-1 text-sm text-muted">{quiz.questions.length} questions · {quiz.timeLimitSeconds}s timer</p>
               </div>

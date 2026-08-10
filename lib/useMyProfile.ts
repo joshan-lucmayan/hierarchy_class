@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ProfileRow } from "@/types/supabase";
 import { createClient } from "@/lib/supabase/client";
 
@@ -8,6 +8,9 @@ interface UseMyProfileResult {
   profile: ProfileRow | null;
   loading: boolean;
   error: string | null;
+  updateProfile: (patch: Partial<Pick<ProfileRow, "bio" | "favorite_subject" | "hobbies" | "interests" | "tags">>) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<void>;
+  removeAvatar: () => Promise<void>;
 }
 
 /** Fetches the profile row belonging to the currently logged in user. */
@@ -15,11 +18,12 @@ export function useMyProfile(): UseMyProfileResult {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTick, setRefetchTick] = useState(0);
+
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   useEffect(() => {
-    const supabaseConfigured =
-      !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
     if (!supabaseConfigured) {
       setLoading(false);
       setError("Supabase isn't configured yet.");
@@ -49,6 +53,7 @@ export function useMyProfile(): UseMyProfileResult {
         setProfile(null);
       } else {
         setProfile(data as ProfileRow);
+        setError(null);
       }
       setLoading(false);
     });
@@ -56,7 +61,53 @@ export function useMyProfile(): UseMyProfileResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [supabaseConfigured, refetchTick]);
 
-  return { profile, loading, error };
+  const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
+
+  const updateProfile = useCallback(
+    async (patch: Partial<Pick<ProfileRow, "bio" | "favorite_subject" | "hobbies" | "interests" | "tags">>) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase.from("profiles") as any).update(patch).eq("id", profile.id);
+      refetch();
+    },
+    [profile, refetch]
+  );
+
+  const uploadAvatar = useCallback(
+    async (file: File) => {
+      if (!profile) return;
+      const supabase = createClient();
+
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      if (!userId) return;
+
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${userId}/avatar.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) return;
+
+      const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+
+      await (supabase.from("profiles") as any).update({ avatar_url: avatarUrl }).eq("id", profile.id);
+      refetch();
+    },
+    [profile, refetch]
+  );
+
+  const removeAvatar = useCallback(async () => {
+    if (!profile) return;
+    const supabase = createClient();
+    await (supabase.from("profiles") as any).update({ avatar_url: null }).eq("id", profile.id);
+    refetch();
+  }, [profile, refetch]);
+
+  return { profile, loading, error, updateProfile, uploadAvatar, removeAvatar };
 }

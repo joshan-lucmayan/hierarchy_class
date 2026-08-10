@@ -5,9 +5,11 @@ import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import type { ProfileRow } from "@/types/supabase";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 
 export default function TeacherStudentsPage() {
   const { profiles: students, loading: studentsLoading, error: studentsError } = useSchoolProfiles({ role: "student" });
+  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -62,7 +64,7 @@ export default function TeacherStudentsPage() {
                       {student.section ? ` · ${student.section}` : ""}
                     </p>
                   </div>
-                  <RankBadge rank={student.overall_rank as "S++" | "S" | "A" | "B" | "C" | "D"} size="sm" />
+                  <RankBadge rank={getStudentRankByProfile(student.id) ?? "D"} size="sm" />
                 </div>
               </button>
             ))}
@@ -76,18 +78,22 @@ export default function TeacherStudentsPage() {
           ) : (
             <div className="mt-4 rounded-3xl border border-gold bg-[var(--surface-strong)] p-6">
               <div className="flex items-center gap-4">
-                <img src="/avatars/default-avatar.webp" alt={selectedStudent.full_name} className="h-16 w-16 rounded-full object-cover" />
+                <img
+                  src={selectedStudent.avatar_url || "/avatars/default-avatar.webp"}
+                  alt={selectedStudent.full_name}
+                  className="h-16 w-16 rounded-full object-cover"
+                />
                 <div>
                   <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>
                   <p className="text-sm text-muted">
                     {selectedStudent.level_label ?? "No level set"}
                     {selectedStudent.section ? ` · ${selectedStudent.section}` : ""}
                   </p>
-                  <RankBadge rank={selectedStudent.overall_rank as "S++" | "S" | "A" | "B" | "C" | "D"} size="sm" className="mt-2" />
+                  <RankBadge rank={getStudentRankByProfile(selectedStudent.id) ?? "D"} size="sm" className="mt-2" />
                 </div>
               </div>
               <div className="mt-5 space-y-3 text-sm text-muted">
-                <p><span className="font-semibold text-navy">Academic excellence:</span> {selectedStudent.academic_excellence}/100</p>
+                <p><span className="font-semibold text-navy">Academic excellence:</span> {getStudentAverageByProfile(selectedStudent.id) ?? 0}/100</p>
                 <p><span className="font-semibold text-navy">Favorite subject:</span> {selectedStudent.favorite_subject ?? "Not set"}</p>
                 <p><span className="font-semibold text-navy">Tags:</span> {selectedStudent.tags.length > 0 ? selectedStudent.tags.join(", ") : "None yet"}</p>
               </div>

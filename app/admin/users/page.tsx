@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 
 type RoleFilter = "all" | "student" | "teacher" | "admin";
 
@@ -16,6 +17,7 @@ const ROLE_TABS: { value: RoleFilter; label: string }[] = [
 
 export default function AdminUsersPage() {
   const { profiles, loading, error, refetch } = useSchoolProfiles();
+  const { getStudentRankByProfile } = useClassroomHierarchy();
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [query, setQuery] = useState("");
 
@@ -98,7 +100,7 @@ export default function AdminUsersPage() {
               <div key={person.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src="/avatars/default-avatar.webp"
+                    src={person.avatar_url || "/avatars/default-avatar.webp"}
                     alt={person.full_name}
                     className="h-11 w-11 shrink-0 rounded-full object-cover"
                   />
@@ -124,7 +126,7 @@ export default function AdminUsersPage() {
                     {person.role}
                   </span>
                   {person.role === "student" && (
-                    <RankBadge rank={person.overall_rank as "S++" | "S" | "A" | "B" | "C" | "D"} size="sm" />
+                    <RankBadge rank={getStudentRankByProfile(person.id) ?? "D"} size="sm" />
                   )}
                 </div>
               </div>

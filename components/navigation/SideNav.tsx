@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { STUDENT_NAV_ITEMS, TEACHER_NAV_ITEMS, ADMIN_NAV_ITEMS } from "@/components/navigation/navItems";
-import { CURRENT_STUDENT, TEACHER_PROFILE, ADMIN_PROFILE } from "@/data/mockStudents";
+import { useMyProfile } from "@/lib/useMyProfile";
 import { createClient } from "@/lib/supabase/client";
 
 type Role = "student" | "teacher" | "admin";
@@ -15,14 +15,26 @@ const ITEMS_BY_ROLE: Record<Role, typeof STUDENT_NAV_ITEMS> = {
   admin: ADMIN_NAV_ITEMS,
 };
 
+const DEFAULT_AVATAR = "/avatars/default-avatar.webp";
+
 function useSidebarUser(role: Role) {
+  const { profile, uploadAvatar, removeAvatar } = useMyProfile();
+
+  const name = profile?.full_name ?? "";
+  const avatarUrl = profile?.avatar_url || DEFAULT_AVATAR;
+  const hasCustomAvatar = !!profile?.avatar_url;
+  const isLibrarian = profile?.is_librarian ?? false;
+
+  let roleLabel = "";
   if (role === "teacher") {
-    return { name: TEACHER_PROFILE.name, initials: TEACHER_PROFILE.initials, roleLabel: TEACHER_PROFILE.subject + " Teacher" };
+    roleLabel = "Teacher";
+  } else if (role === "admin") {
+    roleLabel = "Administrator";
+  } else {
+    roleLabel = [profile?.level_label, profile?.section].filter(Boolean).join(" · ");
   }
-  if (role === "admin") {
-    return { name: ADMIN_PROFILE.name, initials: ADMIN_PROFILE.initials, roleLabel: ADMIN_PROFILE.roleLabel };
-  }
-  return { name: CURRENT_STUDENT.name, initials: CURRENT_STUDENT.initials, roleLabel: `Grade ${CURRENT_STUDENT.gradeLevel} · ${CURRENT_STUDENT.section}` };
+
+  return { name, avatarUrl, roleLabel, isLibrarian, hasCustomAvatar, uploadAvatar, removeAvatar };
 }
 
 export function SideNav({
@@ -44,8 +56,27 @@ export function SideNav({
 }) {
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const items = ITEMS_BY_ROLE[role];
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const user = useSidebarUser(role);
+
+  async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarBusy(true);
+    await user.uploadAvatar(file);
+    setAvatarBusy(false);
+    e.target.value = "";
+  }
+
+  async function handleRemoveAvatar() {
+    setAvatarBusy(true);
+    await user.removeAvatar();
+    setAvatarBusy(false);
+  }
+  const items = ITEMS_BY_ROLE[role].filter(
+    (item) => item.href !== "/teacher/library-management" || user.isLibrarian
+  );
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -127,7 +158,43 @@ export function SideNav({
 
       <div className="mt-2 border-t border-base px-3 pt-4">
         <div className="flex items-center gap-3 overflow-hidden rounded-2xl px-1 py-1">
-          <img src="/avatars/default-avatar.webp" alt={user.name} className="h-9 w-9 shrink-0 rounded-full border-2 border-gold object-cover" />
+          {role === "student" ? (
+            <div className="group/avatar relative shrink-0">
+              <img src={user.avatarUrl} alt={user.name} className="h-9 w-9 rounded-full border-2 border-gold object-cover" />
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                title="Change profile picture"
+                disabled={avatarBusy}
+                className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover/avatar:opacity-100 disabled:opacity-50"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+              {user.hasCustomAvatar && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  title="Remove profile picture"
+                  disabled={avatarBusy}
+                  className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border border-surface bg-red-500 text-[9px] font-bold text-white opacity-0 transition-opacity group-hover/avatar:opacity-100 disabled:opacity-50"
+                >
+                  ✕
+                </button>
+              )}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarFileChange}
+                className="hidden"
+              />
+            </div>
+          ) : (
+            <img src={user.avatarUrl} alt={user.name} className="h-9 w-9 shrink-0 rounded-full border-2 border-gold object-cover" />
+          )}
           <div
             className={`min-w-0 flex-1 transition-opacity duration-200 ${
               expanded ? "opacity-100 delay-100" : "pointer-events-none w-0 opacity-0"

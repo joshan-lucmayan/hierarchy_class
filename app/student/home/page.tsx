@@ -20,7 +20,7 @@ export default function StudentHomePage() {
     : [];
 
   const academicExcellence = avg ?? 0;
-  const displayRank = rank ?? "C";
+  const displayRank = rank ?? "D";
 
   const courseScores: Record<string, number[]> = {};
   entries.forEach((e) => {

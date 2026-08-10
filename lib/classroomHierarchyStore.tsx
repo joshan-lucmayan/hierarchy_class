@@ -39,6 +39,7 @@ export interface GradeEntry {
   id: string;
   studentId: string;
   courseId: string;
+  submittedBy: string;
   type: GradeType;
   score: number;
   date: string;
@@ -78,7 +79,7 @@ interface ClassroomHierarchyContextType {
   addStudent: (s: Omit<Student, "id">) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
 
-  submitGrades: (entries: Omit<GradeEntry, "id">[]) => Promise<void>;
+  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy">[]) => Promise<void>;
   deleteGradeEntry: (id: string) => Promise<void>;
 
   getSectionsByProgram: (programId: string) => Section[];
@@ -178,6 +179,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           id: g.id,
           studentId: g.student_id,
           courseId: g.course_id,
+          submittedBy: g.submitted_by,
           type: g.type,
           score: g.score,
           date: g.entry_date,
@@ -280,7 +282,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     refetch();
   }, [refetch]);
 
-  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id">[]) => {
+  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy">[]) => {
     if (!profile) return;
     const supabase = createClient();
     await supabase.from("grade_entries").insert(

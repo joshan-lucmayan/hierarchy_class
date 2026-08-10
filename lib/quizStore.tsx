@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useMyProfile } from "@/lib/useMyProfile";
 
 export interface QuizQuestion {
   id: string;
@@ -12,8 +14,8 @@ export interface QuizQuestion {
 export interface Quiz {
   id: string;
   title: string;
-  subject: string;
-  gradeLevel: number;
+  courseId: string;
+  courseName: string;
   timeLimitSeconds: number;
   questions: QuizQuestion[];
 }
@@ -27,79 +29,147 @@ export interface QuizAttempt {
   completedAt: string;
 }
 
-const STORAGE_QUIZZES = "hc-quizzes";
-const STORAGE_ATTEMPTS = "hc-quiz-attempts";
-
-const DEFAULT_QUIZZES: Quiz[] = [
-  {
-    id: "quiz-math-1",
-    title: "Linear Equations Quick Check",
-    subject: "Mathematics",
-    gradeLevel: 10,
-    timeLimitSeconds: 90,
-    questions: [
-      { id: "q1", question: "Solve for x: 2x + 4 = 12", options: ["2", "4", "6", "8"], correctIndex: 1 },
-      { id: "q2", question: "What is the slope of y = 3x + 5?", options: ["3", "5", "1/3", "-3"], correctIndex: 0 },
-      { id: "q3", question: "Solve for x: x - 7 = 3", options: ["4", "10", "-4", "0"], correctIndex: 1 },
-    ],
-  },
-  {
-    id: "quiz-science-1",
-    title: "Energy Transformation Basics",
-    subject: "Science",
-    gradeLevel: 10,
-    timeLimitSeconds: 90,
-    questions: [
-      { id: "q1", question: "Energy cannot be created or destroyed, only transformed. This is the law of:", options: ["Gravity", "Conservation of Energy", "Motion", "Thermodynamics Zero"], correctIndex: 1 },
-      { id: "q2", question: "A moving car has mostly what type of energy?", options: ["Potential", "Chemical", "Kinetic", "Nuclear"], correctIndex: 2 },
-    ],
-  },
-];
-
 interface QuizContextValue {
   quizzes: Quiz[];
-  addQuiz: (quiz: Quiz) => void;
+  addQuiz: (quiz: Omit<Quiz, "id">) => Promise<void>;
   attempts: QuizAttempt[];
-  addAttempt: (attempt: QuizAttempt) => void;
+  addAttempt: (attempt: Omit<QuizAttempt, "id" | "completedAt">) => Promise<void>;
   bonusPoints: number;
+  loading: boolean;
+  error: string | null;
 }
 
 const QuizContext = createContext<QuizContextValue | null>(null);
 
 export function QuizProvider({ children }: { children: React.ReactNode }) {
-  const [quizzes, setQuizzes] = useState<Quiz[]>(DEFAULT_QUIZZES);
+  const { profile } = useMyProfile();
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refetchTick, setRefetchTick] = useState(0);
+
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   useEffect(() => {
-    try {
-      const savedQuizzes = window.localStorage.getItem(STORAGE_QUIZZES);
-      const savedAttempts = window.localStorage.getItem(STORAGE_ATTEMPTS);
-      if (savedQuizzes) setQuizzes(JSON.parse(savedQuizzes));
-      if (savedAttempts) setAttempts(JSON.parse(savedAttempts));
-    } catch {
-      // ignore corrupt storage
+    if (!supabaseConfigured) {
+      setLoading(false);
+      setError("Supabase isn't configured yet.");
+      return;
     }
-    setHydrated(true);
-  }, []);
+    if (!profile) return;
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_QUIZZES, JSON.stringify(quizzes));
-  }, [quizzes, hydrated]);
+    let cancelled = false;
+    const supabase = createClient();
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_ATTEMPTS, JSON.stringify(attempts));
-  }, [attempts, hydrated]);
+    async function loadAll() {
+      setLoading(true);
 
-  function addQuiz(quiz: Quiz) {
-    setQuizzes((prev) => [quiz, ...prev]);
-  }
+      const [{ data: quizzesData, error: quizzesErr }, { data: attemptsData, error: attemptsErr }] =
+        (await Promise.all([
+          supabase
+            .from("quizzes")
+            .select("*, quiz_questions(*), courses(name)")
+            .order("created_at", { ascending: false }),
+          supabase.from("quiz_attempts").select("*, quizzes(title)").order("completed_at", { ascending: false }),
+        ])) as any[];
 
-  function addAttempt(attempt: QuizAttempt) {
-    setAttempts((prev) => [attempt, ...prev]);
-  }
+      if (cancelled) return;
+
+      if (quizzesErr || attemptsErr) {
+        setError("Couldn't load quizzes. Please refresh and try again.");
+        setLoading(false);
+        return;
+      }
+
+      setQuizzes(
+        ((quizzesData ?? []) as any[]).map((q: any) => ({
+          id: q.id,
+          title: q.title,
+          courseId: q.course_id,
+          courseName: q.courses?.name ?? "Unknown course",
+          timeLimitSeconds: q.time_limit_seconds,
+          questions: (q.quiz_questions ?? []).map((qq: any) => ({
+            id: qq.id,
+            question: qq.question,
+            options: qq.options,
+            correctIndex: qq.correct_index,
+          })),
+        }))
+      );
+
+      setAttempts(
+        ((attemptsData ?? []) as any[]).map((a: any) => ({
+          id: a.id,
+          quizId: a.quiz_id,
+          quizTitle: a.quizzes?.title ?? "Quiz",
+          score: a.score,
+          total: a.total,
+          completedAt: a.completed_at,
+        }))
+      );
+
+      setError(null);
+      setLoading(false);
+    }
+
+    loadAll();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseConfigured, profile, refetchTick]);
+
+  const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
+
+  const addQuiz = useCallback(
+    async (quiz: Omit<Quiz, "id">) => {
+      if (!profile) return;
+      const supabase = createClient();
+
+      const { data: inserted, error: insertErr } = await (supabase.from("quizzes") as any)
+        .insert({
+          school_id: profile.school_id,
+          title: quiz.title,
+          subject: quiz.courseName ?? "General",
+          course_id: quiz.courseId,
+          time_limit_seconds: quiz.timeLimitSeconds,
+          created_by: profile.id,
+        })
+        .select()
+        .single();
+
+      if (insertErr || !inserted) return;
+
+      await (supabase.from("quiz_questions") as any).insert(
+        quiz.questions.map((q) => ({
+          quiz_id: (inserted as any).id,
+          question: q.question,
+          options: q.options,
+          correct_index: q.correctIndex,
+        }))
+      );
+
+      refetch();
+    },
+    [profile, refetch]
+  );
+
+  const addAttempt = useCallback(
+    async (attempt: Omit<QuizAttempt, "id" | "completedAt">) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase.from("quiz_attempts") as any).insert({
+        school_id: profile.school_id,
+        student_id: profile.id,
+        quiz_id: attempt.quizId,
+        score: attempt.score,
+        total: attempt.total,
+      });
+      refetch();
+    },
+    [profile, refetch]
+  );
 
   const bonusPoints = useMemo(() => {
     const raw = attempts.reduce((sum, a) => sum + Math.round((a.score / a.total) * 3), 0);
@@ -107,8 +177,8 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
   }, [attempts]);
 
   const value = useMemo(
-    () => ({ quizzes, addQuiz, attempts, addAttempt, bonusPoints }),
-    [quizzes, attempts, bonusPoints]
+    () => ({ quizzes, addQuiz, attempts, addAttempt, bonusPoints, loading, error }),
+    [quizzes, attempts, bonusPoints, loading, error]
   );
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;

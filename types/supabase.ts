@@ -29,6 +29,7 @@ export interface ProfileRow {
   hobbies: string[];
   interests: string[];
   is_librarian: boolean;
+  avatar_url: string | null;
   created_at: string;
 }
 
