@@ -16,7 +16,7 @@ const ROLE_TABS: { value: RoleFilter; label: string }[] = [
 ];
 
 export default function AdminUsersPage() {
-  const { profiles, loading, error, refetch } = useSchoolProfiles();
+  const { profiles, loading, error, refetch } = useSchoolProfiles({ excludeSelf: true });
   const { getStudentRankByProfile } = useClassroomHierarchy();
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [query, setQuery] = useState("");
@@ -107,8 +107,7 @@ export default function AdminUsersPage() {
                   <div>
                     <p className="text-sm font-semibold text-navy">{person.full_name}</p>
                     <p className="text-xs text-muted">
-                      {person.level_label ?? "No level set"}
-                      {person.section ? ` · ${person.section}` : ""}
+                      {[person.educational_level, person.level_label, person.section].filter(Boolean).join(" · ") || "No level set"}
                       {person.role === "teacher" && person.is_librarian ? " · Librarian" : ""}
                     </p>
                   </div>

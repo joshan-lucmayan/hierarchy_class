@@ -81,6 +81,52 @@ export function useMyEnrollment(): EnrollmentInfo {
   return { row, effective: effectiveFrom(row), loading, error, refetch };
 }
 
+/**
+ * All enrollment statuses for the caller's school. Works for admins (full
+ * management) and teachers (read-only, via the teacher RLS policy added in
+ * migration 024). Students never see anyone but themselves.
+ */
+export function useSchoolEnrollments() {
+  const { profile } = useMyProfile();
+  const [statuses, setStatuses] = useState<Record<string, AdminEnrollment>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  useEffect(() => {
+    if (!supabaseConfigured || !profile) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const supabase = createClient();
+    supabase
+      .from("enrollment_status")
+      .select("*")
+      .eq("school_id", profile.school_id)
+      .then(({ data, error: fetchError }) => {
+        if (cancelled) return;
+        const map: Record<string, AdminEnrollment> = {};
+        ((data ?? []) as EnrollmentStatusRow[]).forEach((r) => {
+          map[r.student_id] = { studentId: r.student_id, status: r.status, startedAt: r.started_at, expiresAt: r.expires_at };
+        });
+        setStatuses(map);
+        setError(fetchError ? "Couldn't load enrollment statuses." : null);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseConfigured, profile, tick]);
+
+  const refetch = useCallback(() => setTick((t) => t + 1), []);
+
+  return { statuses, loading, error, refetch };
+}
+
 /** Admin: all enrollment statuses for the school, plus upsert/revoke actions. */
 export function useAdminEnrollments() {
   const { profile } = useMyProfile();

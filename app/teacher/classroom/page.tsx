@@ -36,6 +36,7 @@ export default function TeacherClassroomPage() {
   const [gradeDate, setGradeDate] = useState(TODAY);
   const [scoreInputs, setScoreInputs] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Only courses assigned to this teacher's real signed-up profile
   const myCourses = profile ? getCoursesByTeacher(profile.id) : [];
@@ -60,8 +61,9 @@ export default function TeacherClassroomPage() {
     else if (step === "sections") { setStep("programs"); setSelectedProgram(null); }
   }
 
-  function handleSubmitGrades() {
+  async function handleSubmitGrades() {
     if (!selectedCourse) return;
+    setSubmitError(null);
     const entries = students
       .filter((s) => scoreInputs[s.id] !== undefined && scoreInputs[s.id] !== "")
       .map((s) => ({
@@ -73,7 +75,11 @@ export default function TeacherClassroomPage() {
         label: gradeLabel || gradeType,
       }));
     if (entries.length === 0) return;
-    submitGrades(entries);
+    const ok = await submitGrades(entries);
+    if (!ok) {
+      setSubmitError("Couldn't submit grades. Check the student roster and try again.");
+      return;
+    }
     setScoreInputs({});
     setGradeLabel("");
     setSubmitted(true);
@@ -167,7 +173,12 @@ export default function TeacherClassroomPage() {
 
             {submitted && (
               <div className="mt-3 rounded-2xl bg-green-500/10 border border-green-500/30 px-4 py-2">
-                <p className="text-sm font-semibold text-green-600">Grades submitted. Ranks updated.</p>
+                <p className="text-sm font-semibold text-green-600">Grades submitted and sent for admin approval.</p>
+              </div>
+            )}
+            {submitError && (
+              <div className="mt-3 rounded-2xl bg-red-500/10 border border-red-500/30 px-4 py-2">
+                <p className="text-sm font-semibold text-red-600">{submitError}</p>
               </div>
             )}
 

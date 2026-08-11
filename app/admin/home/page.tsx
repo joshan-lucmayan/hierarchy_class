@@ -5,7 +5,7 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
-import { useSchoolFeed } from "@/lib/schoolFeedStore";
+import { useSchoolFeed, type SchoolPost } from "@/lib/schoolFeedStore";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { PostEditor } from "@/components/admin/PostEditor";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +22,39 @@ function getGreeting(hour: number) {
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
+}
+
+function FeedPostRow({ post, onEdit, onDelete }: { post: SchoolPost; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-2xl border border-base p-4 transition hover:border-gold/50">
+      <div className="min-w-0">
+        {post.title && <p className="text-sm font-semibold text-navy">{post.title}</p>}
+        <p className={`${post.title ? "mt-0.5" : ""} line-clamp-2 text-xs text-muted`}>{post.body}</p>
+        <p className="mt-1.5 text-[11px] text-muted">
+          <span className="font-semibold text-gold">{post.tag}</span> · visible to {post.audience} ·{" "}
+          {new Date(post.createdAt).toLocaleDateString()}
+        </p>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-navy transition hover:border-gold"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("Delete this? This cannot be undone.")) onDelete();
+          }}
+          className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-red-300 hover:text-red-600"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function relativeTime(iso: string) {
@@ -43,7 +76,7 @@ export default function AdminHomePage() {
   const { tasks } = useTeacherTasks();
   const { posts, deletePost } = useSchoolFeed();
   const { requests: accountRequests, resolve: resolveAccountRequest } = useAccountRequests();
-  const [editingPost, setEditingPost] = useState<null | "new" | string>(null);
+  const [editingPost, setEditingPost] = useState<null | { kind: "post" | "announcement"; id: string | null }>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalError, setApprovalError] = useState<string | null>(null);
 
@@ -79,7 +112,8 @@ export default function AdminHomePage() {
           type: entries[0].label ?? entries[0].type,
           entries,
           students: entries.map((e) => {
-            const student = students.find((s) => s.id === e.studentId);
+            // grade_entries.student_id is a profile id (FK to profiles).
+            const student = students.find((s) => s.profileId === e.studentId);
             return { id: e.id, name: student?.name ?? "Unknown student", score: e.score };
           }),
         };
@@ -90,7 +124,7 @@ export default function AdminHomePage() {
   const pendingTasks = useMemo(() => tasks.filter((t) => t.status === "pending"), [tasks]);
   const pendingRequests = useMemo(() => accountRequests.filter((r) => r.status === "pending"), [accountRequests]);
 
-  const studentName = (id: string) => students.find((s) => s.id === id)?.name ?? "A student";
+  const studentName = (id: string) => students.find((s) => s.profileId === id)?.name ?? "A student";
   const courseName = (id: string) => courses.find((c) => c.id === id)?.name ?? "a course";
 
   async function handleApproval(groupId: string, entryIds: string[], approved: boolean) {
@@ -120,71 +154,87 @@ export default function AdminHomePage() {
             Today · {todayDayName(now)}, {formatDisplayDate(now)}
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={() => setEditingPost("new")}
-          className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
-        >
-          + New announcement
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setEditingPost({ kind: "post", id: null })}
+            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+          >
+            + New post
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditingPost({ kind: "announcement", id: null })}
+            className="rounded-full border-2 border-gold bg-surface px-5 py-3 text-sm font-semibold text-navy transition hover:bg-gold/10"
+          >
+            + New announcement
+          </button>
+        </div>
       </div>
 
       {approvalError && (
         <p className="rounded-2xl border border-red-300 bg-red-500/5 px-4 py-3 text-sm text-red-600">{approvalError}</p>
       )}
 
-      {/* Announcements - styled as an important school notice */}
-      <CornerFrame className="overflow-hidden rounded-3xl border-2 border-gold bg-surface shadow-card">
-        <div className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-6 py-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold text-lg">📢</span>
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">School announcements</h2>
-            <p className="mt-0.5 text-xs text-muted">
-              Notices published here appear on student and teacher home feeds and notify the chosen audience.
-            </p>
-          </div>
-        </div>
-        <div className="p-6">
-          {posts.length === 0 ? (
-            <p className="text-sm text-muted">No announcements published yet. Create one with the button above.</p>
-          ) : (
-            <div className="space-y-3">
-              {posts.slice(0, 5).map((post) => (
-                <div key={post.id} className="flex items-start justify-between gap-4 rounded-2xl border border-base p-4 transition hover:border-gold/50">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-navy">{post.title || "Untitled announcement"}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-muted">{post.body}</p>
-                    <p className="mt-1.5 text-[11px] text-muted">
-                      <span className="font-semibold text-gold">{post.tag}</span> · visible to {post.audience} ·{" "}
-                      {new Date(post.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditingPost(post.id)}
-                      className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-navy transition hover:border-gold"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (window.confirm(`Delete "${post.title || "this announcement"}"? This cannot be undone.`)) {
-                          deletePost(post.id);
-                        }
-                      }}
-                      className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-red-300 hover:text-red-600"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+      {/* School posts + announcements - two clearly separate systems */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <CornerFrame className="overflow-hidden rounded-3xl border-2 border-gold bg-surface shadow-card">
+          <div className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-6 py-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19V5h4v14M16 19V5h4v14M12 5v14" />
+              </svg>
+            </span>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">School posts</h2>
+              <p className="mt-0.5 text-xs text-muted">Social feed items shown on student and teacher home screens.</p>
             </div>
-          )}
-        </div>
-      </CornerFrame>
+          </div>
+          <div className="p-6">
+            {posts.filter((p) => p.type === "post").length === 0 ? (
+              <p className="text-sm text-muted">No school posts yet. Create one with the button above.</p>
+            ) : (
+              <div className="space-y-3">
+                {posts
+                  .filter((p) => p.type === "post")
+                  .slice(0, 5)
+                  .map((post) => (
+                    <FeedPostRow key={post.id} post={post} onEdit={() => setEditingPost({ kind: "post", id: post.id })} onDelete={() => deletePost(post.id)} />
+                  ))}
+              </div>
+            )}
+          </div>
+        </CornerFrame>
+
+        <CornerFrame className="overflow-hidden rounded-3xl border-2 border-gold bg-surface shadow-card">
+          <div className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-6 py-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 9l9-5v16l-9-5H3a2 2 0 01-2-2v-2a2 2 0 012-2h1z" />
+                <path d="M18 8a5 5 0 010 8M21 5a9 9 0 010 14" />
+              </svg>
+            </span>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Announcements</h2>
+              <p className="mt-0.5 text-xs text-muted">Important text-only notices that can notify the chosen audience.</p>
+            </div>
+          </div>
+          <div className="p-6">
+            {posts.filter((p) => p.type === "announcement").length === 0 ? (
+              <p className="text-sm text-muted">No announcements yet. Create one with the button above.</p>
+            ) : (
+              <div className="space-y-3">
+                {posts
+                  .filter((p) => p.type === "announcement")
+                  .slice(0, 5)
+                  .map((post) => (
+                    <FeedPostRow key={post.id} post={post} onEdit={() => setEditingPost({ kind: "announcement", id: post.id })} onDelete={() => deletePost(post.id)} />
+                  ))}
+              </div>
+            )}
+          </div>
+        </CornerFrame>
+      </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
@@ -364,10 +414,10 @@ export default function AdminHomePage() {
         </div>
       </CornerFrame>
 
-      {editingPost === "new" && <PostEditor post={null} onClose={() => setEditingPost(null)} />}
-      {editingPost !== null && editingPost !== "new" && (
+      {editingPost && (
         <PostEditor
-          post={posts.find((p) => p.id === editingPost) ?? null}
+          kind={editingPost.kind}
+          post={editingPost.id ? (posts.find((p) => p.id === editingPost.id) ?? null) : null}
           onClose={() => setEditingPost(null)}
         />
       )}

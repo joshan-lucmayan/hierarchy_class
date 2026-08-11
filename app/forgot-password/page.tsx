@@ -51,7 +51,12 @@ export default function ForgotPasswordPage() {
 
           {status === "sent" ? (
             <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-3xl">📬</p>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M22 7l-10 6L2 7" />
+                </svg>
+              </span>
               <h1 className="text-lg font-bold text-navy">Check your email</h1>
               <p className="text-sm leading-6 text-muted">
                 If an account exists for that address, we&apos;ve sent a password reset link. Follow the link in the

@@ -22,6 +22,7 @@ export interface ProfileRow {
   last_name: string | null;
   level_label: string | null;
   section: string | null;
+  educational_level: string | null;
   initials: string | null;
   bio: string | null;
   overall_rank: string;
@@ -421,6 +422,7 @@ export interface NotificationRow {
   body: string | null;
   link: string | null;
   read_at: string | null;
+  cleared_at: string | null;
   created_at: string;
 }
 

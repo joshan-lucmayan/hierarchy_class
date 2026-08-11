@@ -37,7 +37,7 @@ interface ChatContextValue {
   loading: boolean;
   error: string | null;
   blocks: Set<string>;
-  /** Creates or finds a conversation with another profile and returns its id. */
+  /** Creates or finds the shared thread with another profile and returns its id. */
   ensureConversation: (otherProfileId: string) => Promise<string | null>;
   sendMessage: (conversationId: string, text: string) => Promise<boolean>;
   /** Marks my side read and loads message history. */
@@ -53,6 +53,24 @@ interface ChatContextValue {
 
 const ChatContext = createContext<ChatContextValue | null>(null);
 
+interface ConversationRow {
+  id: string;
+  user_a_id: string;
+  user_b_id: string;
+  role_a: string;
+  role_b: string;
+  last_message: string | null;
+  last_message_at: string | null;
+  read_at_a: string | null;
+  read_at_b: string | null;
+  archived_a: string | null;
+  archived_b: string | null;
+  deleted_a: string | null;
+  deleted_b: string | null;
+  a?: { id: string; full_name: string; avatar_url: string | null; role: string } | null;
+  b?: { id: string; full_name: string; avatar_url: string | null; role: string } | null;
+}
+
 function toMessage(m: any, myProfileId: string): ChatMessage {
   return {
     id: m.id,
@@ -64,21 +82,36 @@ function toMessage(m: any, myProfileId: string): ChatMessage {
   };
 }
 
-function toConversation(row: any, unreadByConv: Record<string, number>): Conversation {
+function toConversation(row: ConversationRow, myProfileId: string, unread: number): Conversation {
+  const iAmA = row.user_a_id === myProfileId;
+  const other = iAmA ? row.b : row.a;
   return {
     id: row.id,
-    otherId: row.other_user_id,
-    otherRole: (row.role ?? "student") as ChatRole,
-    name: row.other?.full_name ?? "Unknown",
-    avatarUrl: row.other?.avatar_url ?? null,
+    otherId: iAmA ? row.user_b_id : row.user_a_id,
+    otherRole: ((iAmA ? row.role_b : row.role_a) ?? other?.role ?? "student") as ChatRole,
+    name: other?.full_name ?? "Unknown",
+    avatarUrl: other?.avatar_url ?? null,
     lastMessage: row.last_message,
     lastMessageAt: row.last_message_at,
-    lastReadAt: row.last_read_at,
-    archived: !!row.archived_at,
+    lastReadAt: iAmA ? row.read_at_a : row.read_at_b,
+    archived: !!(iAmA ? row.archived_a : row.archived_b),
     messages: [],
     messagesLoading: false,
-    unread: unreadByConv[row.id] ?? 0,
+    unread,
   };
+}
+
+/** My side's deleted_at doubles as the history cutoff: messages older than it
+ *  stay hidden even after the thread revives with new activity. */
+function myCutoff(row: ConversationRow, myProfileId: string): string | null {
+  return row.user_a_id === myProfileId ? row.deleted_a : row.deleted_b;
+}
+
+/** A thread is in my inbox unless I deleted it and nothing has happened since. */
+function isVisible(row: ConversationRow, myProfileId: string): boolean {
+  const cutoff = myCutoff(row, myProfileId);
+  if (!cutoff) return true;
+  return !!row.last_message_at && row.last_message_at > cutoff;
 }
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
@@ -98,7 +131,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
-  // Load conversations + unread counts + my blocks in one effect.
+  // Load my threads + unread counts + my blocks in one effect.
   useEffect(() => {
     if (!supabaseConfigured) {
       setLoading(false);
@@ -115,10 +148,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const [convRes, unreadRes, blockRes] = await Promise.all([
         supabase
           .from("conversations")
-          .select("*, other:profiles!other_user_id(id, full_name, avatar_url)")
-          .eq("participant_id", myProfileId)
-          .is("deleted_at", null)
-          .order("last_message", { ascending: false }),
+          .select(
+            "*, a:profiles!user_a_id(id, full_name, avatar_url, role), b:profiles!user_b_id(id, full_name, avatar_url, role)"
+          )
+          .or(`user_a_id.eq.${myProfileId},user_b_id.eq.${myProfileId}`),
         (supabase as any).rpc("get_unread_counts"),
         supabase.from("chat_blocks").select("blocked_id"),
       ]);
@@ -136,16 +169,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         unreadByConv[u.conversation_id] = Number(u.unread) || 0;
       });
 
-      const rows = ((convRes.data ?? []) as any[]).sort((a, b) =>
-        (b.last_message_at || b.last_message || b.created_at || "").localeCompare(
-          a.last_message_at || a.last_message || a.created_at || ""
-        )
+      const rows = ((convRes.data ?? []) as ConversationRow[]).filter((r) => isVisible(r, myProfileId));
+      rows.sort((a, b) =>
+        (b.last_message_at || b.last_message || "").localeCompare(a.last_message_at || a.last_message || "")
       );
 
-      setConversations(rows.map((c) => toConversation(c, unreadByConv)));
-      setBlocks(
-        new Set(((blockRes.data ?? []) as any[]).map((b: any) => b.blocked_id))
-      );
+      setConversations(rows.map((r) => toConversation(r, myProfileId, unreadByConv[r.id] ?? 0)));
+      setBlocks(new Set(((blockRes.data ?? []) as any[]).map((b: any) => b.blocked_id)));
       setError(null);
       setLoading(false);
     }
@@ -179,9 +209,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabaseConfigured, profile, refetchTick]);
 
-  // Realtime: incoming messages. We subscribe ONCE with no conversation
-  // filter - RLS only delivers events for conversations this user actually
-  // participates in, so there is nothing to re-create when the list grows.
+  // Realtime: incoming messages. One filter-less channel - RLS scopes the
+  // events to threads I participate in, so there is nothing to re-create as
+  // the list grows. Our own sends are appended by sendMessage, so echoes of
+  // my own messages are ignored here to keep exactly one copy per message.
   useEffect(() => {
     if (!supabaseConfigured || !profile) return;
     const supabase = createClient();
@@ -195,14 +226,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         (payload) => {
           const msg = payload.new as any;
           if (!msg) return;
-          // Our own sends are appended optimistically by sendMessage, so a
-          // realtime echo of our own message must be ignored to avoid dupes.
           if (msg.from_id === myProfileId) return;
           if (seenMessageIds.current.has(msg.id)) return;
           seenMessageIds.current.add(msg.id);
 
-          // A message for a conversation we don't have yet (e.g. it was
-          // hidden, or created on another device) - refetch the list.
+          // A message for a thread we don't have in state (deleted on our
+          // side, or created on another device) - refetch; if it revived, the
+          // thread reappears with only post-cutoff messages.
           if (!conversationsRef.current.some((c) => c.id === msg.conversation_id)) {
             setRefetchTick((t) => t + 1);
             return;
@@ -224,7 +254,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             else updated.unread = conv.unread + 1;
             const next = [...prev];
             next[idx] = updated;
-            // Keep newest-first ordering by last activity.
             next.sort((a, b) =>
               (b.lastMessageAt || b.lastReadAt || "").localeCompare(a.lastMessageAt || a.lastReadAt || "")
             );
@@ -253,17 +282,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (rpcError) return null;
       const convId = data as string;
 
-      // Fetch the fresh row (with the other profile) so it appears immediately.
+      // Fetch the fresh row so it appears immediately.
       const { data: fresh } = await supabase
         .from("conversations")
-        .select("*, other:profiles!other_user_id(id, full_name, avatar_url)")
+        .select(
+          "*, a:profiles!user_a_id(id, full_name, avatar_url, role), b:profiles!user_b_id(id, full_name, avatar_url, role)"
+        )
         .eq("id", convId)
         .single();
       if (fresh) {
         setConversations((prev) => {
-          if (prev.some((c) => c.id === convId)) return prev;
-          const row = fresh as any;
-          return [toConversation(row, {}), ...prev];
+          const conv = toConversation(fresh as ConversationRow, profile.id, 0);
+          const idx = prev.findIndex((c) => c.id === convId);
+          if (idx === -1) return [conv, ...prev];
+          const next = [...prev];
+          next[idx] = { ...next[idx], ...conv, messages: next[idx].messages };
+          return next;
         });
       } else {
         refetch();
@@ -285,7 +319,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       const messageId = data as string;
       // The RPC committed the row - append exactly one copy (the realtime
-      // echo of our own message is filtered out above by from_id).
+      // echo of our own message is filtered above by from_id).
       const msg: ChatMessage = {
         id: messageId,
         fromId: profile.id,
@@ -326,11 +360,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const myProfileId = profile.id;
       const supabase = createClient();
 
-      // Mark my side read.
-      await (supabase.from("conversations") as any)
-        .update({ last_read_at: new Date().toISOString() })
-        .eq("id", conversationId)
-        .eq("participant_id", myProfileId);
+      // Mark my side read (DB-backed so it survives reloads).
+      await (supabase as any).rpc("set_conversation_read", {
+        p_conversation_id: conversationId,
+        p_read: true,
+      });
 
       const { data } = await supabase
         .from("chat_messages")
@@ -339,27 +373,33 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         .order("created_at", { ascending: true })
         .limit(200);
 
-      const messages = ((data ?? []) as any[]).map((m: any) => toMessage(m, myProfileId));
+      // Find my history cutoff: if I deleted this thread, only messages newer
+      // than that count - a deleted thread behaves like a fresh one for me.
+      const { data: row } = await supabase
+        .from("conversations")
+        .select(
+          "id, user_a_id, user_b_id, role_a, role_b, last_message, last_message_at, read_at_a, read_at_b, archived_a, archived_b, deleted_a, deleted_b, a:profiles!user_a_id(id, full_name, avatar_url, role), b:profiles!user_b_id(id, full_name, avatar_url, role)"
+        )
+        .eq("id", conversationId)
+        .single();
+
+      const cutoff = row ? myCutoff(row as ConversationRow, myProfileId) : null;
+      const allMessages = (((data ?? []) as any[]).map((m: any) => toMessage(m, myProfileId)) as ChatMessage[]);
+      const messages = cutoff ? allMessages.filter((m) => m.createdAt > cutoff) : allMessages;
       messages.forEach((m) => seenMessageIds.current.add(m.id));
 
+      const missing = !conversationsRef.current.some((c) => c.id === conversationId);
       setConversations((prev) => {
         const exists = prev.some((c) => c.id === conversationId);
         if (!exists) {
-          // Conversation was created outside the store (e.g. via ?with=).
+          const r = row as ConversationRow | null;
+          if (!r) return prev;
           return [
             {
-              id: conversationId,
-              otherId: "",
-              otherRole: "student" as ChatRole,
-              name: "Conversation",
-              avatarUrl: null,
-              lastMessage: null,
-              lastMessageAt: null,
-              lastReadAt: new Date().toISOString(),
-              archived: false,
+              ...toConversation(r, myProfileId, 0),
               messages,
               messagesLoading: false,
-              unread: 0,
+              lastReadAt: new Date().toISOString(),
             },
             ...prev,
           ];
@@ -370,71 +410,95 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             : c
         );
       });
+
     },
     [profile]
   );
 
-  /** Toggle helpers: these update MY row only - the other user's copy of the
-   *  conversation and all messages are untouched. */
-  const archiveConversation = useCallback(async (conversationId: string) => {
-    const supabase = createClient();
-    await (supabase.from("conversations") as any)
-      .update({ archived_at: new Date().toISOString(), deleted_at: null })
-      .eq("id", conversationId)
-      .eq("participant_id", profile?.id);
-    setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, archived: true } : c)));
-  }, [profile]);
+  /** These mutate MY side of the shared thread only - the other user's read /
+   *  archive state and the messages themselves are untouched. */
+  const archiveConversation = useCallback(
+    async (conversationId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase as any).rpc("set_conversation_archived", {
+        p_conversation_id: conversationId,
+        p_archived: true,
+      });
+      setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, archived: true } : c)));
+    },
+    [profile]
+  );
 
-  const unarchiveConversation = useCallback(async (conversationId: string) => {
-    const supabase = createClient();
-    await (supabase.from("conversations") as any)
-      .update({ archived_at: null })
-      .eq("id", conversationId)
-      .eq("participant_id", profile?.id);
-    setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, archived: false } : c)));
-  }, [profile]);
+  const unarchiveConversation = useCallback(
+    async (conversationId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase as any).rpc("set_conversation_archived", {
+        p_conversation_id: conversationId,
+        p_archived: false,
+      });
+      setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, archived: false } : c)));
+    },
+    [profile]
+  );
 
-  const hideConversation = useCallback(async (conversationId: string) => {
-    const supabase = createClient();
-    await (supabase.from("conversations") as any)
-      .update({ deleted_at: new Date().toISOString(), archived_at: null })
-      .eq("id", conversationId)
-      .eq("participant_id", profile?.id);
-    setConversations((prev) => prev.filter((c) => c.id !== conversationId));
-  }, [profile]);
+  const hideConversation = useCallback(
+    async (conversationId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase as any).rpc("delete_conversation", {
+        p_conversation_id: conversationId,
+      });
+      // Remove from my inbox. My history cutoff is set server-side, so if the
+      // thread revives later it comes back without the old messages.
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+    },
+    [profile]
+  );
 
-  const markUnread = useCallback(async (conversationId: string) => {
-    const supabase = createClient();
-    await (supabase.from("conversations") as any)
-      .update({ last_read_at: null })
-      .eq("id", conversationId)
-      .eq("participant_id", profile?.id);
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === conversationId
-          ? { ...c, lastReadAt: null, unread: c.messages.filter((m) => !m.mine).length }
-          : c
-      )
-    );
-  }, [profile]);
+  const markUnread = useCallback(
+    async (conversationId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase as any).rpc("set_conversation_read", {
+        p_conversation_id: conversationId,
+        p_read: false,
+      });
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === conversationId
+            ? { ...c, lastReadAt: null, unread: c.messages.filter((m) => !m.mine).length }
+            : c
+        )
+      );
+    },
+    [profile]
+  );
 
-  const blockUser = useCallback(async (otherProfileId: string) => {
-    if (!profile) return;
-    const supabase = createClient();
-    await supabase.from("chat_blocks").insert({ blocker_id: profile.id, blocked_id: otherProfileId } as any);
-    setBlocks((prev) => new Set(prev).add(otherProfileId));
-  }, [profile]);
+  const blockUser = useCallback(
+    async (otherProfileId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await supabase.from("chat_blocks").insert({ blocker_id: profile.id, blocked_id: otherProfileId } as any);
+      setBlocks((prev) => new Set(prev).add(otherProfileId));
+    },
+    [profile]
+  );
 
-  const unblockUser = useCallback(async (otherProfileId: string) => {
-    if (!profile) return;
-    const supabase = createClient();
-    await supabase.from("chat_blocks").delete().eq("blocker_id", profile.id).eq("blocked_id", otherProfileId);
-    setBlocks((prev) => {
-      const next = new Set(prev);
-      next.delete(otherProfileId);
-      return next;
-    });
-  }, [profile]);
+  const unblockUser = useCallback(
+    async (otherProfileId: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await supabase.from("chat_blocks").delete().eq("blocker_id", profile.id).eq("blocked_id", otherProfileId);
+      setBlocks((prev) => {
+        const next = new Set(prev);
+        next.delete(otherProfileId);
+        return next;
+      });
+    },
+    [profile]
+  );
 
   const archived = useMemo(() => conversations.filter((c) => c.archived), [conversations]);
   const active = useMemo(() => conversations.filter((c) => !c.archived), [conversations]);

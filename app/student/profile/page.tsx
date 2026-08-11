@@ -144,7 +144,9 @@ export default function StudentProfilePage() {
               {!enrollmentLoading && <EnrolledBadge status={enrollment} size="sm" />}
             </div>
             <p className="mt-2 text-sm text-muted">
-              {profile.level_label ?? ""}{profile.section ? ` · ${profile.section}` : ""}
+              {[profile.educational_level, profile.level_label, (academicInfo?.programs ?? []).map((p) => p.name).join(" · ")]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
             <button
               type="button"
@@ -180,30 +182,14 @@ export default function StudentProfilePage() {
           </p>
         </CornerFrame>
 
-        {academicInfo && (academicInfo.programs.length > 0 || academicInfo.courses.length > 0) && (
+        {academicInfo && academicInfo.courses.length > 0 && (
           <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-            <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Academic information</h2>
-            <div className="space-y-4">
-              {academicInfo.programs.map((p) => (
-                <div key={p.id}>
-                  <p className="text-sm font-semibold text-navy">Program / Grade Level: {p.name}</p>
-                  {academicInfo.sections
-                    .filter((s) => s.programId === p.id)
-                    .map((s) => (
-                      <div key={s.id} className="mt-2">
-                        <p className="text-xs text-muted">Section / Year: {s.name}</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {academicInfo.courses
-                            .filter((c) => c.sectionId === s.id)
-                            .map((c) => (
-                              <span key={c.id} className="rounded-full border border-base bg-[var(--surface-strong)] px-3 py-1 text-xs font-medium text-navy">
-                                {c.name}
-                              </span>
-                            ))}
-                        </div>
-                      </div>
-                    ))}
-                </div>
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">My courses</h2>
+            <div className="flex flex-wrap gap-2">
+              {academicInfo.courses.map((c) => (
+                <span key={c.id} className="rounded-full border border-base bg-[var(--surface-strong)] px-3 py-1 text-xs font-medium text-navy">
+                  {c.name}
+                </span>
               ))}
             </div>
           </CornerFrame>
@@ -329,15 +315,13 @@ export default function StudentProfilePage() {
           ) : friendsError ? (
             <p className="mt-4 text-sm text-red-500">{friendsError}</p>
           ) : friends.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">
-              No friends yet. <Link href="/student/search" className="text-navy underline decoration-gold underline-offset-2">Find classmates</Link> to add.
-            </p>
+            <p className="mt-4 text-sm text-muted">No friends yet.</p>
           ) : (
             <div className="mt-4 flex flex-wrap gap-4">
               {friends.map((friend) => (
                 <Link
                   key={friend.id}
-                  href={`/student/search?profile=${friend.id}`}
+                  href={`/student/profile/${friend.id}`}
                   className="flex shrink-0 flex-col items-center gap-1.5 transition active:scale-95"
                 >
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-strong)] p-[2px]">

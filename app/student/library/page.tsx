@@ -155,7 +155,7 @@ export default function LibraryPage() {
     requestBorrow(book, {
       id: profile.id,
       name: profile.full_name,
-      gradeSection: [profile.level_label, profile.section].filter(Boolean).join(" · "),
+      gradeSection: [profile.educational_level, profile.level_label].filter(Boolean).join(" · "),
     });
   }
 

@@ -10,7 +10,9 @@ export interface LeaderboardEntry {
   fullName: string;
   avatarUrl: string | null;
   levelLabel: string | null;
+  educationalLevel: string | null;
   section: string | null;
+  programName: string | null;
   academicExcellence: number | null;
 }
 
@@ -71,7 +73,9 @@ export function useLeaderboard(): UseLeaderboardResult {
               fullName: r.full_name,
               avatarUrl: r.avatar_url,
               levelLabel: r.level_label,
-              section: r.section,
+              educationalLevel: r.educational_level ?? null,
+              section: r.section ?? null,
+              programName: r.program_name ?? null,
               academicExcellence: r.academic_excellence !== null ? Number(r.academic_excellence) : null,
             }))
           );
@@ -80,6 +84,20 @@ export function useLeaderboard(): UseLeaderboardResult {
         setLoading(false);
       });
 
+    // Realtime: grade INSERT/UPDATE events (teacher submits, admin approves)
+    // refresh the standings immediately. RLS scopes the events this user can
+    // see; combined with the focus refresh below, rankings stay current.
+    const channel = supabase
+      .channel("leaderboard-grades")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "grade_entries" },
+        () => {
+          if (!cancelled) setTick((t) => t + 1);
+        }
+      )
+      .subscribe();
+
     // Refresh when the tab regains focus so freshly approved grades show up
     // without needing a manual reload.
     const onFocus = () => setTick((t) => t + 1);
@@ -87,6 +105,7 @@ export function useLeaderboard(): UseLeaderboardResult {
     return () => {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
+      supabase.removeChannel(channel);
     };
   }, [supabaseConfigured, profile, tick]);
 

@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { STUDENT_NAV_ITEMS, TEACHER_NAV_ITEMS, ADMIN_NAV_ITEMS } from "@/components/navigation/navItems";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { createClient } from "@/lib/supabase/client";
+import { MessagesBadge } from "@/components/navigation/MessagesBadge";
 
 type Role = "student" | "teacher" | "admin";
 
@@ -31,7 +32,8 @@ function useSidebarUser(role: Role) {
   } else if (role === "admin") {
     roleLabel = "Administrator";
   } else {
-    roleLabel = [profile?.level_label, profile?.section].filter(Boolean).join(" · ");
+    // Student identity: educational level, then grade/year level - no section.
+    roleLabel = [profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ");
   }
 
   return { name, avatarUrl, roleLabel, isLibrarian, hasCustomAvatar, uploadAvatar, removeAvatar };
@@ -141,8 +143,9 @@ export function SideNav({
                   active ? "opacity-100" : "opacity-0 group-hover:opacity-40"
                 }`}
               />
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center transition-transform duration-150 group-hover:scale-110">
+              <span className="relative flex h-5 w-5 shrink-0 items-center justify-center transition-transform duration-150 group-hover:scale-110">
                 {item.icon(!!active)}
+                {item.href?.includes("/messages") && <MessagesBadge />}
               </span>
               <span
                 className={`whitespace-nowrap transition-opacity duration-200 ${

@@ -28,6 +28,7 @@ export default function AdminStudentsPage() {
   const [enrollMessage, setEnrollMessage] = useState<string | null>(null);
   const [levelDraft, setLevelDraft] = useState("");
   const [sectionDraft, setSectionDraft] = useState("");
+  const [edLevelDraft, setEdLevelDraft] = useState("");
   const [academicMessage, setAcademicMessage] = useState<string | null>(null);
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [savingAcademic, setSavingAcademic] = useState(false);
@@ -50,6 +51,7 @@ export default function AdminStudentsPage() {
     if (selectedStudent) {
       setLevelDraft(selectedStudent.level_label ?? "");
       setSectionDraft(selectedStudent.section ?? "");
+      setEdLevelDraft(selectedStudent.educational_level ?? "");
       setAcademicMessage(null);
       setAcademicError(null);
     }
@@ -79,6 +81,7 @@ export default function AdminStudentsPage() {
       .update({
         level_label: levelDraft.trim() || null,
         section: sectionDraft.trim() || null,
+        educational_level: edLevelDraft.trim() || null,
       })
       .eq("id", selectedStudent.id);
     setSavingAcademic(false);
@@ -195,8 +198,9 @@ export default function AdminStudentsPage() {
                   <div>
                     <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>
                     <p className="text-sm text-muted">
-                      {selectedStudent.level_label ?? "No level set"}
-                      {selectedStudent.section ? ` · ${selectedStudent.section}` : ""}
+                      {[selectedStudent.educational_level, selectedStudent.level_label, selectedStudent.section]
+                        .filter(Boolean)
+                        .join(" · ") || "No level set"}
                     </p>
                     <RankBadge rank={getStudentRankByProfile(selectedStudent.id) ?? "D"} size="sm" className="mt-2" />
                   </div>
@@ -306,9 +310,19 @@ export default function AdminStudentsPage() {
                 <div className="mt-6 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Academic info</p>
                   <p className="mt-1 text-[11px] text-muted">
-                    Grade/year level and section shown on the student&apos;s profile, search results, and leaderboard.
+                    Educational level, grade/year level, and section. Level and section shown on the student&apos;s
+                    profile, search results, and leaderboard; section is kept for administration.
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-2">
+                    <label className="space-y-1">
+                      <span className="text-xs text-muted">Educational level</span>
+                      <input
+                        value={edLevelDraft}
+                        onChange={(e) => setEdLevelDraft(e.target.value)}
+                        placeholder="Elementary / High School / College"
+                        className="w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                      />
+                    </label>
                     <label className="space-y-1">
                       <span className="text-xs text-muted">Grade / year level</span>
                       <input
@@ -319,7 +333,7 @@ export default function AdminStudentsPage() {
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-xs text-muted">Section</span>
+                      <span className="text-xs text-muted">Section (admin only)</span>
                       <input
                         value={sectionDraft}
                         onChange={(e) => setSectionDraft(e.target.value)}

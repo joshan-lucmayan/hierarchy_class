@@ -10,7 +10,11 @@ interface NotificationsContextValue {
   unreadCount: number;
   loading: boolean;
   error: string | null;
+  markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  /** Per-user soft clear: hides every notification from THIS user's list.
+   *  Rows stay in the database (audit trail); they just stop being returned. */
+  clearAll: () => Promise<void>;
   refetch: () => void;
 }
 
@@ -43,6 +47,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       const { data, error: fetchError } = await supabase
         .from("notifications")
         .select("*, actor:profiles!actor_id(id, full_name, avatar_url)")
+        .is("cleared_at", null)
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -65,6 +70,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
           body: n.body,
           link: n.link,
           read_at: n.read_at,
+          cleared_at: n.cleared_at,
           created_at: n.created_at,
         }))
       );
@@ -103,6 +109,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
                 body: next.body,
                 link: next.link,
                 read_at: next.read_at,
+                cleared_at: next.cleared_at,
                 created_at: next.created_at,
               },
               ...prev,
@@ -123,6 +130,19 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     };
   }, [supabaseConfigured, profile, refetchTick, load]);
 
+  const markRead = useCallback(
+    async (id: string) => {
+      if (!profile) return;
+      const supabase = createClient();
+      await (supabase.from("notifications") as any)
+        .update({ read_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("recipient_id", profile.id);
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: n.read_at ?? new Date().toISOString() } : n)));
+    },
+    [profile]
+  );
+
   const markAllRead = useCallback(async () => {
     if (!profile) return;
     const supabase = createClient();
@@ -133,11 +153,21 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     setNotifications((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
   }, [profile]);
 
+  const clearAll = useCallback(async () => {
+    if (!profile) return;
+    const supabase = createClient();
+    await (supabase.from("notifications") as any)
+      .update({ read_at: new Date().toISOString(), cleared_at: new Date().toISOString() })
+      .eq("recipient_id", profile.id);
+    // Remove from state entirely - the server stops returning cleared rows.
+    setNotifications([]);
+  }, [profile]);
+
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
   return (
     <NotificationsContext.Provider
-      value={{ notifications, unreadCount, loading, error, markAllRead, refetch: load }}
+      value={{ notifications, unreadCount, loading, error, markRead, markAllRead, clearAll, refetch: load }}
     >
       {children}
     </NotificationsContext.Provider>

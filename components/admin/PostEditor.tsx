@@ -12,21 +12,24 @@ const AUDIENCES = [
 const TAGS = ["Announcement", "Enrollment", "Advisory", "Event", "Campaign", "General"];
 
 interface PostEditorProps {
+  kind: "post" | "announcement";
   post: SchoolPost | null; // null = create
   onClose: () => void;
 }
 
-export function PostEditor({ post, onClose }: PostEditorProps) {
+export function PostEditor({ kind, post, onClose }: PostEditorProps) {
   const { createPost, updatePost } = useSchoolFeed();
   const [title, setTitle] = useState(post?.title ?? "");
   const [body, setBody] = useState(post?.body ?? "");
-  const [tag, setTag] = useState(post?.tag ?? "Announcement");
+  const [tag, setTag] = useState(post?.tag ?? "General");
   const [audience, setAudience] = useState<"everyone" | "students" | "teachers">(post?.audience ?? "everyone");
   const [image, setImage] = useState<File | null>(null);
-  const [notifyAudience, setNotifyAudience] = useState(true);
+  const [notifyAudience, setNotifyAudience] = useState(kind === "announcement");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isAnnouncement = kind === "announcement";
 
   async function handleSave() {
     if (!body.trim()) {
@@ -36,12 +39,14 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
     setSubmitting(true);
     setFormError(null);
 
-    const base = { title, body, tag, audience, image: image ?? undefined, notifyAudience };
-    const ok = post ? await updatePost(post.id, { ...base, image: image ?? undefined, notifyAudience }) : (await createPost({ ...base, image: image ?? null })) !== null;
+    const base = { type: kind, title, body, tag, audience, image: image ?? undefined, notifyAudience };
+    const ok = post
+      ? await updatePost(post.id, base)
+      : (await createPost({ ...base, image: image ?? null })) !== null;
 
     setSubmitting(false);
     if (ok) onClose();
-    else setFormError("Couldn't save the post. Please try again.");
+    else setFormError("Couldn't save. Please try again.");
   }
 
   return (
@@ -54,7 +59,12 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
           <div>
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-              {post ? "Edit post" : "New school post"}
+              {post ? `Edit ${isAnnouncement ? "announcement" : "post"}` : `New ${isAnnouncement ? "announcement" : "school post"}`}
+            </p>
+            <p className="mt-1 text-[11px] text-muted">
+              {isAnnouncement
+                ? "Text-only notice for an important school announcement."
+                : "A social-style feed post. Text is the main content; image and title are optional."}
             </p>
           </div>
           <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
@@ -66,7 +76,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Intramurals sign-up is open"
+              placeholder={isAnnouncement ? "e.g. Enrollment for the new semester is open" : "e.g. School Sports Festival"}
               className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
             />
           </label>
@@ -76,7 +86,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Write your announcement or post..."
+              placeholder={isAnnouncement ? "Write the announcement..." : "Write your post..."}
               rows={4}
               className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
             />
@@ -109,32 +119,48 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
             </label>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-muted">Image (optional)</p>
-            {post?.imageUrl && !image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.imageUrl} alt="Current post image" className="max-h-32 rounded-2xl border border-base object-contain" />
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={(e) => setImage(e.target.files?.[0] ?? null)}
-              className="w-full rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy file:mr-3 file:rounded-full file:border-0 file:bg-navy file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white outline-none focus:border-gold"
-            />
-          </div>
+          {!isAnnouncement && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-muted">Image (optional)</p>
+              {post?.imageUrl && !image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={post.imageUrl} alt="Current post image" className="max-h-32 rounded-2xl border border-base object-contain" />
+              )}
+              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-base bg-[var(--surface-strong)] px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                >
+                  Choose image
+                </button>
+                <span className="min-w-0 truncate text-xs text-muted">
+                  {image ? image.name : "No image selected"}
+                </span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          )}
 
-          <label className="flex items-center gap-2.5 rounded-2xl border border-base bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy">
-            <input
-              type="checkbox"
-              checked={notifyAudience}
-              onChange={(e) => setNotifyAudience(e.target.checked)}
-              className="mt-0.5"
-            />
-            <span>
-              Send a notification to {audience === "everyone" ? "everyone in the school" : audience === "students" ? "students" : "teachers"}
-            </span>
-          </label>
+          {isAnnouncement && (
+            <label className="flex items-center gap-2.5 rounded-2xl border border-base bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy">
+              <input
+                type="checkbox"
+                checked={notifyAudience}
+                onChange={(e) => setNotifyAudience(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                Send a notification to {audience === "everyone" ? "everyone in the school" : audience === "students" ? "students" : "teachers"}
+              </span>
+            </label>
+          )}
 
           {formError && <p className="text-sm text-red-500">{formError}</p>}
 
@@ -145,7 +171,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
               disabled={submitting}
               className="flex-1 rounded-full bg-gold py-3 text-sm font-semibold text-navy transition hover:opacity-90 disabled:opacity-50"
             >
-              {submitting ? "Publishing..." : post ? "Save changes" : "Publish"}
+              {submitting ? "Publishing..." : post ? "Save changes" : isAnnouncement ? "Publish announcement" : "Publish post"}
             </button>
             <button
               type="button"

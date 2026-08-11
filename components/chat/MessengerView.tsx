@@ -211,7 +211,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     <p className="truncate text-[11px] text-muted">
                       {ROLE_LABEL[person.role] ?? person.role}
                       {person.role === "student"
-                        ? ` · ${[person.level_label, person.section].filter(Boolean).join(" · ")}`
+                        ? ` · ${[person.educational_level, person.level_label].filter(Boolean).join(" · ")}`
                         : ""}
                     </p>
                   </div>
@@ -374,13 +374,16 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                 <p className="text-center text-sm text-muted">No messages yet - say hi!</p>
               ) : (
                 active.messages.map((m) => (
-                  <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
+                  <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
                     <span
                       className={`max-w-[65%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm ${
                         m.mine ? "bg-gold text-navy" : "bg-[var(--surface-strong)] text-navy"
                       }`}
                     >
                       {m.text}
+                    </span>
+                    <span className="mt-0.5 px-1 text-[10px] text-muted">
+                      {new Date(m.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
                     </span>
                   </div>
                 ))
@@ -424,7 +427,11 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
               <p className="text-sm text-muted">Loading directory...</p>
             ) : (
               <>
-                <p className="text-3xl">💬</p>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+                  </svg>
+                </span>
                 <p className="text-sm font-semibold text-navy">Select a conversation</p>
                 <p className="max-w-xs text-xs text-muted">
                   Search for a student, teacher, or admin in the sidebar, or pick an existing chat to keep talking.

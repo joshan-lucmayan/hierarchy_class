@@ -52,6 +52,27 @@ export interface GradeEntry {
   approvalStatus: "pending" | "approved" | "rejected";
 }
 
+/**
+ * Hierarchy Class ranking formula (deterministic, transparent, hard to game).
+ *
+ *   Approved subject grades -> Academic Excellence -> Rank/Tier
+ *
+ * Academic Excellence = rounded average of ALL approved grade entries across
+ * the student's courses (0-100). Only rows with approval_status = 'approved'
+ * contribute; pending and rejected submissions never touch stats, ranks, or
+ * the leaderboard.
+ *
+ *   >= 97  -> S++
+ *   90-96  -> S
+ *   80-89  -> A
+ *   70-79  -> B
+ *   60-69  -> C
+ *   < 60   -> D
+ *
+ * The same thresholds are used by the get_school_leaderboard RPC, the
+ * client-side averages below, and rankFromAverage() in lib/useLeaderboard.ts
+ * so every surface agrees on the same numbers.
+ */
 function computeRank(avg: number): TierRank {
   if (avg >= 97) return "S++";
   if (avg >= 90) return "S";
@@ -86,7 +107,7 @@ interface ClassroomHierarchyContextType {
   addStudent: (s: Omit<Student, "id">) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
 
-  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => Promise<void>;
+  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => Promise<boolean>;
   deleteGradeEntry: (id: string) => Promise<void>;
   setGradeApproval: (id: string, status: "approved" | "rejected") => Promise<void>;
 
@@ -204,9 +225,26 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     }
 
     loadAll();
+
+    // Realtime: when grades are submitted or an admin approves/rejects a
+    // submission, refetch so averages/ranks/leaderboards update live (RLS
+    // scopes which events this user receives). One channel, cleaned up.
+    const channel = supabase
+      .channel("classroom-grades")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "grade_entries" },
+        () => {
+          if (!cancelled) refetch();
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabaseConfigured, profile, refetchTick]);
 
   const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
@@ -296,20 +334,26 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
   }, [refetch]);
 
   const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => {
-    if (!profile) return;
+    if (!profile) return false;
     const supabase = createClient();
+    // The teacher UI hands out course_enrollment ids, but grade_entries.student_id
+    // is a FK to profiles(id). Translate before writing or the insert fails with
+    // a foreign-key violation and the submission never reaches the admin.
     const { error: insertError } = await supabase.from("grade_entries").insert(
-      entries.map((e) => ({
-        school_id: profile.school_id,
-        course_id: e.courseId,
-        student_id: e.studentId,
-        submitted_by: profile.id,
-        type: e.type,
-        label: e.label ?? null,
-        score: e.score,
-        entry_date: e.date,
-        approval_status: "pending",
-      })) as any
+      entries.map((e) => {
+        const profileId = students.find((s) => s.id === e.studentId)?.profileId ?? e.studentId;
+        return {
+          school_id: profile.school_id,
+          course_id: e.courseId,
+          student_id: profileId,
+          submitted_by: profile.id,
+          type: e.type,
+          label: e.label ?? null,
+          score: e.score,
+          entry_date: e.date,
+          approval_status: "pending",
+        };
+      }) as any
     );
     if (!insertError && entries.length > 0) {
       // Let admins know there's a submission waiting for review.
@@ -322,7 +366,8 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
       );
     }
     refetch();
-  }, [profile, courses, refetch]);
+    return !insertError;
+  }, [profile, courses, students, refetch]);
 
   const deleteGradeEntry = useCallback(async (id: string) => {
     const supabase = createClient();
@@ -358,36 +403,45 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     (profileId: string) => students.filter((s) => s.profileId === profileId),
     [students]
   );
+  // grade_entries.student_id stores PROFILE ids (FK to profiles). The
+  // classroom UI hands out course_enrollment ids, so translate at the boundary.
+  const enrollmentProfileId = useCallback(
+    (enrollmentId: string) => students.find((s) => s.id === enrollmentId)?.profileId ?? enrollmentId,
+    [students]
+  );
   const getEntriesByProfile = useCallback(
-    (profileId: string) => {
-      const studentIds = students.filter((s) => s.profileId === profileId).map((s) => s.id);
-      return gradeEntries.filter((e) => studentIds.includes(e.studentId));
-    },
-    [students, gradeEntries]
+    (profileId: string) => gradeEntries.filter((e) => e.studentId === profileId),
+    [gradeEntries]
   );
   const getStudentAverageByProfile = useCallback(
     (profileId: string): number | null => {
-      const studentIds = students.filter((s) => s.profileId === profileId).map((s) => s.id);
-      const entries = gradeEntries.filter((e) => studentIds.includes(e.studentId));
+      // Approved grades only - pending/rejected never affect stats.
+      const entries = gradeEntries.filter(
+        (e) => e.studentId === profileId && e.approvalStatus === "approved"
+      );
       if (entries.length === 0) return null;
       const sum = entries.reduce((acc, e) => acc + e.score, 0);
       return Math.round((sum / entries.length) * 10) / 10;
     },
-    [students, gradeEntries]
+    [gradeEntries]
   );
   const getStudentRankByProfile = useCallback(
     (profileId: string): TierRank | null => {
-      const studentIds = students.filter((s) => s.profileId === profileId).map((s) => s.id);
-      const entries = gradeEntries.filter((e) => studentIds.includes(e.studentId));
+      const entries = gradeEntries.filter(
+        (e) => e.studentId === profileId && e.approvalStatus === "approved"
+      );
       if (entries.length === 0) return null;
       const sum = entries.reduce((acc, e) => acc + e.score, 0);
       return computeRank(Math.round((sum / entries.length) * 10) / 10);
     },
-    [students, gradeEntries]
+    [gradeEntries]
   );
   const getEntriesByStudent = useCallback(
-    (studentId: string) => gradeEntries.filter((e) => e.studentId === studentId),
-    [gradeEntries]
+    (studentId: string) => {
+      const profileId = enrollmentProfileId(studentId);
+      return gradeEntries.filter((e) => e.studentId === profileId);
+    },
+    [gradeEntries, enrollmentProfileId]
   );
   const getEntriesByCourse = useCallback(
     (courseId: string) => gradeEntries.filter((e) => e.courseId === courseId),
@@ -395,12 +449,14 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
   );
   const getStudentAverage = useCallback(
     (studentId: string): number | null => {
-      const entries = gradeEntries.filter((e) => e.studentId === studentId);
+      // Approved grades only (studentId is a course_enrollment id here).
+      const profileId = enrollmentProfileId(studentId);
+      const entries = gradeEntries.filter((e) => e.studentId === profileId && e.approvalStatus === "approved");
       if (entries.length === 0) return null;
       const sum = entries.reduce((acc, e) => acc + e.score, 0);
       return Math.round((sum / entries.length) * 10) / 10;
     },
-    [gradeEntries]
+    [gradeEntries, enrollmentProfileId]
   );
   const getStudentRank = useCallback(
     (studentId: string): TierRank | null => {

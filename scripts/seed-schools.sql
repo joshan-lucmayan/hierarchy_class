@@ -1,5 +1,4 @@
 -- Seed script for schools table
--- Paste this into Supabase SQL Editor to populate initial schools
 -- Path: Supabase Dashboard > SQL Editor > New Query > Paste + Execute
 --
 -- The platform currently operates for a single institution: CSA.

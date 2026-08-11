@@ -27,7 +27,7 @@ function timeAgo(iso: string): string {
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, loading, error, markAllRead } = useNotifications();
+  const { notifications, unreadCount, loading, error, markRead, markAllRead, clearAll } = useNotifications();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -40,10 +40,9 @@ export function NotificationBell() {
   }, []);
 
   function handleOpen() {
+    // Opening the dropdown never marks anything read - the badge only drops
+    // when the user explicitly marks notifications read.
     setIsOpen((prev) => !prev);
-    if (!isOpen && unreadCount > 0) {
-      markAllRead();
-    }
   }
 
   return (
@@ -67,7 +66,31 @@ export function NotificationBell() {
 
       {isOpen && (
         <div className="absolute right-0 z-40 mt-2 w-80 rounded-2xl border border-base bg-surface p-2 shadow-xl">
-          <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-navy">Notifications</p>
+          <div className="flex items-center justify-between gap-2 px-3 py-2">
+            <p className="text-xs font-bold uppercase tracking-wide text-navy">Notifications</p>
+            <div className="flex items-center gap-1">
+              {notifications.length > 0 && (
+                <>
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => markAllRead()}
+                      className="rounded-full border border-base px-2.5 py-1 text-[10px] font-semibold text-muted transition hover:border-gold hover:text-navy"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => clearAll()}
+                    className="rounded-full border border-base px-2.5 py-1 text-[10px] font-semibold text-muted transition hover:border-red-300 hover:text-red-600"
+                  >
+                    Clear
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
           {loading ? (
             <p className="px-3 py-4 text-sm text-muted">Loading...</p>
           ) : error ? (
@@ -84,24 +107,44 @@ export function NotificationBell() {
                     <p className="mt-0.5 text-[10px] text-muted">{timeAgo(n.created_at)}</p>
                   </>
                 );
-                const inner = (
-                  <div className="flex items-start gap-2.5">
-                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TYPE_DOT[n.type] ?? TYPE_DOT.system}`} />
-                    <div className="min-w-0 flex-1">{body}</div>
-                  </div>
-                );
-                return n.link ? (
-                  <Link
+                const isUnread = !n.read_at;
+                return (
+                  <div
                     key={n.id}
-                    href={n.link}
-                    onClick={() => setIsOpen(false)}
-                    className="block rounded-xl px-3 py-2.5 hover:bg-[var(--surface-strong)]"
+                    className={`flex items-start gap-2.5 rounded-xl px-3 py-2.5 hover:bg-[var(--surface-strong)] ${
+                      isUnread ? "bg-[var(--surface-strong)]/60" : ""
+                    }`}
                   >
-                    {inner}
-                  </Link>
-                ) : (
-                  <div key={n.id} className="rounded-xl px-3 py-2.5 hover:bg-[var(--surface-strong)]">
-                    {inner}
+                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${isUnread ? TYPE_DOT[n.type] ?? TYPE_DOT.system : "bg-[var(--border)]"}`} />
+                    <div className="min-w-0 flex-1">
+                      {n.link ? (
+                        <Link
+                          href={n.link}
+                          onClick={() => {
+                            if (isUnread) markRead(n.id);
+                            setIsOpen(false);
+                          }}
+                          className="block"
+                        >
+                          {body}
+                        </Link>
+                      ) : (
+                        <div onClick={() => isUnread && markRead(n.id)}>{body}</div>
+                      )}
+                    </div>
+                    {isUnread && (
+                      <button
+                        type="button"
+                        onClick={() => markRead(n.id)}
+                        title="Mark as read"
+                        aria-label="Mark as read"
+                        className="mt-0.5 shrink-0 rounded-full border border-base p-1 text-muted transition hover:border-gold hover:text-navy"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 );
               })}

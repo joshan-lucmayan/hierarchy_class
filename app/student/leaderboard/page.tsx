@@ -9,24 +9,10 @@ import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 
 export default function LeaderboardPage() {
   const { profile: myProfile } = useMyProfile();
-  const { sections, courses, programs, students: enrollments } = useClassroomHierarchy();
+  const { sections, courses, students: enrollments } = useClassroomHierarchy();
   const { entries: ranked, loading, error, positionOf } = useLeaderboard();
 
   const [sectionFilter, setSectionFilter] = useState<string>("all");
-
-  // Map each student to the Program their enrollments sit under
-  // (Program -> Section -> Course -> Enrollment).
-  const programByStudent = useMemo(() => {
-    const map: Record<string, string> = {};
-    enrollments.forEach((e) => {
-      if (!e.profileId || map[e.profileId]) return;
-      const course = courses.find((c) => c.id === e.courseId);
-      const section = course ? sections.find((s) => s.id === course.sectionId) : undefined;
-      const program = section ? programs.find((p) => p.id === section.programId) : undefined;
-      if (program) map[e.profileId] = program.name;
-    });
-    return map;
-  }, [enrollments, courses, sections, programs]);
 
   // A student "belongs" to whatever section(s) their enrolled courses sit under.
   const filtered = useMemo(() => {
@@ -70,7 +56,10 @@ export default function LeaderboardPage() {
         <div className="space-y-3">
           {loading && <p className="text-sm text-muted">Loading rankings...</p>}
           {error && <p className="text-sm text-red-500">{error}</p>}
-          {!loading && !error && filtered.length === 0 && (
+          {!loading && !error && ranked.length === 0 && (
+            <p className="text-sm text-muted">No ranked students yet.</p>
+          )}
+          {!loading && !error && ranked.length > 0 && filtered.length === 0 && (
             <p className="text-sm text-muted">No students match this filter yet.</p>
           )}
           {filtered.map((entry, idx) => (
@@ -81,9 +70,10 @@ export default function LeaderboardPage() {
                 id: entry.studentId,
                 name: entry.fullName,
                 avatarUrl: entry.avatarUrl,
-                program: programByStudent[entry.studentId] ?? "",
+                program: entry.programName ?? "",
                 levelLabel: entry.levelLabel ?? "",
-                section: entry.section ?? "",
+                educationalLevel: entry.educationalLevel ?? "",
+                score: entry.academicExcellence,
                 overallRank: rankFromAverage(entry.academicExcellence),
               }}
               isCurrentUser={myProfile?.id === entry.studentId}

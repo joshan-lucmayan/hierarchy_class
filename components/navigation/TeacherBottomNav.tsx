@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TEACHER_NAV_ITEMS } from "@/components/navigation/navItems";
+import { MessagesBadge } from "@/components/navigation/MessagesBadge";
 
 export function TeacherBottomNav() {
   const pathname = usePathname();
@@ -14,7 +15,10 @@ export function TeacherBottomNav() {
           const active = item.href ? pathname?.startsWith(item.href) : false;
           return (
             <Link key={item.href} href={item.href ?? "#"} className="flex flex-col items-center gap-1 px-2 py-1.5">
-              {item.icon(!!active)}
+              <span className="relative">
+                {item.icon(!!active)}
+                {item.href?.includes("/messages") && <MessagesBadge />}
+              </span>
               <span className={`text-[10px] font-semibold uppercase tracking-wide ${active ? "text-navy" : "text-muted"}`}>
                 {item.label}
               </span>

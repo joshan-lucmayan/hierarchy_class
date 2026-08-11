@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
+import { useProgramByStudent } from "@/lib/useAcademicIdentity";
 import type { ProfileRow } from "@/types/supabase";
 import { RankBadge } from "@/components/ui/RankBadge";
 
@@ -14,10 +15,12 @@ export function QuickSearchBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const { profiles: students } = useSchoolProfiles({ role: "student" });
-  const { profiles: teachers } = useSchoolProfiles({ role: "teacher" });
+  const { profiles: students } = useSchoolProfiles({ role: "student", excludeSelf: true });
+  const { profiles: teachers } = useSchoolProfiles({ role: "teacher", excludeSelf: true });
+  const { profiles: admins } = useSchoolProfiles({ role: "admin", excludeSelf: true });
   const { friendIds } = useFriendsStore();
   const { averageOf } = useLeaderboard();
+  const programByStudent = useProgramByStudent();
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const studentResults = useMemo(() => {
@@ -29,6 +32,7 @@ export function QuickSearchBar() {
           s.full_name.toLowerCase().includes(normalized) ||
           (s.section ?? "").toLowerCase().includes(normalized) ||
           (s.level_label ?? "").toLowerCase().includes(normalized) ||
+          (s.educational_level ?? "").toLowerCase().includes(normalized) ||
           (s.favorite_subject ?? "").toLowerCase().includes(normalized)
       )
       .slice(0, RESULT_LIMIT);
@@ -46,8 +50,16 @@ export function QuickSearchBar() {
       .slice(0, RESULT_LIMIT);
   }, [teachers, query]);
 
+  const adminResults = useMemo(() => {
+    if (!query.trim()) return [];
+    const normalized = query.toLowerCase();
+    return admins
+      .filter((a) => a.full_name.toLowerCase().includes(normalized))
+      .slice(0, RESULT_LIMIT);
+  }, [admins, query]);
+
   const showDropdown = focused && query.trim().length > 0;
-  const hasResults = studentResults.length > 0 || teacherResults.length > 0;
+  const hasResults = studentResults.length > 0 || teacherResults.length > 0 || adminResults.length > 0;
 
   function handleFocus() {
     if (blurTimeout.current) clearTimeout(blurTimeout.current);
@@ -62,7 +74,9 @@ export function QuickSearchBar() {
     if (blurTimeout.current) clearTimeout(blurTimeout.current);
     setFocused(false);
     setQuery("");
-    router.push(`/student/search?profile=${person.id}`);
+    // Clicking a result opens that person's profile directly - the general
+    // results page is only reached by pressing Enter on a query.
+    router.push(`/student/profile/${person.id}`);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -122,7 +136,9 @@ export function QuickSearchBar() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-navy">{student.full_name}</p>
                     <p className="truncate text-xs text-muted">
-                      {[student.level_label, student.section].filter(Boolean).join(" · ")}
+                      {[student.educational_level, student.level_label, programByStudent[student.id]]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                   </div>
                   {friendIds.includes(student.id) && (
@@ -146,6 +162,24 @@ export function QuickSearchBar() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-navy">{teacher.full_name}</p>
                     <p className="truncate text-xs text-gold">Faculty</p>
+                  </div>
+                </button>
+              ))}
+              {adminResults.map((admin) => (
+                <button
+                  key={admin.id}
+                  type="button"
+                  onClick={() => goToPerson(admin)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)]"
+                >
+                  <img
+                    src={admin.avatar_url || "/avatars/default-avatar.webp"}
+                    alt={admin.full_name}
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-navy">{admin.full_name}</p>
+                    <p className="truncate text-xs text-navy">Admin</p>
                   </div>
                 </button>
               ))}

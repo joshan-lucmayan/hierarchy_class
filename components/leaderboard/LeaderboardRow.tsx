@@ -7,7 +7,8 @@ interface LeaderboardRowStudent {
   avatarUrl?: string | null;
   program: string;
   levelLabel: string;
-  section: string;
+  educationalLevel: string;
+  score: number | null;
   overallRank: TierRank;
 }
 
@@ -32,10 +33,13 @@ export function LeaderboardRow({
         alt={student.name}
         className="h-9 w-9 shrink-0 rounded-full object-cover"
       />
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-navy">{student.name}</p>
-        <p className="text-[11px] text-muted">
-          {[student.program, student.levelLabel, student.section].filter(Boolean).join(" · ")}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-navy">{student.name}</p>
+        <p className="truncate text-[11px] text-muted">
+          {[student.educationalLevel, student.levelLabel, student.program].filter(Boolean).join(" · ")}
+        </p>
+        <p className="mt-0.5 text-[11px] font-semibold text-gold">
+          {student.score !== null ? `Academic Excellence: ${student.score}` : "No approved grades yet"}
         </p>
       </div>
       <RankBadge rank={student.overallRank} size="md" />

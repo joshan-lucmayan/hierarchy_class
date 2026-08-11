@@ -36,8 +36,11 @@ export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: b
             onClick={() => setPurchaseOpen(true)}
             className="flex items-center gap-1.5 rounded-full bg-black/45 py-1.5 pl-1.5 pr-3 backdrop-blur transition hover:bg-black/60"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-b from-[#f6d989] to-[#c9962c] text-xs shadow-inner">
-              🪙
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-b from-[#f6d989] to-[#c9962c] shadow-inner">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a3b12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v10M15.5 9.5a2.5 2.5 0 00-3.5-2.3M8.5 14.5a2.5 2.5 0 003.5 2.3" />
+              </svg>
             </span>
             <span className="text-xs font-bold text-white">{balance.toLocaleString()}</span>
             <span className="text-[10px] font-semibold uppercase tracking-wide text-white/70">Florin</span>

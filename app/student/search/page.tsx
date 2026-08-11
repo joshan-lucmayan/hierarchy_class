@@ -5,276 +5,83 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
+import { useProgramByStudent } from "@/lib/useAcademicIdentity";
 import { RankBadge } from "@/components/ui/RankBadge";
-import { StatRadarChart } from "@/components/profile/StatRadarChart";
 import type { ProfileRow } from "@/types/supabase";
-
-const COIN_PACKAGES = [
-  { coins: 10, price: 49 },
-  { coins: 50, price: 199 },
-  { coins: 100, price: 349 },
-];
-
-function SendCharismaModal({ student, onClose }: { student: ProfileRow; onClose: () => void }) {
-  const [selected, setSelected] = useState(COIN_PACKAGES[1].coins);
-  const [sent, setSent] = useState(false);
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        {sent ? (
-          <div className="text-center">
-            <p className="text-3xl">✨</p>
-            <p className="mt-3 text-lg font-bold text-navy">Sent!</p>
-            <p className="mt-2 text-sm text-muted">
-              This is a UI preview only - Coin Charisma purchases aren&apos;t connected to real payments yet.
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
-            >
-              Close
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Coin Charisma</p>
-            <h2 className="mt-2 text-xl font-bold text-navy">Send charisma to {student.full_name.split(" ")[0]}</h2>
-            <p className="mt-2 text-sm text-muted">Choose a coin package to boost their charisma stat.</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {COIN_PACKAGES.map((pkg) => (
-                <button
-                  key={pkg.coins}
-                  type="button"
-                  onClick={() => setSelected(pkg.coins)}
-                  className={`rounded-2xl border px-2 py-3 text-center transition ${
-                    selected === pkg.coins ? "border-gold bg-[var(--surface-strong)]" : "border-base bg-surface hover:border-gold"
-                  }`}
-                >
-                  <p className="text-lg font-bold text-navy">{pkg.coins}</p>
-                  <p className="text-[11px] text-muted">coins</p>
-                  <p className="mt-1 text-xs font-semibold text-gold">₱{pkg.price}</p>
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setSent(true)}
-              className="mt-5 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-navy transition hover:opacity-90"
-            >
-              Send {selected} coins
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-2 w-full rounded-full border border-base py-2.5 text-sm font-semibold text-navy transition hover:border-gold"
-            >
-              Cancel
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ProfileModal({
-  student,
-  isFriend,
-  onToggleFriend,
-  onClose,
-  onMessage,
-  onSendCharisma,
-}: {
-  student: ProfileRow;
-  isFriend: boolean;
-  onToggleFriend: (id: string) => void;
-  onClose: () => void;
-  onMessage: () => void;
-  onSendCharisma: () => void;
-}) {
-  const { averageOf } = useLeaderboard();
-  const avg = averageOf(student.id) ?? 0;
-  const rank = rankFromAverage(avg > 0 ? avg : null);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Student profile</p>
-          </div>
-          <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
-        </div>
-        <div className="mt-3 flex flex-col items-center text-center">
-          <img
-            src={student.avatar_url || "/avatars/default-avatar.webp"}
-            alt={student.full_name}
-            className="h-20 w-20 rounded-full object-cover"
-          />
-          <h2 className="mt-3 text-2xl font-bold text-navy">{student.full_name}</h2>
-          <p className="mt-1 text-sm text-muted">
-            {[student.level_label, student.section].filter(Boolean).join(" · ")}
-          </p>
-          <RankBadge rank={rank} size="md" className="mt-3" />
-        </div>
-        {student.bio && <p className="mt-4 text-center text-sm leading-6 text-muted">{student.bio}</p>}
-        {student.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
-            {student.tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
-          </div>
-        )}
-        {student.favorite_subject && (
-          <p className="mt-5 text-center text-xs uppercase tracking-wide text-muted">
-            Favorite subject · <span className="font-semibold text-navy">{student.favorite_subject}</span>
-          </p>
-        )}
-        <div className="mt-4">
-          <StatRadarChart stats={{ academic: avg, physical: 0, charisma: 0 }} />
-        </div>
-        <div className="mt-5 grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => onToggleFriend(student.id)}
-            className={`rounded-full px-3 py-2.5 text-xs font-semibold transition ${
-              isFriend
-                ? "border border-base bg-surface text-muted hover:border-red-400 hover:text-red-600"
-                : "bg-gold text-navy hover:opacity-90"
-            }`}
-          >
-            {isFriend ? "Friends" : "Add Friend"}
-          </button>
-          <button
-            type="button"
-            onClick={onMessage}
-            className="rounded-full border border-base bg-surface px-3 py-2.5 text-xs font-semibold text-navy transition hover:border-gold"
-          >
-            Message
-          </button>
-          <button
-            type="button"
-            onClick={onSendCharisma}
-            className="rounded-full bg-navy px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
-          >
-            Send Charisma
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TeacherModal({ teacher, onClose, onMessage }: { teacher: ProfileRow; onClose: () => void; onMessage: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teacher profile</p>
-          </div>
-          <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
-        </div>
-        <div className="mt-3 flex flex-col items-center text-center">
-          <img
-            src={teacher.avatar_url || "/avatars/default-avatar.webp"}
-            alt={teacher.full_name}
-            className="h-20 w-20 rounded-full object-cover"
-          />
-          <h2 className="mt-3 text-2xl font-bold text-navy">{teacher.full_name}</h2>
-          <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-gold">Faculty</p>
-        </div>
-        {teacher.bio && <p className="mt-4 text-center text-sm leading-6 text-muted">{teacher.bio}</p>}
-        {teacher.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
-            {teacher.tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={onMessage}
-          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
-        >
-          Message
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function ProfileCard({
-  student,
-  isFriend,
-  onToggleFriend,
-  onOpenProfile,
-}: {
-  student: ProfileRow;
-  isFriend: boolean;
-  onToggleFriend: (id: string) => void;
-  onOpenProfile: (student: ProfileRow) => void;
-}) {
-  const { averageOf } = useLeaderboard();
-  const rank = rankFromAverage(averageOf(student.id));
-
-  return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <button type="button" onClick={() => onOpenProfile(student)} className="flex flex-1 min-w-0 items-center gap-3 text-left">
-        <img
-          src={student.avatar_url || "/avatars/default-avatar.webp"}
-          alt={student.full_name}
-          className="h-12 w-12 shrink-0 rounded-full object-cover"
-        />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-navy">{student.full_name}</p>
-          <p className="text-xs text-muted">{[student.level_label, student.section].filter(Boolean).join(" · ")}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <RankBadge rank={rank} size="sm" />
-            {student.favorite_subject && <span className="text-xs text-muted">{student.favorite_subject}</span>}
-          </div>
-        </div>
-      </button>
-      <button
-        type="button"
-        onClick={() => onToggleFriend(student.id)}
-        className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
-          isFriend
-            ? "border border-base bg-surface text-muted hover:border-red-400 hover:text-red-600"
-            : "bg-gold text-navy hover:opacity-90"
-        }`}
-      >
-        {isFriend ? "Friends" : "Add Friend"}
-      </button>
-    </div>
-  );
-}
-
-function TeacherCard({ teacher, onOpenProfile }: { teacher: ProfileRow; onOpenProfile: (teacher: ProfileRow) => void }) {
-  return (
-    <button type="button" onClick={() => onOpenProfile(teacher)} className="flex w-full items-center gap-3 py-4 text-left">
-      <img
-        src={teacher.avatar_url || "/avatars/default-avatar.webp"}
-        alt={teacher.full_name}
-        className="h-12 w-12 shrink-0 rounded-full object-cover"
-      />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-navy">{teacher.full_name}</p>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gold">Faculty</p>
-      </div>
-    </button>
-  );
-}
 
 export default function SearchPage() {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Loading...</p>}>
       <SearchPageInner />
     </Suspense>
+  );
+}
+
+function StudentCard({
+  student,
+  isFriend,
+  onOpenProfile,
+}: {
+  student: ProfileRow;
+  isFriend: boolean;
+  onOpenProfile: (student: ProfileRow) => void;
+}) {
+  const { averageOf } = useLeaderboard();
+  const programByStudent = useProgramByStudent();
+  const rank = rankFromAverage(averageOf(student.id));
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpenProfile(student)}
+      className="flex w-full items-center gap-4 py-4 text-left transition hover:opacity-80"
+    >
+      <img
+        src={student.avatar_url || "/avatars/default-avatar.webp"}
+        alt={student.full_name}
+        className="h-12 w-12 shrink-0 rounded-full object-cover"
+      />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-navy">{student.full_name}</p>
+        <p className="text-xs text-muted">
+          {[student.educational_level, student.level_label, programByStudent[student.id]]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <RankBadge rank={rank} size="sm" />
+          {student.favorite_subject && <span className="text-xs text-muted">{student.favorite_subject}</span>}
+        </div>
+      </div>
+      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold">
+        {isFriend ? "Friend" : "View profile"}
+      </span>
+    </button>
+  );
+}
+
+function StaffCard({
+  person,
+  roleLabel,
+  onOpenProfile,
+}: {
+  person: ProfileRow;
+  roleLabel: string;
+  onOpenProfile: (person: ProfileRow) => void;
+}) {
+  return (
+    <button type="button" onClick={() => onOpenProfile(person)} className="flex w-full items-center gap-3 py-4 text-left transition hover:opacity-80">
+      <img
+        src={person.avatar_url || "/avatars/default-avatar.webp"}
+        alt={person.full_name}
+        className="h-12 w-12 shrink-0 rounded-full object-cover"
+      />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-navy">{person.full_name}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gold">{roleLabel}</p>
+      </div>
+      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold">View profile</span>
+    </button>
   );
 }
 
@@ -285,68 +92,72 @@ function SearchPageInner() {
   const queryParam = searchParams.get("q");
   const [query, setQuery] = useState("");
 
+  const { profiles: allStudents, loading: studentsLoading } = useSchoolProfiles({
+    role: "student",
+    excludeSelf: true,
+  });
+  const { profiles: allTeachers, loading: teachersLoading } = useSchoolProfiles({
+    role: "teacher",
+    excludeSelf: true,
+  });
+  // Admins are only fetched during an explicit search. Browsing the school
+  // directory (empty query) shows students and faculty only, at the query
+  // layer - the admin section never renders a full roster.
+  const { profiles: allAdmins, loading: adminsLoading } = useSchoolProfiles({
+    role: "admin",
+    excludeSelf: true,
+    enabled: !!query.trim(),
+  });
+  const { friendIds } = useFriendsStore();
+
   // ?q=<name> (from the home search bar's Enter key) pre-fills the query.
   useEffect(() => {
     if (queryParam) setQuery(queryParam);
   }, [queryParam]);
-  const [openProfile, setOpenProfile] = useState<ProfileRow | null>(null);
-  const [openTeacherProfile, setOpenTeacherProfile] = useState<ProfileRow | null>(null);
-  const [charismaTarget, setCharismaTarget] = useState<ProfileRow | null>(null);
 
-  const { profiles: allStudents, loading: studentsLoading } = useSchoolProfiles({ role: "student" });
-  const { profiles: allTeachers, loading: teachersLoading } = useSchoolProfiles({ role: "teacher" });
-  const { friendIds, addFriend, removeFriend } = useFriendsStore();
-
-  // Deep link: /student/search?profile=<id> opens that person's profile card.
+  // Old deep link: /student/search?profile=<id> now routes to the dedicated
+  // profile page so the person's profile opens alone, not over the list.
   useEffect(() => {
-    if (!profileParam) return;
-    const student = allStudents.find((s) => s.id === profileParam);
-    const teacher = allTeachers.find((t) => t.id === profileParam);
-    if (student) setOpenProfile(student);
-    else if (teacher) setOpenTeacherProfile(teacher);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileParam, studentsLoading, teachersLoading]);
-
-  function toggleFriend(id: string) {
-    if (friendIds.includes(id)) {
-      removeFriend(id);
-    } else {
-      addFriend(id);
+    if (profileParam) {
+      router.replace(`/student/profile/${profileParam}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileParam]);
+
+  function openProfile(person: ProfileRow) {
+    router.push(`/student/profile/${person.id}`);
   }
 
-  function messageStudent(student: ProfileRow) {
-    setOpenProfile(null);
-    router.push(`/student/messages?with=${student.id}`);
-  }
-  function messageTeacher(teacher: ProfileRow) {
-    setOpenTeacherProfile(null);
-    router.push(`/student/messages?with=${teacher.id}`);
-  }
+  const matches = (p: ProfileRow, normalized: string) =>
+    p.full_name.toLowerCase().includes(normalized) ||
+    (p.section ?? "").toLowerCase().includes(normalized) ||
+    (p.level_label ?? "").toLowerCase().includes(normalized) ||
+    (p.educational_level ?? "").toLowerCase().includes(normalized) ||
+    (p.favorite_subject ?? "").toLowerCase().includes(normalized);
 
   const studentResults = useMemo(() => {
     if (!query.trim()) return allStudents;
     const normalized = query.toLowerCase();
-    return allStudents.filter(
-      (student) =>
-        student.full_name.toLowerCase().includes(normalized) ||
-        (student.section ?? "").toLowerCase().includes(normalized) ||
-        (student.favorite_subject ?? "").toLowerCase().includes(normalized)
-    );
+    return allStudents.filter((s) => matches(s, normalized));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allStudents, query]);
 
   const teacherResults = useMemo(() => {
     if (!query.trim()) return allTeachers;
     const normalized = query.toLowerCase();
-    return allTeachers.filter(
-      (teacher) =>
-        teacher.full_name.toLowerCase().includes(normalized) ||
-        (teacher.favorite_subject ?? "").toLowerCase().includes(normalized)
-    );
+    return allTeachers.filter((t) => matches(t, normalized));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allTeachers, query]);
 
-  const loading = studentsLoading || teachersLoading;
-  const hasResults = studentResults.length > 0 || teacherResults.length > 0;
+  const adminResults = useMemo(() => {
+    if (!query.trim()) return allAdmins;
+    const normalized = query.toLowerCase();
+    return allAdmins.filter((a) => matches(a, normalized));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allAdmins, query]);
+
+  const loading = studentsLoading || teachersLoading || adminsLoading;
+  const hasResults = studentResults.length > 0 || teacherResults.length > 0 || adminResults.length > 0;
 
   return (
     <div className="space-y-8">
@@ -368,12 +179,11 @@ function SearchPageInner() {
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Students</h2>
               <div className="divide-y divide-[var(--border)]">
                 {studentResults.map((student) => (
-                  <ProfileCard
+                  <StudentCard
                     key={student.id}
                     student={student}
                     isFriend={friendIds.includes(student.id)}
-                    onToggleFriend={toggleFriend}
-                    onOpenProfile={setOpenProfile}
+                    onOpenProfile={openProfile}
                   />
                 ))}
               </div>
@@ -384,28 +194,23 @@ function SearchPageInner() {
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Teachers</h2>
               <div className="divide-y divide-[var(--border)]">
                 {teacherResults.map((teacher) => (
-                  <TeacherCard key={teacher.id} teacher={teacher} onOpenProfile={setOpenTeacherProfile} />
+                  <StaffCard key={teacher.id} person={teacher} roleLabel="Faculty" onOpenProfile={openProfile} />
+                ))}
+              </div>
+            </section>
+          )}
+          {adminResults.length > 0 && (
+            <section className="space-y-1 border-t border-base pt-6">
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Administrators</h2>
+              <div className="divide-y divide-[var(--border)]">
+                {adminResults.map((admin) => (
+                  <StaffCard key={admin.id} person={admin} roleLabel="Admin" onOpenProfile={openProfile} />
                 ))}
               </div>
             </section>
           )}
         </>
       )}
-
-      {openProfile && (
-        <ProfileModal
-          student={openProfile}
-          isFriend={friendIds.includes(openProfile.id)}
-          onToggleFriend={toggleFriend}
-          onClose={() => setOpenProfile(null)}
-          onMessage={() => messageStudent(openProfile)}
-          onSendCharisma={() => setCharismaTarget(openProfile)}
-        />
-      )}
-      {openTeacherProfile && (
-        <TeacherModal teacher={openTeacherProfile} onClose={() => setOpenTeacherProfile(null)} onMessage={() => messageTeacher(openTeacherProfile)} />
-      )}
-      {charismaTarget && <SendCharismaModal student={charismaTarget} onClose={() => setCharismaTarget(null)} />}
     </div>
   );
 }

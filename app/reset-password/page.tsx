@@ -55,7 +55,11 @@ export default function ResetPasswordPage() {
 
           {status === "done" ? (
             <div className="flex flex-col items-center gap-4 text-center">
-              <p className="text-3xl">✅</p>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </span>
               <h1 className="text-lg font-bold text-navy">Password updated</h1>
               <p className="text-sm text-muted">You can now sign in with your new password.</p>
               <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy">

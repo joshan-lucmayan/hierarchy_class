@@ -8,6 +8,7 @@ import { notifyPostAudience } from "@/lib/notify";
 
 export interface SchoolPost {
   id: string;
+  type: "post" | "announcement";
   tag: string;
   title: string | null;
   body: string;
@@ -15,6 +16,7 @@ export interface SchoolPost {
   imageUrl: string | null;
   imagePath: string | null;
   authorName: string | null;
+  authorAvatar: string | null;
   createdAt: string;
 }
 
@@ -23,6 +25,7 @@ interface SchoolFeedContextValue {
   loading: boolean;
   error: string | null;
   createPost: (input: {
+    type: "post" | "announcement";
     title: string;
     body: string;
     tag: string;
@@ -30,7 +33,7 @@ interface SchoolFeedContextValue {
     image?: File | null;
     notifyAudience: boolean;
   }) => Promise<string | null>;
-  updatePost: (id: string, patch: { title: string; body: string; tag: string; audience: "everyone" | "students" | "teachers"; image?: File | null; notifyAudience: boolean }) => Promise<boolean>;
+  updatePost: (id: string, patch: { type: "post" | "announcement"; title: string; body: string; tag: string; audience: "everyone" | "students" | "teachers"; image?: File | null; notifyAudience: boolean }) => Promise<boolean>;
   deletePost: (id: string) => Promise<void>;
   refresh: () => void;
 }
@@ -61,7 +64,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
     async function load() {
       const { data, error: fetchError } = await supabase
         .from("school_feed_posts")
-        .select("*, author:profiles!author_id(full_name)")
+        .select("*, author:profiles!author_id(full_name, avatar_url)")
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -84,6 +87,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
       setPosts(
         rows.map((r: any) => ({
           id: r.id,
+          type: r.post_type ?? "post",
           tag: r.tag,
           title: r.title,
           body: r.body,
@@ -91,6 +95,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
           imageUrl: r.image_path ? urlByPath[r.image_path] ?? null : null,
           imagePath: r.image_path,
           authorName: r.author?.full_name ?? null,
+          authorAvatar: r.author?.avatar_url ?? null,
           createdAt: r.created_at,
         }))
       );
@@ -127,6 +132,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
 
   const createPost = useCallback(
     async (input: {
+      type: "post" | "announcement";
       title: string;
       body: string;
       tag: string;
@@ -147,7 +153,8 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
         .from("school_feed_posts")
         .insert({
           school_id: profile.school_id,
-          tag: input.tag || "Announcement",
+          post_type: input.type,
+          tag: input.tag || "General",
           title: input.title.trim() || null,
           body: input.body.trim(),
           audience: input.audience,
@@ -177,7 +184,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
   const updatePost = useCallback(
     async (
       id: string,
-      patch: { title: string; body: string; tag: string; audience: "everyone" | "students" | "teachers"; image?: File | null; notifyAudience: boolean }
+      patch: { type: "post" | "announcement"; title: string; body: string; tag: string; audience: "everyone" | "students" | "teachers"; image?: File | null; notifyAudience: boolean }
     ): Promise<boolean> => {
       if (!profile) return false;
 
@@ -190,6 +197,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
       const supabase = createClient();
       const existing = posts.find((p) => p.id === id);
       const payload: Record<string, unknown> = {
+        post_type: patch.type,
         title: patch.title.trim() || null,
         body: patch.body.trim(),
         tag: patch.tag,
