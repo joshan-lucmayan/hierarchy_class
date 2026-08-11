@@ -38,7 +38,7 @@ async function fetchSchools() {
   },`);
     });
 
-    console.log("\n✅ Copy the above into data/schools.ts\n");
+    console.log("\n✅ Schools table is live (the app filters to CSA only).\n");
   } catch (err) {
     console.error("Error:", err);
     process.exit(1);

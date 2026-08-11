@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useTeacherWorkspace, TeacherNote, ScheduleItem, LessonPlanItem } from "@/lib/teacherWorkspaceStore";
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
-import { useChatStore } from "@/lib/chatStore";
+import { useSchoolFeed } from "@/lib/schoolFeedStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { FeedPost } from "@/components/feed/FeedPost";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -102,31 +103,20 @@ export default function TeacherHomePage() {
   } = useTeacherWorkspace();
 
   const { getTasksByTeacher, acceptTask, declineTask, markTaskDone, reopenTask, deleteTask } = useTeacherTasks();
-  const { sendSystemMessage } = useChatStore();
+  const { posts: announcements, loading: feedLoading, error: feedError } = useSchoolFeed();
   const assignedTasks = profile ? getTasksByTeacher(profile.id) : [];
 
-  function notifyAdmin(text: string) {
-    if (!profile) return;
-    sendSystemMessage(
-      "admin",
-      profile.id,
-      profile.full_name,
-      profile.initials ?? profile.full_name.slice(0, 2).toUpperCase(),
-      text
-    );
-  }
-
-  function handleAccept(taskId: string, taskTitle: string) {
+  // Task accept/decline/done now generate real notifications to admins
+  // inside teacherTasksStore, so no manual message hack is needed here.
+  function handleAccept(taskId: string) {
     acceptTask(taskId);
-    notifyAdmin(`I accepted the task "${taskTitle}".`);
   }
   const [decliningTaskId, setDecliningTaskId] = useState<string | null>(null);
   const [declineReasonDraft, setDeclineReasonDraft] = useState("");
 
-  function handleDeclineSubmit(taskId: string, taskTitle: string) {
+  function handleDeclineSubmit(taskId: string) {
     if (!declineReasonDraft.trim()) return;
     declineTask(taskId, declineReasonDraft);
-    notifyAdmin(`I declined the task "${taskTitle}". Reason: ${declineReasonDraft}`);
     setDecliningTaskId(null);
     setDeclineReasonDraft("");
   }
@@ -225,7 +215,7 @@ export default function TeacherHomePage() {
                     <div className="flex shrink-0 gap-2">
                       <button
                         type="button"
-                        onClick={() => handleAccept(task.id, task.title)}
+                        onClick={() => handleAccept(task.id)}
                         className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
                       >
                         Accept
@@ -298,7 +288,7 @@ export default function TeacherHomePage() {
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => handleDeclineSubmit(task.id, task.title)}
+                        onClick={() => handleDeclineSubmit(task.id)}
                         disabled={!declineReasonDraft.trim()}
                         className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-600 disabled:opacity-40"
                       >
@@ -317,6 +307,23 @@ export default function TeacherHomePage() {
               </div>
             ))}
           </div>
+        </CornerFrame>
+
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">School announcements</p>
+          {feedLoading ? (
+            <p className="mt-3 text-sm text-muted">Loading announcements...</p>
+          ) : feedError ? (
+            <p className="mt-3 text-sm text-red-500">{feedError}</p>
+          ) : announcements.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">No announcements yet.</p>
+          ) : (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+              {announcements.slice(0, 3).map((post) => (
+                <FeedPost key={post.id} post={post} />
+              ))}
+            </div>
+          )}
         </CornerFrame>
 
         <div className="grid items-start gap-4 xl:grid-cols-3">

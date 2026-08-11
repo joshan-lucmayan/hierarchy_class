@@ -21,11 +21,13 @@ interface CookieToSet {
 export async function signUpWithProfile(
   email: string,
   password: string,
-  fullName: string,
+  firstName: string,
+  lastName: string,
   schoolId: string,
   role: "student" | "teacher" | "admin",
   isLibrarian: boolean = false
 ) {
+  const fullName = `${firstName} ${lastName}`.trim();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -63,7 +65,9 @@ export async function signUpWithProfile(
       options: {
         data: {
           school_id: schoolId,
-          name: fullName,
+          first_name: firstName,
+          last_name: lastName,
+          name: fullName, // kept for backwards-compatible metadata readers
           role,
           is_librarian: isLibrarian,
         },

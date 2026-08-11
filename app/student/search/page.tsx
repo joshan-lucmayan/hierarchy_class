@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
-import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
+import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
 import type { ProfileRow } from "@/types/supabase";
@@ -94,9 +94,9 @@ function ProfileModal({
   onMessage: () => void;
   onSendCharisma: () => void;
 }) {
-  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
-  const avg = getStudentAverageByProfile(student.id) ?? 0;
-  const rank = getStudentRankByProfile(student.id) ?? "D";
+  const { averageOf } = useLeaderboard();
+  const avg = averageOf(student.id) ?? 0;
+  const rank = rankFromAverage(avg > 0 ? avg : null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
@@ -219,8 +219,8 @@ function ProfileCard({
   onToggleFriend: (id: string) => void;
   onOpenProfile: (student: ProfileRow) => void;
 }) {
-  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
-  const rank = getStudentRankByProfile(student.id) ?? "D";
+  const { averageOf } = useLeaderboard();
+  const rank = rankFromAverage(averageOf(student.id));
 
   return (
     <div className="flex items-center justify-between gap-4 py-4">
@@ -272,7 +272,17 @@ function TeacherCard({ teacher, onOpenProfile }: { teacher: ProfileRow; onOpenPr
 }
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Loading...</p>}>
+      <SearchPageInner />
+    </Suspense>
+  );
+}
+
+function SearchPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const profileParam = searchParams.get("profile");
   const [query, setQuery] = useState("");
   const [openProfile, setOpenProfile] = useState<ProfileRow | null>(null);
   const [openTeacherProfile, setOpenTeacherProfile] = useState<ProfileRow | null>(null);
@@ -281,6 +291,16 @@ export default function SearchPage() {
   const { profiles: allStudents, loading: studentsLoading } = useSchoolProfiles({ role: "student" });
   const { profiles: allTeachers, loading: teachersLoading } = useSchoolProfiles({ role: "teacher" });
   const { friendIds, addFriend, removeFriend } = useFriendsStore();
+
+  // Deep link: /student/search?profile=<id> opens that person's profile card.
+  useEffect(() => {
+    if (!profileParam) return;
+    const student = allStudents.find((s) => s.id === profileParam);
+    const teacher = allTeachers.find((t) => t.id === profileParam);
+    if (student) setOpenProfile(student);
+    else if (teacher) setOpenTeacherProfile(teacher);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileParam, studentsLoading, teachersLoading]);
 
   function toggleFriend(id: string) {
     if (friendIds.includes(id)) {
@@ -328,7 +348,7 @@ export default function SearchPage() {
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search..."
+        placeholder="Search"
         className="w-full max-w-md border-b border-base bg-transparent px-1 py-2 text-sm text-navy placeholder:text-muted outline-none focus:border-gold"
       />
 

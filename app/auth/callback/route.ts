@@ -19,10 +19,12 @@ interface CookieToSet {
 
 // Landing page for links Supabase Auth sends by email (signup confirmation,
 // password reset, etc). Exchanges the one-time `code` for a real session,
-// then sends the person on to log in.
+// then sends the person on: recovery links go to the reset-password page,
+// everything else back to login.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const type = searchParams.get("type");
 
   if (code) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -49,10 +51,18 @@ export async function GET(request: Request) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (!error) {
+        if (type === "recovery") {
+          // The session is now valid, so updateUser({ password }) on the
+          // reset page will work.
+          return NextResponse.redirect(`${origin}/reset-password`);
+        }
         return NextResponse.redirect(`${origin}/login?confirmed=1`);
       }
     }
   }
 
+  if (type === "recovery") {
+    return NextResponse.redirect(`${origin}/reset-password?invalid=1`);
+  }
   return NextResponse.redirect(`${origin}/login?confirmed=0`);
 }

@@ -14,7 +14,8 @@ const ROLES = [
 ];
 
 type SignupFieldErrors = {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   password?: string;
   school?: string;
@@ -25,7 +26,8 @@ type SignupFieldErrors = {
 export function SignupForm() {
   const router = useRouter();
   const { schools, loading: schoolsLoading, error: schoolsError } = useSchools();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [school, setSchool] = useState<School | null>(null);
@@ -38,7 +40,8 @@ export function SignupForm() {
   function validate() {
     const next: SignupFieldErrors = {};
 
-    if (!name.trim()) next.name = "Enter your full name.";
+    if (!firstName.trim()) next.firstName = "Enter your first name.";
+    if (!lastName.trim()) next.lastName = "Enter your last name.";
     if (!email.trim()) next.email = "Enter your email.";
     if (!password) next.password = "Enter your password.";
     if (!school) next.school = "Please select your school.";
@@ -80,7 +83,8 @@ export function SignupForm() {
       const result = await signUpWithProfile(
         email,
         password,
-        name,
+        firstName,
+        lastName,
         school.id,
         role as "student" | "teacher" | "admin",
         role === "teacher" ? isLibrarian : false
@@ -124,21 +128,41 @@ export function SignupForm() {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-1.5">
-        <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
-          Full name
-        </label>
-        <input
-          id="signup-name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Jane Doe"
-          disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
-            ${errors.name ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
-        />
-        {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
+            First name
+          </label>
+          <input
+            id="signup-first-name"
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Jane"
+            disabled={isLoading}
+            autoComplete="given-name"
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+              ${errors.firstName ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+          />
+          {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
+            Last name
+          </label>
+          <input
+            id="signup-last-name"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Doe"
+            disabled={isLoading}
+            autoComplete="family-name"
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+              ${errors.lastName ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+          />
+          {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
+import { notifyUser, notifyAdmins } from "@/lib/notify";
 
 export interface TeacherTask {
   id: string;
@@ -90,34 +91,55 @@ export function TeacherTasksProvider({ children }: { children: ReactNode }) {
   const addTask = useCallback(async (task: Omit<TeacherTask, "id" | "status" | "assignedDate">) => {
     if (!profile) return;
     const supabase = createClient();
-    await supabase.from("teacher_tasks").insert({
+    const { data, error: insertError } = await supabase.from("teacher_tasks").insert({
       school_id: profile.school_id,
       teacher_id: task.teacherId,
       assigned_by: profile.id,
       title: task.title,
       description: task.description ?? null,
       due_date: task.dueDate ?? null,
-    } as any);
+    } as any).select("id").single();
+    if (!insertError) {
+      await notifyUser(
+        task.teacherId,
+        "task",
+        `New task: ${task.title}`,
+        task.dueDate ? `Due ${task.dueDate}.` : "A task was assigned to you by admin.",
+        "/teacher/home"
+      );
+    }
     refetch();
   }, [profile, refetch]);
 
   const acceptTask = useCallback(async (id: string) => {
     const supabase = createClient();
+    const task = tasks.find((t) => t.id === id);
     await (supabase.from("teacher_tasks") as any).update({ status: "accepted", decline_reason: null }).eq("id", id);
+    if (task && profile) {
+      await notifyAdmins(profile.school_id, "task", "Task accepted", `${profile.full_name} accepted "${task.title}".`);
+    }
     refetch();
-  }, [refetch]);
+  }, [tasks, profile, refetch]);
 
   const declineTask = useCallback(async (id: string, reason: string) => {
     const supabase = createClient();
+    const task = tasks.find((t) => t.id === id);
     await (supabase.from("teacher_tasks") as any).update({ status: "declined", decline_reason: reason }).eq("id", id);
+    if (task && profile) {
+      await notifyAdmins(profile.school_id, "task", "Task declined", `${profile.full_name} declined "${task.title}". Reason: ${reason}`);
+    }
     refetch();
-  }, [refetch]);
+  }, [tasks, profile, refetch]);
 
   const markTaskDone = useCallback(async (id: string) => {
     const supabase = createClient();
+    const task = tasks.find((t) => t.id === id);
     await (supabase.from("teacher_tasks") as any).update({ status: "done" }).eq("id", id);
+    if (task && profile) {
+      await notifyAdmins(profile.school_id, "task", "Task completed", `${profile.full_name} marked "${task.title}" as done.`);
+    }
     refetch();
-  }, [refetch]);
+  }, [tasks, profile, refetch]);
 
   const reopenTask = useCallback(async (id: string) => {
     const supabase = createClient();

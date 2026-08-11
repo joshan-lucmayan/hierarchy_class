@@ -1,16 +1,21 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatBar } from "@/components/ui/StatBar";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useFriendsStore } from "@/lib/friendsStore";
+import { useMyEnrollment } from "@/lib/useEnrollment";
+import { EnrollmentBadge } from "@/components/ui/EnrollmentBadge";
 
 export default function StudentProfilePage() {
-  const { profile, loading, updateProfile, uploadAvatar } = useMyProfile();
-  const { getEntriesByProfile, getStudentAverageByProfile, getStudentRankByProfile, courses } = useClassroomHierarchy();
+  const { profile, loading, updateProfile, uploadAvatar, removeAvatar } = useMyProfile();
+  const { getEntriesByProfile, getStudentAverageByProfile, getStudentRankByProfile, courses, programs, sections, students: enrollments } = useClassroomHierarchy();
+  const { effective: enrollment, row: enrollmentRow, loading: enrollmentLoading } = useMyEnrollment();
 
   const [bio, setBio] = useState("");
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -62,8 +67,21 @@ export default function StudentProfilePage() {
     setIsEditingTags(false);
   }
 
+  const { friends, loading: friendsLoading, error: friendsError } = useFriendsStore();
+
   const academicExcellence = profile ? getStudentAverageByProfile(profile.id) ?? 0 : 0;
   const overallRank = profile ? getStudentRankByProfile(profile.id) ?? "D" : "D";
+
+  const academicInfo = useMemo(() => {
+    if (!profile) return null;
+    const enrolledCourseIds = enrollments.filter((e) => e.profileId === profile.id).map((e) => e.courseId);
+    const myCourses = courses.filter((c) => enrolledCourseIds.includes(c.id));
+    const mySectionIds = Array.from(new Set(myCourses.map((c) => c.sectionId)));
+    const mySections = sections.filter((s) => mySectionIds.includes(s.id));
+    const myProgramIds = Array.from(new Set(mySections.map((s) => s.programId)));
+    const myPrograms = programs.filter((p) => myProgramIds.includes(p.id));
+    return { programs: myPrograms, sections: mySections, courses: myCourses };
+  }, [profile, enrollments, courses, sections, programs]);
 
   const courseBreakdown = useMemo(() => {
     if (!profile) return [];
@@ -118,7 +136,24 @@ export default function StudentProfilePage() {
                 <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
               </svg>
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            {profile.avatar_url && (
+              <button
+                type="button"
+                onClick={async () => { setUploading(true); await removeAvatar(); setUploading(false); }}
+                title="Remove profile picture"
+                disabled={uploading}
+                className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-red-500 text-[11px] font-bold text-white shadow-card transition group-hover:scale-110 disabled:opacity-50"
+              >
+                ✕
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-navy">{profile.full_name}</h1>
@@ -140,6 +175,12 @@ export default function StudentProfilePage() {
           <p className="mt-3 text-4xl font-bold text-navy">{academicExcellence > 0 ? academicExcellence : "--"}</p>
           <RankBadge rank={overallRank} size="lg" className="mt-4" />
         </div>
+
+        {!enrollmentLoading && (
+          <div className="rounded-3xl border border-base bg-[var(--surface-strong)] p-5">
+            <EnrollmentBadge status={enrollment} expiresAt={enrollmentRow?.expires_at} size="md" />
+          </div>
+        )}
       </CornerFrame>
 
       <div className="space-y-6">
@@ -150,6 +191,35 @@ export default function StudentProfilePage() {
             Physical and Social stats aren&apos;t tracked yet - only Academic reflects real grade data right now.
           </p>
         </CornerFrame>
+
+        {academicInfo && (academicInfo.programs.length > 0 || academicInfo.courses.length > 0) && (
+          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Academic information</h2>
+            <div className="space-y-4">
+              {academicInfo.programs.map((p) => (
+                <div key={p.id}>
+                  <p className="text-sm font-semibold text-navy">Program / Grade Level: {p.name}</p>
+                  {academicInfo.sections
+                    .filter((s) => s.programId === p.id)
+                    .map((s) => (
+                      <div key={s.id} className="mt-2">
+                        <p className="text-xs text-muted">Section / Year: {s.name}</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {academicInfo.courses
+                            .filter((c) => c.sectionId === s.id)
+                            .map((c) => (
+                              <span key={c.id} className="rounded-full border border-base bg-[var(--surface-strong)] px-3 py-1 text-xs font-medium text-navy">
+                                {c.name}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          </CornerFrame>
+        )}
 
         <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
           <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Course stats</h2>
@@ -261,6 +331,43 @@ export default function StudentProfilePage() {
               <p className="mt-2 text-sm text-navy">{tags || "Not set"}</p>
             )}
           </div>
+        </CornerFrame>
+
+        {/* Friends Section */}
+        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Friends</h2>
+          {friendsLoading ? (
+            <p className="mt-4 text-sm text-muted">Loading friends...</p>
+          ) : friendsError ? (
+            <p className="mt-4 text-sm text-red-500">{friendsError}</p>
+          ) : friends.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">
+              No friends yet. <Link href="/student/search" className="text-navy underline decoration-gold underline-offset-2">Find classmates</Link> to add.
+            </p>
+          ) : (
+            <div className="mt-4 flex flex-wrap gap-4">
+              {friends.map((friend) => (
+                <Link
+                  key={friend.id}
+                  href={`/student/search?profile=${friend.id}`}
+                  className="flex shrink-0 flex-col items-center gap-1.5 transition active:scale-95"
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-strong)] p-[2px]">
+                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-navy">
+                      <img
+                        src={friend.avatarUrl || "/avatars/default-avatar.webp"}
+                        alt={friend.fullName}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">
+                    {friend.fullName.split(" ")[0]}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
         </CornerFrame>
       </div>
     </div>

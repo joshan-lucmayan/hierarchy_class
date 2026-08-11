@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
+import { notifyAdmins } from "@/lib/notify";
 
 export type TierRank = "S++" | "S" | "A" | "B" | "C" | "D";
 export type GradeType = "Exam" | "Quiz" | "Activity" | "Assignment";
@@ -40,10 +41,12 @@ export interface GradeEntry {
   studentId: string;
   courseId: string;
   submittedBy: string;
+  submittedByName: string | null;
   type: GradeType;
   score: number;
   date: string;
   label?: string;
+  approvalStatus: "pending" | "approved" | "rejected";
 }
 
 function computeRank(avg: number): TierRank {
@@ -79,8 +82,9 @@ interface ClassroomHierarchyContextType {
   addStudent: (s: Omit<Student, "id">) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
 
-  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy">[]) => Promise<void>;
+  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "approvalStatus">[]) => Promise<void>;
   deleteGradeEntry: (id: string) => Promise<void>;
+  setGradeApproval: (id: string, status: "approved" | "rejected") => Promise<void>;
 
   getSectionsByProgram: (programId: string) => Section[];
   getCoursesBySection: (sectionId: string) => Course[];
@@ -139,7 +143,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         supabase.from("sections").select("*").order("created_at"),
         supabase.from("courses").select("*, teacher:profiles!teacher_id(full_name)").order("created_at"),
         supabase.from("course_enrollments").select("*, student:profiles!student_id(full_name)").order("created_at"),
-        supabase.from("grade_entries").select("*").order("entry_date", { ascending: false }),
+        supabase.from("grade_entries").select("*, submitted:profiles!submitted_by(full_name)").order("entry_date", { ascending: false }),
       ])) as any[];
 
       if (cancelled) return;
@@ -180,10 +184,12 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           studentId: g.student_id,
           courseId: g.course_id,
           submittedBy: g.submitted_by,
+          submittedByName: g.submitted?.full_name ?? null,
           type: g.type,
           score: g.score,
           date: g.entry_date,
           label: g.label ?? undefined,
+          approvalStatus: g.approval_status ?? "pending",
         }))
       );
       setError(null);
@@ -282,10 +288,10 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     refetch();
   }, [refetch]);
 
-  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy">[]) => {
+  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "approvalStatus">[]) => {
     if (!profile) return;
     const supabase = createClient();
-    await supabase.from("grade_entries").insert(
+    const { error: insertError } = await supabase.from("grade_entries").insert(
       entries.map((e) => ({
         school_id: profile.school_id,
         course_id: e.courseId,
@@ -295,14 +301,33 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         label: e.label ?? null,
         score: e.score,
         entry_date: e.date,
+        approval_status: "pending",
       })) as any
     );
+    if (!insertError && entries.length > 0) {
+      // Let admins know there's a submission waiting for review.
+      const course = courses.find((c) => c.id === entries[0].courseId);
+      await notifyAdmins(
+        profile.school_id,
+        "grade",
+        `New grade submission: ${course?.name ?? "a course"}`,
+        `${profile.full_name} submitted ${entries.length} grade${entries.length === 1 ? "" : "s"} for approval.`
+      );
+    }
     refetch();
-  }, [profile, refetch]);
+  }, [profile, courses, refetch]);
 
   const deleteGradeEntry = useCallback(async (id: string) => {
     const supabase = createClient();
     await supabase.from("grade_entries").delete().eq("id", id);
+    refetch();
+  }, [refetch]);
+
+  const setGradeApproval = useCallback(async (id: string, status: "approved" | "rejected") => {
+    const supabase = createClient();
+    await (supabase.from("grade_entries") as any)
+      .update({ approval_status: status })
+      .eq("id", id);
     refetch();
   }, [refetch]);
 
@@ -414,6 +439,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         deleteStudent,
         submitGrades,
         deleteGradeEntry,
+        setGradeApproval,
         getSectionsByProgram,
         getCoursesBySection,
         getCoursesByTeacher,

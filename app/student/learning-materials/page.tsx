@@ -1,25 +1,30 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { LEARNING_MATERIALS } from "@/data/mockStudents";
-import { LearningMaterial } from "@/types/student";
-
-const SUBJECT_OPTIONS = ["All", "Mathematics", "English", "Science", "PE"];
-const GRADE_OPTIONS = ["All", "9", "10"];
+import { useMaterials } from "@/lib/materialsStore";
 
 export default function LearningMaterialsPage() {
-  const [subjectFilter, setSubjectFilter] = useState(SUBJECT_OPTIONS[0]);
-  const [gradeFilter, setGradeFilter] = useState(GRADE_OPTIONS[0]);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const { materials, loading, error } = useMaterials();
+  const [subjectFilter, setSubjectFilter] = useState("All");
+  const [levelFilter, setLevelFilter] = useState("All");
 
-  const materials = useMemo(
+  const subjects = useMemo(
+    () => Array.from(new Set(materials.map((m) => m.subject))).sort(),
+    [materials]
+  );
+  const levels = useMemo(
+    () => Array.from(new Set(materials.map((m) => m.levelLabel).filter(Boolean))) as string[],
+    [materials]
+  );
+
+  const filtered = useMemo(
     () =>
-      LEARNING_MATERIALS.filter((material) => {
+      materials.filter((material) => {
         const subjectMatch = subjectFilter === "All" || material.subject === subjectFilter;
-        const gradeMatch = gradeFilter === "All" || String(material.gradeLevel) === gradeFilter;
-        return subjectMatch && gradeMatch;
+        const levelMatch = levelFilter === "All" || (material.levelLabel ?? "All Levels") === levelFilter;
+        return subjectMatch && levelMatch;
       }),
-    [subjectFilter, gradeFilter]
+    [materials, subjectFilter, levelFilter]
   );
 
   return (
@@ -31,30 +36,36 @@ export default function LearningMaterialsPage() {
             onChange={(e) => setSubjectFilter(e.target.value)}
             className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-gold"
           >
-            {SUBJECT_OPTIONS.map((subject) => (
+            <option value="All">All subjects</option>
+            {subjects.map((subject) => (
               <option key={subject} value={subject}>{subject}</option>
             ))}
           </select>
           <select
-            value={gradeFilter}
-            onChange={(e) => setGradeFilter(e.target.value)}
+            value={levelFilter}
+            onChange={(e) => setLevelFilter(e.target.value)}
             className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-gold"
           >
-            {GRADE_OPTIONS.map((grade) => (
-              <option key={grade} value={grade}>{grade === "All" ? "All grades" : `Grade ${grade}`}</option>
+            <option value="All">All levels</option>
+            {levels.map((level) => (
+              <option key={level} value={level}>{level}</option>
             ))}
           </select>
         </div>
         <span className="text-xs font-semibold text-muted">
-          {materials.length} resource{materials.length === 1 ? "" : "s"}
+          {filtered.length} resource{filtered.length === 1 ? "" : "s"}
         </span>
       </div>
 
-      {materials.length === 0 ? (
-        <p className="text-sm text-muted">No matching learning materials found. Try a different grade or subject filter.</p>
+      {loading ? (
+        <p className="text-sm text-muted">Loading materials...</p>
+      ) : error ? (
+        <p className="text-sm text-red-500">{error}</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted">No learning materials available for these filters yet.</p>
       ) : (
         <div className="divide-y divide-[var(--border)]">
-          {materials.map((material: LearningMaterial) => (
+          {filtered.map((material) => (
             <div key={material.id} className="py-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -65,23 +76,25 @@ export default function LearningMaterialsPage() {
                   {material.type}
                 </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted">{material.description}</p>
+              {material.description && (
+                <p className="mt-3 text-sm leading-6 text-muted">{material.description}</p>
+              )}
               <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
-                <span>Grade {material.gradeLevel}</span>
-                <span>Uploaded by {material.uploadedBy}</span>
-                <span>{material.uploadDate}</span>
+                <span>{material.levelLabel ?? "All levels"}</span>
+                <span>Uploaded by {material.uploaderName ?? "a teacher"}</span>
+                <span>{new Date(material.uploadDate).toLocaleDateString()}</span>
               </div>
-              <button
-                type="button"
-                onClick={() => setOpenId(openId === material.id ? null : material.id)}
-                className="mt-4 text-xs font-semibold text-muted transition hover:text-gold"
-              >
-                {openId === material.id ? "Close resource ↑" : "Open resource →"}
-              </button>
-              {openId === material.id && (
-                <p className="mt-3 text-xs text-muted">
-                  File isn&apos;t connected yet - this will open the actual {material.type.toLowerCase()} once uploads are wired up to storage.
-                </p>
+              {material.url ? (
+                <a
+                  href={material.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                >
+                  Open resource →
+                </a>
+              ) : (
+                <p className="mt-4 text-xs text-muted">No file attached to this resource yet.</p>
               )}
             </div>
           ))}

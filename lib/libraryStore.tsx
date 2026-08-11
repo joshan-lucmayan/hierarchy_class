@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { LibraryBook, LibraryBorrowLogEntry, LibraryBorrowRequest } from "@/types/student";
-import { useChatStore } from "@/lib/chatStore";
+import { notifyUser } from "@/lib/notify";
 
 // TEMP: library messages go out under whichever teacher is flagged
 // is_librarian for this school. Falls back to no message if none is set.
@@ -65,7 +65,6 @@ const LibraryContext = createContext<LibraryContextValue | null>(null);
 
 export function LibraryProvider({ children }: { children: React.ReactNode }) {
   const { profile } = useMyProfile();
-  const { sendSystemMessage } = useChatStore();
   const librarian = useLibrarian();
 
   const [books, setBooks] = useState<LibraryBook[]>([]);
@@ -259,18 +258,18 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         .eq("id", book.id);
 
       if (librarian) {
-        sendSystemMessage(
-          "student",
+        await notifyUser(
           librarian.id,
-          librarian.name,
-          librarian.initials,
-          `We received your request for "${book.title}". We'll message you the pickup time once it's approved.`
+          "library",
+          "New book request",
+          `${borrower.name} requested "${book.title}".`,
+          "/teacher/library-management"
         );
       }
 
       refetch();
     },
-    [profile, librarian, sendSystemMessage, refetch]
+    [profile, librarian, refetch]
   );
 
   const approveRequest = useCallback(
@@ -295,19 +294,17 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         .update({ status: "approved" })
         .eq("id", requestId);
 
-      if (librarian) {
-        sendSystemMessage(
-          "student",
-          librarian.id,
-          librarian.name,
-          librarian.initials,
-          `Good news! "${request.bookTitle}" is ready for pickup: ${pickupWindow}.`
-        );
-      }
+      await notifyUser(
+        request.studentId,
+        "library",
+        "Book ready for pickup",
+        `"${request.bookTitle}" is ready: ${pickupWindow}.`,
+        "/student/library"
+      );
 
       refetch();
     },
-    [profile, requests, librarian, sendSystemMessage, refetch]
+    [profile, requests, refetch]
   );
 
   const declineRequest = useCallback(
@@ -324,19 +321,17 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         .update({ status: "declined" })
         .eq("id", requestId);
 
-      if (librarian) {
-        sendSystemMessage(
-          "student",
-          librarian.id,
-          librarian.name,
-          librarian.initials,
-          `Sorry, we couldn't approve your request for "${request.bookTitle}" right now. Please check back later.`
-        );
-      }
+      await notifyUser(
+        request.studentId,
+        "library",
+        "Book request declined",
+        `We couldn't approve "${request.bookTitle}" right now. Please check back later.`,
+        "/student/library"
+      );
 
       refetch();
     },
-    [requests, librarian, sendSystemMessage, refetch]
+    [requests, refetch]
   );
 
   const returnBook = useCallback(

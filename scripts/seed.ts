@@ -10,30 +10,11 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database, SchoolInsert } from "@/types/supabase";
 
+// The platform currently operates for a single institution: CSA.
 const SCHOOLS_SEED: SchoolInsert[] = [
   {
     name: "CSA - College of Saint Amateil",
     abbreviation: "CSA",
-    active: true,
-  },
-  {
-    name: "SVS - St. Vincent School",
-    abbreviation: "SVS",
-    active: true,
-  },
-  {
-    name: "HNA - Holy Name Academy",
-    abbreviation: "HNA",
-    active: true,
-  },
-  {
-    name: "GIS - Greenfield Integrated School",
-    abbreviation: "GIS",
-    active: true,
-  },
-  {
-    name: "MVS - Mount Vernon School",
-    abbreviation: "MVS",
     active: true,
   },
 ];

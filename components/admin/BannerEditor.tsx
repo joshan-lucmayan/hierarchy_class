@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useBanner } from "@/lib/bannerStore";
 
 export function BannerEditor() {
-  const { imageUrl, focalY, isCustom, setBannerImage, setFocalY, resetBanner } = useBanner();
+  const { imageUrl, focalY, isCustom, loading, error, setBannerImage, setFocalY, resetBanner } = useBanner();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ startY: number; startFocal: number } | null>(null);
@@ -13,13 +13,7 @@ export function BannerEditor() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setBannerImage(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    setBannerImage(file);
     e.target.value = "";
   }
 
@@ -41,6 +35,10 @@ export function BannerEditor() {
   }
 
   function handlePointerUp() {
+    if (dragState.current) {
+      // Persist the final focal point once dragging stops.
+      setFocalY(focalY);
+    }
     dragState.current = null;
     setDragging(false);
     window.removeEventListener("pointermove", handlePointerMove);
@@ -87,6 +85,9 @@ export function BannerEditor() {
         />
       </label>
 
+      {loading && <p className="text-xs text-muted">Loading banner...</p>}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
@@ -107,14 +108,14 @@ export function BannerEditor() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           onChange={handleFileChange}
           className="hidden"
         />
       </div>
 
       <p className="text-[11px] text-muted">
-        This preview is taller than the real header so it's easier to drag, but the position you choose maps directly to the live site - every page, every role.
+        This preview is taller than the real header so it&apos;s easier to drag, but the position you choose maps directly to the live site - every page, every role.
       </p>
     </div>
   );

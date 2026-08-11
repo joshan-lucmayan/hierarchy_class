@@ -18,6 +18,8 @@ export interface ProfileRow {
   school_id: string;
   role: Role;
   full_name: string;
+  first_name: string | null;
+  last_name: string | null;
   level_label: string | null;
   section: string | null;
   initials: string | null;
@@ -117,6 +119,7 @@ export interface ConversationRow {
   other_user_id: string;
   role: string;
   last_message: string | null;
+  last_read_at: string | null;
   created_at: string;
 }
 
@@ -144,7 +147,12 @@ export interface SchoolFeedPostRow {
   title: string;
   body: string;
   image_url: string | null;
+  author_id: string | null;
+  author_name: string | null;
+  audience: "everyone" | "students" | "teachers";
+  image_path: string | null;
   created_at: string;
+  updated_at: string | null;
 }
 
 export interface BannerConfigRow {
@@ -214,6 +222,7 @@ export interface GradeEntryRow {
   label: string | null;
   score: number;
   entry_date: string;
+  approval_status: "pending" | "approved" | "rejected";
   created_at: string;
 }
 
@@ -400,6 +409,102 @@ export type TeacherTaskInsert = {
   decline_reason?: string | null;
 };
 
+export interface NotificationRow {
+  id: string;
+  school_id: string;
+  recipient_id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  actor_avatar: string | null;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface StoryRow {
+  id: string;
+  school_id: string;
+  user_id: string;
+  image_path: string;
+  caption: string | null;
+  mention_ids: string[];
+  created_at: string;
+  expires_at: string;
+  author_name: string | null;
+  author_avatar: string | null;
+}
+
+export interface StoryViewRow {
+  id: string;
+  story_id: string;
+  viewer_id: string;
+  viewer_name: string | null;
+  viewed_at: string;
+}
+
+export interface EnrollmentStatusRow {
+  student_id: string;
+  school_id: string;
+  status: "enrolled" | "revoked";
+  started_at: string;
+  expires_at: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AccountRequestRow {
+  id: string;
+  school_id: string;
+  requester_id: string;
+  requester_name: string | null;
+  requester_role: string | null;
+  type: "deactivation" | "deletion";
+  reason: string | null;
+  status: "pending" | "approved" | "denied";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export type NotificationInsert = Omit<NotificationRow, "id" | "created_at" | "actor_name" | "actor_avatar"> & {
+  id?: string;
+  created_at?: string;
+};
+
+export type StoryInsert = {
+  school_id: string;
+  user_id: string;
+  image_path: string;
+  caption?: string | null;
+  mention_ids?: string[];
+  expires_at?: string;
+};
+
+export type StoryViewInsert = {
+  story_id: string;
+  viewer_id: string;
+};
+
+export type EnrollmentStatusInsert = {
+  student_id: string;
+  school_id: string;
+  status?: "enrolled" | "revoked";
+  started_at?: string;
+  expires_at?: string | null;
+  updated_by?: string | null;
+};
+
+export type AccountRequestInsert = {
+  school_id: string;
+  requester_id: string;
+  type: "deactivation" | "deletion";
+  reason?: string | null;
+};
+
 // ============================================================================
 // DATABASE TYPE DEFINITION
 // ============================================================================
@@ -575,6 +680,46 @@ export interface Database {
         Row: TeacherTaskRow;
         Insert: TeacherTaskInsert;
         Update: Partial<Omit<TeacherTaskRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      notifications: {
+        Row: NotificationRow;
+        Insert: NotificationInsert;
+        Update: Partial<Omit<NotificationRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      stories: {
+        Row: StoryRow;
+        Insert: StoryInsert;
+        Update: Partial<Omit<StoryRow, "id" | "created_at" | "author_name" | "author_avatar">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      story_views: {
+        Row: StoryViewRow;
+        Insert: StoryViewInsert;
+        Update: Partial<Omit<StoryViewRow, "id" | "viewed_at">> & {
+          id?: string;
+          viewed_at?: string;
+        };
+      };
+      enrollment_status: {
+        Row: EnrollmentStatusRow;
+        Insert: EnrollmentStatusInsert;
+        Update: Partial<Omit<EnrollmentStatusRow, "student_id" | "created_at">> & {
+          student_id?: string;
+          created_at?: string;
+        };
+      };
+      account_requests: {
+        Row: AccountRequestRow;
+        Insert: AccountRequestInsert;
+        Update: Partial<Omit<AccountRequestRow, "id" | "created_at">> & {
           id?: string;
           created_at?: string;
         };

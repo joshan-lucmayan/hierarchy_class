@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ProfileRow } from "@/types/supabase";
 import { createClient } from "@/lib/supabase/client";
+import { validateUpload, extensionForMime, storagePathFromUrl } from "@/lib/uploadUtils";
 
 interface UseMyProfileResult {
   profile: ProfileRow | null;
@@ -78,25 +79,45 @@ export function useMyProfile(): UseMyProfileResult {
   const uploadAvatar = useCallback(
     async (file: File) => {
       if (!profile) return;
-      const supabase = createClient();
 
+      // Validate BEFORE touching storage: MIME whitelist, size cap, and the
+      // extension is derived from the MIME type, never from the file name.
+      const validationError = validateUpload(file, "image");
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+
+      const supabase = createClient();
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) return;
 
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${userId}/avatar.${ext}`;
+      const ext = extensionForMime(file.type) ?? "jpg";
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+
+      const prevPath = profile.avatar_url ? storagePathFromUrl(profile.avatar_url, "avatars") : null;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true });
+        .upload(path, file, { contentType: file.type, upsert: true });
 
-      if (uploadError) return;
+      if (uploadError) {
+        setError("Couldn't upload your profile picture.");
+        return;
+      }
 
       const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
       const avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
 
       await (supabase.from("profiles") as any).update({ avatar_url: avatarUrl }).eq("id", profile.id);
+
+      // Remove the superseded image so no orphaned objects accumulate.
+      if (prevPath && prevPath !== path) {
+        await supabase.storage.from("avatars").remove([prevPath]);
+      }
+
+      setError(null);
       refetch();
     },
     [profile, refetch]
@@ -105,7 +126,13 @@ export function useMyProfile(): UseMyProfileResult {
   const removeAvatar = useCallback(async () => {
     if (!profile) return;
     const supabase = createClient();
+    const prevPath = profile.avatar_url ? storagePathFromUrl(profile.avatar_url, "avatars") : null;
     await (supabase.from("profiles") as any).update({ avatar_url: null }).eq("id", profile.id);
+    // Delete the stored object so the default avatar takes over with no
+    // orphaned image left in storage.
+    if (prevPath) {
+      await supabase.storage.from("avatars").remove([prevPath]);
+    }
     refetch();
   }, [profile, refetch]);
 
