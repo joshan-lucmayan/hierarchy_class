@@ -186,7 +186,7 @@ function TeacherModal({ teacher, onClose, onMessage }: { teacher: ProfileRow; on
             className="h-20 w-20 rounded-full object-cover"
           />
           <h2 className="mt-3 text-2xl font-bold text-navy">{teacher.full_name}</h2>
-          <p className="mt-1 text-sm text-muted">{teacher.favorite_subject ?? "No subject listed"}</p>
+          <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-gold">Faculty</p>
         </div>
         {teacher.bio && <p className="mt-4 text-center text-sm leading-6 text-muted">{teacher.bio}</p>}
         {teacher.tags.length > 0 && (
@@ -264,8 +264,7 @@ function TeacherCard({ teacher, onOpenProfile }: { teacher: ProfileRow; onOpenPr
       />
       <div className="min-w-0">
         <p className="text-sm font-semibold text-navy">{teacher.full_name}</p>
-        <p className="text-xs text-muted">{teacher.favorite_subject ?? "No subject listed"}</p>
-        <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-gold">Faculty</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gold">Faculty</p>
       </div>
     </button>
   );
@@ -283,7 +282,13 @@ function SearchPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const profileParam = searchParams.get("profile");
+  const queryParam = searchParams.get("q");
   const [query, setQuery] = useState("");
+
+  // ?q=<name> (from the home search bar's Enter key) pre-fills the query.
+  useEffect(() => {
+    if (queryParam) setQuery(queryParam);
+  }, [queryParam]);
   const [openProfile, setOpenProfile] = useState<ProfileRow | null>(null);
   const [openTeacherProfile, setOpenTeacherProfile] = useState<ProfileRow | null>(null);
   const [charismaTarget, setCharismaTarget] = useState<ProfileRow | null>(null);

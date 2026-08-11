@@ -5,6 +5,7 @@ interface LeaderboardRowStudent {
   id: string;
   name: string;
   avatarUrl?: string | null;
+  program: string;
   levelLabel: string;
   section: string;
   overallRank: TierRank;
@@ -34,7 +35,7 @@ export function LeaderboardRow({
       <div className="flex-1">
         <p className="text-sm font-semibold text-navy">{student.name}</p>
         <p className="text-[11px] text-muted">
-          {[student.levelLabel, student.section].filter(Boolean).join(" · ")}
+          {[student.program, student.levelLabel, student.section].filter(Boolean).join(" · ")}
         </p>
       </div>
       <RankBadge rank={student.overallRank} size="md" />

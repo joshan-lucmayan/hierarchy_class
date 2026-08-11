@@ -79,8 +79,14 @@ export function useLeaderboard(): UseLeaderboardResult {
         }
         setLoading(false);
       });
+
+    // Refresh when the tab regains focus so freshly approved grades show up
+    // without needing a manual reload.
+    const onFocus = () => setTick((t) => t + 1);
+    window.addEventListener("focus", onFocus);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
     };
   }, [supabaseConfigured, profile, tick]);
 

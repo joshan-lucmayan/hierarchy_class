@@ -10,6 +10,8 @@ interface UseAccountRequestsResult {
   loading: boolean;
   error: string | null;
   resolve: (id: string, status: "approved" | "denied") => Promise<void>;
+  /** Student/teacher side: submit a deactivation or deletion request. */
+  request: (type: "deactivation" | "deletion", reason?: string) => Promise<boolean>;
   refetch: () => void;
 }
 
@@ -69,6 +71,21 @@ export function useAccountRequests(): UseAccountRequestsResult {
 
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
+  const request = useCallback(
+    async (type: "deactivation" | "deletion", reason?: string): Promise<boolean> => {
+      if (!profile) return false;
+      const supabase = createClient();
+      const { error } = await supabase.from("account_requests").insert({
+        school_id: profile.school_id,
+        requester_id: profile.id,
+        type,
+        reason: reason?.trim() || null,
+      } as any);
+      return !error;
+    },
+    [profile]
+  );
+
   const resolve = useCallback(
     async (id: string, status: "approved" | "denied") => {
       if (!profile) return;
@@ -85,5 +102,5 @@ export function useAccountRequests(): UseAccountRequestsResult {
     [profile, refetch]
   );
 
-  return { requests, loading, error, resolve, refetch };
+  return { requests, loading, error, resolve, request, refetch };
 }

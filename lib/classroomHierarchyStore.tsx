@@ -27,6 +27,7 @@ export interface Course {
   code?: string;
   teacherId?: string;
   teacherName?: string;
+  teacherAvatar?: string | null;
 }
 
 export interface Student {
@@ -42,9 +43,11 @@ export interface GradeEntry {
   courseId: string;
   submittedBy: string;
   submittedByName: string | null;
+  submittedByAvatar: string | null;
   type: GradeType;
   score: number;
   date: string;
+  createdAt: string;
   label?: string;
   approvalStatus: "pending" | "approved" | "rejected";
 }
@@ -66,6 +69,7 @@ interface ClassroomHierarchyContextType {
   gradeEntries: GradeEntry[];
   loading: boolean;
   error: string | null;
+  refetch: () => void;
 
   addProgram: (p: Omit<Program, "id">) => Promise<void>;
   updateProgram: (id: string, p: Omit<Program, "id">) => Promise<void>;
@@ -82,7 +86,7 @@ interface ClassroomHierarchyContextType {
   addStudent: (s: Omit<Student, "id">) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
 
-  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "approvalStatus">[]) => Promise<void>;
+  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => Promise<void>;
   deleteGradeEntry: (id: string) => Promise<void>;
   setGradeApproval: (id: string, status: "approved" | "rejected") => Promise<void>;
 
@@ -141,9 +145,9 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
       ] = (await Promise.all([
         supabase.from("programs").select("*").order("created_at"),
         supabase.from("sections").select("*").order("created_at"),
-        supabase.from("courses").select("*, teacher:profiles!teacher_id(full_name)").order("created_at"),
+        supabase.from("courses").select("*, teacher:profiles!teacher_id(full_name, avatar_url)").order("created_at"),
         supabase.from("course_enrollments").select("*, student:profiles!student_id(full_name)").order("created_at"),
-        supabase.from("grade_entries").select("*, submitted:profiles!submitted_by(full_name)").order("entry_date", { ascending: false }),
+        supabase.from("grade_entries").select("*, submitted:profiles!submitted_by(full_name, avatar_url)").order("entry_date", { ascending: false }),
       ])) as any[];
 
       if (cancelled) return;
@@ -168,6 +172,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           code: c.code ?? undefined,
           teacherId: c.teacher_id ?? undefined,
           teacherName: c.teacher?.full_name ?? undefined,
+          teacherAvatar: c.teacher?.avatar_url ?? undefined,
         }))
       );
       setStudents(
@@ -185,9 +190,11 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           courseId: g.course_id,
           submittedBy: g.submitted_by,
           submittedByName: g.submitted?.full_name ?? null,
+          submittedByAvatar: g.submitted?.avatar_url ?? null,
           type: g.type,
           score: g.score,
           date: g.entry_date,
+          createdAt: g.created_at,
           label: g.label ?? undefined,
           approvalStatus: g.approval_status ?? "pending",
         }))
@@ -288,7 +295,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     refetch();
   }, [refetch]);
 
-  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "approvalStatus">[]) => {
+  const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => {
     if (!profile) return;
     const supabase = createClient();
     const { error: insertError } = await supabase.from("grade_entries").insert(
@@ -426,6 +433,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         gradeEntries,
         loading,
         error,
+        refetch,
         addProgram,
         updateProgram,
         deleteProgram,

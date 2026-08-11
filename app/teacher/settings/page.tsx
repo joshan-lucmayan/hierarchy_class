@@ -3,10 +3,31 @@
 import { useState } from "react";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { FeedbackForm } from "@/components/FeedbackForm";
+import { useAccountRequests } from "@/lib/useAccountRequests";
 
 export default function TeacherSettingsPage() {
-  const [emailNotifs, setEmailNotifs] = useState(true);
-  const [gradeReminders, setGradeReminders] = useState(true);
+  const { request } = useAccountRequests();
+  const [requestMessage, setRequestMessage] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function handleRequest(type: "deactivation" | "deletion") {
+    setBusy(type);
+    setRequestMessage(null);
+    setRequestError(null);
+    const ok = await request(type);
+    setBusy(null);
+    if (ok) {
+      setRequestMessage(
+        type === "deletion"
+          ? "Deletion request submitted. An admin will review it."
+          : "Deactivation request submitted. An admin will review it."
+      );
+    } else {
+      setRequestError("Couldn't submit the request. Please try again.");
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -14,7 +35,7 @@ export default function TeacherSettingsPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teacher settings</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">Preferences and account</h1>
         <p className="mt-3 text-sm leading-6 text-muted">
-          Manage your account, notification settings, and classroom defaults.
+          Manage your appearance, send feedback, and control your account.
         </p>
       </CornerFrame>
 
@@ -30,34 +51,12 @@ export default function TeacherSettingsPage() {
       </CornerFrame>
 
       <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Notifications</h2>
-        <div className="mt-4 space-y-4">
-          <div className="flex items-center justify-between rounded-2xl border border-base p-4">
-            <div>
-              <p className="text-sm font-semibold text-navy">Email notifications</p>
-              <p className="mt-1 text-xs text-muted">Get emailed when a grade submission is approved or rejected.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setEmailNotifs((v) => !v)}
-              className={`h-6 w-11 shrink-0 rounded-full transition ${emailNotifs ? "bg-gold" : "bg-[var(--surface-strong)]"}`}
-            >
-              <span className={`block h-5 w-5 translate-y-0.5 rounded-full bg-white transition ${emailNotifs ? "translate-x-5" : "translate-x-0.5"}`} />
-            </button>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl border border-base p-4">
-            <div>
-              <p className="text-sm font-semibold text-navy">Grade deadline reminders</p>
-              <p className="mt-1 text-xs text-muted">Weekly reminder to submit outstanding grades.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setGradeReminders((v) => !v)}
-              className={`h-6 w-11 shrink-0 rounded-full transition ${gradeReminders ? "bg-gold" : "bg-[var(--surface-strong)]"}`}
-            >
-              <span className={`block h-5 w-5 translate-y-0.5 rounded-full bg-white transition ${gradeReminders ? "translate-x-5" : "translate-x-0.5"}`} />
-            </button>
-          </div>
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Feedback &amp; report</h2>
+        <p className="mt-1 text-xs text-muted">
+          Send feedback or report a problem. Your name, role, and the current page are included so the developer can follow up.
+        </p>
+        <div className="mt-4">
+          <FeedbackForm />
         </div>
       </CornerFrame>
 
@@ -71,9 +70,11 @@ export default function TeacherSettingsPage() {
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-red-400 hover:text-red-600"
+              disabled={busy !== null}
+              onClick={() => handleRequest("deactivation")}
+              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
             >
-              Deactivate account
+              {busy === "deactivation" ? "Submitting..." : "Deactivate account"}
             </button>
           </div>
           <div className="flex flex-col gap-2 rounded-2xl border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -83,15 +84,19 @@ export default function TeacherSettingsPage() {
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10"
+              disabled={busy !== null}
+              onClick={() => handleRequest("deletion")}
+              className="shrink-0 rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
             >
-              Request deletion
+              {busy === "deletion" ? "Submitting..." : "Request deletion"}
             </button>
           </div>
         </div>
+        {requestMessage && <p className="mt-3 text-sm font-semibold text-emerald-600">{requestMessage}</p>}
+        {requestError && <p className="mt-3 text-sm text-red-500">{requestError}</p>}
       </CornerFrame>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v0.2.0</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v1.0.0</p>
     </div>
   );
 }

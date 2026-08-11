@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BannerEditor } from "@/components/admin/BannerEditor";
+import { FeedbackForm } from "@/components/FeedbackForm";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useAccountRequests } from "@/lib/useAccountRequests";
@@ -86,6 +87,16 @@ export default function AdminSettingsPage() {
       </CornerFrame>
 
       <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Feedback &amp; report</h2>
+        <p className="mt-1 text-xs text-muted">
+          Send feedback or report a problem. Your name, role, and the current page are included so the developer can follow up.
+        </p>
+        <div className="mt-4">
+          <FeedbackForm />
+        </div>
+      </CornerFrame>
+
+      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Account requests</h2>
         <p className="mt-1 text-xs text-muted">Deactivation and deletion requests from students and teachers need your confirmation.</p>
         <div className="mt-4 space-y-3">
@@ -138,7 +149,7 @@ export default function AdminSettingsPage() {
         </div>
       </CornerFrame>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v0.2.0</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v1.0.0</p>
     </div>
   );
 }

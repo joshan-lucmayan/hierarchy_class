@@ -10,12 +10,12 @@ import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useMyEnrollment } from "@/lib/useEnrollment";
-import { EnrollmentBadge } from "@/components/ui/EnrollmentBadge";
+import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 
 export default function StudentProfilePage() {
   const { profile, loading, updateProfile, uploadAvatar, removeAvatar } = useMyProfile();
   const { getEntriesByProfile, getStudentAverageByProfile, getStudentRankByProfile, courses, programs, sections, students: enrollments } = useClassroomHierarchy();
-  const { effective: enrollment, row: enrollmentRow, loading: enrollmentLoading } = useMyEnrollment();
+  const { effective: enrollment, loading: enrollmentLoading } = useMyEnrollment();
 
   const [bio, setBio] = useState("");
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -30,6 +30,8 @@ export default function StudentProfilePage() {
   const [isEditingTags, setIsEditingTags] = useState(false);
 
   const [uploading, setUploading] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Seed local edit-buffers once the real profile arrives
@@ -46,8 +48,19 @@ export default function StudentProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setPhotoMessage(null);
     await uploadAvatar(file);
     setUploading(false);
+    setPhotoMessage("Profile picture updated.");
+  }
+
+  async function handleRemoveAvatar() {
+    if (!window.confirm("Remove your profile picture? Your default avatar will be shown instead.")) return;
+    setUploading(true);
+    setPhotoMessage(null);
+    await removeAvatar();
+    setUploading(false);
+    setPhotoMessage("Profile picture removed.");
   }
 
   async function saveBio() {
@@ -124,42 +137,22 @@ export default function StudentProfilePage() {
               alt={profile.full_name}
               className="h-24 w-24 rounded-full border-2 border-gold object-cover"
             />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              title="Change profile picture"
-              disabled={uploading}
-              className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-gold text-navy shadow-card transition group-hover:scale-110 disabled:opacity-50"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            </button>
-            {profile.avatar_url && (
-              <button
-                type="button"
-                onClick={async () => { setUploading(true); await removeAvatar(); setUploading(false); }}
-                title="Remove profile picture"
-                disabled={uploading}
-                className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-red-500 text-[11px] font-bold text-white shadow-card transition group-hover:scale-110 disabled:opacity-50"
-              >
-                ✕
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={handleAvatarChange}
-              className="hidden"
-            />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-navy">{profile.full_name}</h1>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <h1 className="text-3xl font-bold text-navy">{profile.full_name}</h1>
+              {!enrollmentLoading && <EnrolledBadge status={enrollment} size="sm" />}
+            </div>
             <p className="mt-2 text-sm text-muted">
               {profile.level_label ?? ""}{profile.section ? ` · ${profile.section}` : ""}
             </p>
+            <button
+              type="button"
+              onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
+              className="mt-3 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
+            >
+              Edit Profile
+            </button>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
             {tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
@@ -176,11 +169,6 @@ export default function StudentProfilePage() {
           <RankBadge rank={overallRank} size="lg" className="mt-4" />
         </div>
 
-        {!enrollmentLoading && (
-          <div className="rounded-3xl border border-base bg-[var(--surface-strong)] p-5">
-            <EnrollmentBadge status={enrollment} expiresAt={enrollmentRow?.expires_at} size="md" />
-          </div>
-        )}
       </CornerFrame>
 
       <div className="space-y-6">
@@ -370,6 +358,67 @@ export default function StudentProfilePage() {
           )}
         </CornerFrame>
       </div>
+
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditOpen(false)}>
+          <div
+            className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Edit profile</p>
+            <h2 className="mt-2 text-xl font-bold text-navy">Profile picture</h2>
+
+            <div className="mt-5 flex flex-col items-center text-center">
+              <img
+                src={profile.avatar_url || "/avatars/default-avatar.webp"}
+                alt={profile.full_name}
+                className="h-24 w-24 rounded-full border-2 border-gold object-cover"
+              />
+              {photoMessage && <p className="mt-3 text-xs font-semibold text-emerald-600">{photoMessage}</p>}
+              <p className="mt-2 text-xs text-muted">
+                {profile.avatar_url ? "Your current picture" : "You're using the default avatar"}
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-2">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-navy transition hover:opacity-90 disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : profile.avatar_url ? "Change photo" : "Upload photo"}
+              </button>
+              {profile.avatar_url && (
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={handleRemoveAvatar}
+                  className="w-full rounded-full border border-red-300 bg-surface py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
+                >
+                  Remove photo
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setEditOpen(false)}
+                className="w-full rounded-full border border-base py-2.5 text-sm font-semibold text-muted transition hover:border-gold"
+              >
+                Close
+              </button>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

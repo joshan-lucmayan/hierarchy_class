@@ -9,7 +9,7 @@ import { RankBadge } from "@/components/ui/RankBadge";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { StoriesRail } from "@/components/feed/StoriesRail";
-import { EnrollmentBadge } from "@/components/ui/EnrollmentBadge";
+import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { QuickSearchBar } from "@/components/search/QuickSearchBar";
 
 export default function StudentHomePage() {
@@ -24,7 +24,7 @@ export default function StudentHomePage() {
     students: enrollments,
   } = useClassroomHierarchy();
   const { posts, loading: feedLoading, error: feedError } = useSchoolFeed();
-  const { effective: enrollment, loading: enrollmentLoading, row: enrollmentRow } = useMyEnrollment();
+  const { effective: enrollment, loading: enrollmentLoading } = useMyEnrollment();
 
   const avg = profile ? getStudentAverageByProfile(profile.id) : null;
   const rank = profile ? getStudentRankByProfile(profile.id) : null;
@@ -96,9 +96,12 @@ export default function StudentHomePage() {
                 <p className="text-sm text-muted">Loading...</p>
               ) : (
                 <>
-                  <p className="text-lg font-bold text-navy">
-                    {profile?.full_name ?? "Student"}
-                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <p className="text-lg font-bold text-navy">
+                      {profile?.full_name ?? "Student"}
+                    </p>
+                    {!enrollmentLoading && <EnrolledBadge status={enrollment} size="sm" />}
+                  </div>
                   <p className="mt-1 text-xs text-muted">
                     {profile?.level_label ?? ""}
                     {profile?.section ? ` · ${profile.section}` : ""}
@@ -131,11 +134,6 @@ export default function StudentHomePage() {
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Academic Excellence</p>
                   </div>
 
-                  {!enrollmentLoading && (
-                    <div className="mt-5 w-full rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-left">
-                      <EnrollmentBadge status={enrollment} expiresAt={enrollmentRow?.expires_at} size="sm" />
-                    </div>
-                  )}
                 </>
               )}
             </div>

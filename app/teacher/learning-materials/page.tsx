@@ -121,16 +121,28 @@ export default function TeacherLearningMaterialsPage() {
                   ))}
                 </select>
               </label>
-              <label className="space-y-2 text-sm font-semibold text-muted">
-                File
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="w-full rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy file:mr-3 file:rounded-full file:border-0 file:bg-navy file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white outline-none focus:border-gold"
-                />
-              </label>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-muted">File</p>
+                <div className="flex items-center gap-3 rounded-2xl border border-dashed border-base bg-[var(--surface-strong)] px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                  >
+                    Choose file
+                  </button>
+                  <span className="min-w-0 truncate text-xs text-muted">
+                    {file ? file.name : "No file selected (PDF or image)"}
+                  </span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,image/jpeg,image/png,image/webp,image/gif"
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                    className="hidden"
+                  />
+                </div>
+              </div>
             </div>
             <label className="space-y-2 text-sm font-semibold text-muted">
               Description

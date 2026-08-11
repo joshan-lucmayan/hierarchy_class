@@ -17,7 +17,7 @@ export function FeedPost({ post }: { post: SchoolPost }) {
       {post.imageUrl && (
         <div className="w-full bg-navy">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.imageUrl} alt={post.title} className="h-auto w-full object-contain" />
+          <img src={post.imageUrl} alt={post.title ?? post.body} className="h-auto w-full object-contain" />
         </div>
       )}
       <div className="p-6">
@@ -29,8 +29,8 @@ export function FeedPost({ post }: { post: SchoolPost }) {
             {AUDIENCE_LABEL[post.audience] ?? "School"}
           </span>
         </div>
-        <p className="mt-3 text-base font-semibold text-navy">{post.title}</p>
-        <p className="mt-2 text-sm leading-6 text-muted">{post.body}</p>
+        {post.title && <p className="mt-3 text-base font-semibold text-navy">{post.title}</p>}
+        <p className={`${post.title ? "mt-2" : "mt-3"} whitespace-pre-wrap text-sm leading-6 text-muted`}>{post.body}</p>
         <p className="mt-3 text-[11px] text-muted">
           {post.authorName ? `Posted by ${post.authorName}` : "Posted by admin"} · {formatDate(post.createdAt)}
         </p>

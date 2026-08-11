@@ -65,6 +65,18 @@ export function QuickSearchBar() {
     router.push(`/student/search?profile=${person.id}`);
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      const q = query.trim();
+      if (blurTimeout.current) clearTimeout(blurTimeout.current);
+      setFocused(false);
+      if (q) {
+        // Enter = go to the full results page with the query applied.
+        router.push(`/student/search?q=${encodeURIComponent(q)}`);
+      }
+    }
+  }
+
   return (
     <div className="relative">
       <div className="relative">
@@ -83,6 +95,7 @@ export function QuickSearchBar() {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           placeholder="Search"
           className="w-full rounded-full bg-[var(--surface-strong)] py-2.5 pl-11 pr-4 text-sm text-navy placeholder:text-muted outline-none transition focus:ring-1 focus:ring-gold"
         />

@@ -9,10 +9,24 @@ import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 
 export default function LeaderboardPage() {
   const { profile: myProfile } = useMyProfile();
-  const { sections, courses, students: enrollments } = useClassroomHierarchy();
+  const { sections, courses, programs, students: enrollments } = useClassroomHierarchy();
   const { entries: ranked, loading, error, positionOf } = useLeaderboard();
 
   const [sectionFilter, setSectionFilter] = useState<string>("all");
+
+  // Map each student to the Program their enrollments sit under
+  // (Program -> Section -> Course -> Enrollment).
+  const programByStudent = useMemo(() => {
+    const map: Record<string, string> = {};
+    enrollments.forEach((e) => {
+      if (!e.profileId || map[e.profileId]) return;
+      const course = courses.find((c) => c.id === e.courseId);
+      const section = course ? sections.find((s) => s.id === course.sectionId) : undefined;
+      const program = section ? programs.find((p) => p.id === section.programId) : undefined;
+      if (program) map[e.profileId] = program.name;
+    });
+    return map;
+  }, [enrollments, courses, sections, programs]);
 
   // A student "belongs" to whatever section(s) their enrolled courses sit under.
   const filtered = useMemo(() => {
@@ -67,6 +81,7 @@ export default function LeaderboardPage() {
                 id: entry.studentId,
                 name: entry.fullName,
                 avatarUrl: entry.avatarUrl,
+                program: programByStudent[entry.studentId] ?? "",
                 levelLabel: entry.levelLabel ?? "",
                 section: entry.section ?? "",
                 overallRank: rankFromAverage(entry.academicExcellence),

@@ -1,17 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useAdminEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { createClient } from "@/lib/supabase/client";
 import type { ProfileRow } from "@/types/supabase";
 
 export default function AdminStudentsPage() {
   const { profiles: students, loading, error } = useSchoolProfiles({ role: "student" });
   const {
     courses,
+    sections,
+    programs,
     getStudentAverageByProfile,
     getStudentRankByProfile,
     getEntriesByProfile,
@@ -23,6 +26,11 @@ export default function AdminStudentsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [expiryDraft, setExpiryDraft] = useState("");
   const [enrollMessage, setEnrollMessage] = useState<string | null>(null);
+  const [levelDraft, setLevelDraft] = useState("");
+  const [sectionDraft, setSectionDraft] = useState("");
+  const [academicMessage, setAcademicMessage] = useState<string | null>(null);
+  const [academicError, setAcademicError] = useState<string | null>(null);
+  const [savingAcademic, setSavingAcademic] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -36,6 +44,50 @@ export default function AdminStudentsPage() {
 
   const selectedStudent: ProfileRow | undefined =
     filtered.find((s) => s.id === selectedId) ?? filtered[0];
+
+  // Hydrate the academic-edit drafts whenever the selected student changes.
+  useEffect(() => {
+    if (selectedStudent) {
+      setLevelDraft(selectedStudent.level_label ?? "");
+      setSectionDraft(selectedStudent.section ?? "");
+      setAcademicMessage(null);
+      setAcademicError(null);
+    }
+  }, [selectedStudent?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectedAcademicInfo = useMemo(() => {
+    if (!selectedStudent) return null;
+    const courseIds = getStudentRecordsByProfile(selectedStudent.id).map((r) => r.courseId);
+    const myCourses = courses.filter((c) => courseIds.includes(c.id));
+    const secIds = Array.from(new Set(myCourses.map((c) => c.sectionId)));
+    const mySections = sections.filter((s) => secIds.includes(s.id));
+    const progIds = Array.from(new Set(mySections.map((s) => s.programId)));
+    return {
+      programs: programs.filter((p) => progIds.includes(p.id)),
+      sections: mySections,
+      courses: myCourses,
+    };
+  }, [selectedStudent, getStudentRecordsByProfile, courses, sections, programs]);
+
+  async function handleSaveAcademic() {
+    if (!selectedStudent) return;
+    setSavingAcademic(true);
+    setAcademicMessage(null);
+    setAcademicError(null);
+    const supabase = createClient();
+    const { error } = await (supabase.from("profiles") as any)
+      .update({
+        level_label: levelDraft.trim() || null,
+        section: sectionDraft.trim() || null,
+      })
+      .eq("id", selectedStudent.id);
+    setSavingAcademic(false);
+    if (error) {
+      setAcademicError("Couldn't save the academic info. Only admins can edit these fields.");
+    } else {
+      setAcademicMessage("Academic info saved.");
+    }
+  }
 
   const overallAvg = useMemo(() => {
     const avgs = students.map((s) => getStudentAverageByProfile(s.id)).filter((v): v is number => v !== null);
@@ -202,6 +254,11 @@ export default function AdminStudentsPage() {
                             </span>
                           );
                         })()}
+                        {statuses[selectedStudent.id]?.startedAt && (
+                          <span className="text-xs text-muted">
+                            since {new Date(statuses[selectedStudent.id]!.startedAt!).toLocaleDateString()}
+                          </span>
+                        )}
                         {statuses[selectedStudent.id]?.expiresAt && (
                           <span className="text-xs text-muted">
                             until {new Date(statuses[selectedStudent.id]!.expiresAt!).toLocaleDateString()}
@@ -243,6 +300,64 @@ export default function AdminStudentsPage() {
                       </p>
                       {enrollMessage && <p className="mt-2 text-xs text-emerald-600">{enrollMessage}</p>}
                     </>
+                  )}
+                </div>
+
+                <div className="mt-6 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Academic info</p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    Grade/year level and section shown on the student&apos;s profile, search results, and leaderboard.
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <label className="space-y-1">
+                      <span className="text-xs text-muted">Grade / year level</span>
+                      <input
+                        value={levelDraft}
+                        onChange={(e) => setLevelDraft(e.target.value)}
+                        placeholder="e.g. Grade 12"
+                        className="w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                      />
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs text-muted">Section</span>
+                      <input
+                        value={sectionDraft}
+                        onChange={(e) => setSectionDraft(e.target.value)}
+                        placeholder="e.g. A"
+                        className="w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={savingAcademic}
+                    onClick={handleSaveAcademic}
+                    className="mt-3 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy disabled:opacity-50"
+                  >
+                    {savingAcademic ? "Saving..." : "Save academic info"}
+                  </button>
+                  {academicMessage && <p className="mt-2 text-xs font-semibold text-emerald-600">{academicMessage}</p>}
+                  {academicError && <p className="mt-2 text-xs text-red-500">{academicError}</p>}
+
+                  {selectedAcademicInfo && selectedAcademicInfo.programs.length > 0 && (
+                    <div className="mt-3 space-y-1 border-t border-base pt-3">
+                      {selectedAcademicInfo.programs.map((p) => (
+                        <div key={p.id}>
+                          <p className="text-xs font-semibold text-navy">Program: {p.name}</p>
+                          {selectedAcademicInfo.sections
+                            .filter((s) => s.programId === p.id)
+                            .map((s) => (
+                              <p key={s.id} className="text-[11px] text-muted">
+                                Section / Year: {s.name} ·{" "}
+                                {selectedAcademicInfo.courses
+                                  .filter((c) => c.sectionId === s.id)
+                                  .map((c) => c.name)
+                                  .join(", ")}
+                              </p>
+                            ))}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 

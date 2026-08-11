@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, level, or section..."
+            placeholder="Search"
             className="w-full max-w-md rounded-3xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm text-navy placeholder:text-muted outline-none"
           />
         </div>

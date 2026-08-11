@@ -9,7 +9,7 @@ import { notifyPostAudience } from "@/lib/notify";
 export interface SchoolPost {
   id: string;
   tag: string;
-  title: string;
+  title: string | null;
   body: string;
   audience: "everyone" | "students" | "teachers";
   imageUrl: string | null;
@@ -148,7 +148,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
         .insert({
           school_id: profile.school_id,
           tag: input.tag || "Announcement",
-          title: input.title.trim(),
+          title: input.title.trim() || null,
           body: input.body.trim(),
           audience: input.audience,
           image_path: imagePath,
@@ -190,7 +190,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
       const supabase = createClient();
       const existing = posts.find((p) => p.id === id);
       const payload: Record<string, unknown> = {
-        title: patch.title.trim(),
+        title: patch.title.trim() || null,
         body: patch.body.trim(),
         tag: patch.tag,
         audience: patch.audience,

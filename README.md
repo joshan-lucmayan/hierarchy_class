@@ -9,7 +9,7 @@ The platform blends the customization and social feel of a profile-based
 app with the structure and accountability of a school information
 system.
 
-**Current version:** `0.2.0` (backend migration phase - see [Project status](#project-status))
+**Current version:** `1.0.0`
 
 ## Concept
 
@@ -140,18 +140,21 @@ features - not mock data:
   scan, physical scanner device, or manual entry) and full catalog
   edit/delete for the assigned librarian.
 
-**Still running on local mock data** (next up for conversion):
-- Chat / messaging (admin task-response notifications currently piggyback
-  on this mock system, so they're local-browser-only until this is
-  converted)
-- School feed, friends, stories
-- Banner image / header customization
-- Florin coin balances and purchases
+**Fully Supabase-backed (migrations 014-023):**
+- Messaging (conversations, realtime, unread counts, archive/delete,
+  blocks), notifications, school feed + announcements with audience
+  targeting, MyDay stories + view tracking, enrollment status, banner
+  customization, learning materials with private storage
+- Grade submissions go through an admin approval queue; students only see
+  approved grades, and the leaderboard is computed from approved entries
+  via an aggregate-only RPC
 
 **Not yet implemented:**
 - Real payment processing for Coin Charisma (wallet, ledger, fraud/spend
-  limits)
+  limits) - Florin balances are read from the database but purchases stay
+  intentionally disabled until a verified payment flow exists
 - Account deactivation / deletion actually removing or disabling data
+  (requests are recorded and reviewable by admins)
 
 ## Database
 

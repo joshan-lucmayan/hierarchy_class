@@ -67,6 +67,15 @@ export function useMyEnrollment(): EnrollmentInfo {
     };
   }, [supabaseConfigured, profile, tick]);
 
+  // Re-evaluate once a minute so a badge that expires while the page is open
+  // disappears without a reload - effective status always comes from the
+  // stored expires_at vs the current time, never from a client-side timer
+  // pretending to be the source of truth.
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   return { row, effective: effectiveFrom(row), loading, error, refetch };

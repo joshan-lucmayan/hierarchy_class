@@ -29,8 +29,8 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSave() {
-    if (!title.trim() || !body.trim()) {
-      setFormError("Title and message are required.");
+    if (!body.trim()) {
+      setFormError("Write something to publish.");
       return;
     }
     setSubmitting(true);
@@ -54,7 +54,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
           <div>
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-              {post ? "Edit announcement" : "New announcement"}
+              {post ? "Edit post" : "New school post"}
             </p>
           </div>
           <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
@@ -62,7 +62,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
 
         <div className="mt-5 space-y-4">
           <label className="space-y-2 text-sm font-semibold text-muted">
-            Title
+            Title (optional)
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -76,7 +76,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Write the announcement..."
+              placeholder="Write your announcement or post..."
               rows={4}
               className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
             />
@@ -145,7 +145,7 @@ export function PostEditor({ post, onClose }: PostEditorProps) {
               disabled={submitting}
               className="flex-1 rounded-full bg-gold py-3 text-sm font-semibold text-navy transition hover:opacity-90 disabled:opacity-50"
             >
-              {submitting ? "Publishing..." : post ? "Save changes" : "Publish announcement"}
+              {submitting ? "Publishing..." : post ? "Save changes" : "Publish"}
             </button>
             <button
               type="button"

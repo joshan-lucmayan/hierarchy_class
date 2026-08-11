@@ -139,7 +139,14 @@ export default function AdminTeachersPage() {
                   />
                   <div>
                     <p className="text-lg font-semibold text-navy">{selectedTeacher.full_name}</p>
-                    <p className="text-sm text-muted">{selectedTeacher.favorite_subject ?? "No subject listed"}</p>
+                    {selectedCourses.length > 0 ? (
+                      <p className="text-xs text-muted">
+                        Teaches:{" "}
+                        {selectedCourses.map((c) => c.name).join(" · ")}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted">No courses assigned yet</p>
+                    )}
                     {selectedTeacher.bio && <p className="mt-1 text-xs text-muted">{selectedTeacher.bio}</p>}
                   </div>
                 </div>
