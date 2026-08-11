@@ -14,9 +14,12 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
   const { addFlorin } = useFlorin();
   const [selected, setSelected] = useState(FLORIN_PACKAGES[1].florin);
   const [purchased, setPurchased] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handlePurchase() {
-    addFlorin(selected);
+  async function handlePurchase() {
+    setSubmitting(true);
+    await addFlorin(selected, "Florin top-up (UI preview, no real payment)");
+    setSubmitting(false);
     setPurchased(true);
   }
 
@@ -68,9 +71,10 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={handlePurchase}
-              className="mt-5 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-navy transition hover:opacity-90"
+              disabled={submitting}
+              className="mt-5 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-navy transition hover:opacity-90 disabled:opacity-50"
             >
-              Buy {selected} Florin
+              {submitting ? "Processing..." : `Buy ${selected} Florin`}
             </button>
             <button
               type="button"

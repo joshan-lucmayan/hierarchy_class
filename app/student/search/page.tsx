@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { STUDENT_DIRECTORY, TEACHER_DIRECTORY } from "@/data/mockStudents";
-import { StudentDirectoryEntry } from "@/types/student";
+import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
+import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useFriendsStore } from "@/lib/friendsStore";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
-
-type TeacherEntry = (typeof TEACHER_DIRECTORY)[number];
+import type { ProfileRow } from "@/types/supabase";
 
 const COIN_PACKAGES = [
   { coins: 10, price: 49 },
@@ -15,16 +15,12 @@ const COIN_PACKAGES = [
   { coins: 100, price: 349 },
 ];
 
-function SendCharismaModal({ student, onClose }: { student: StudentDirectoryEntry; onClose: () => void }) {
+function SendCharismaModal({ student, onClose }: { student: ProfileRow; onClose: () => void }) {
   const [selected, setSelected] = useState(COIN_PACKAGES[1].coins);
   const [sent, setSent] = useState(false);
-
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {sent ? (
           <div className="text-center">
             <p className="text-3xl">✨</p>
@@ -44,9 +40,8 @@ function SendCharismaModal({ student, onClose }: { student: StudentDirectoryEntr
           <>
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Coin Charisma</p>
-            <h2 className="mt-2 text-xl font-bold text-navy">Send charisma to {student.name.split(" ")[0]}</h2>
+            <h2 className="mt-2 text-xl font-bold text-navy">Send charisma to {student.full_name.split(" ")[0]}</h2>
             <p className="mt-2 text-sm text-muted">Choose a coin package to boost their charisma stat.</p>
-
             <div className="mt-4 grid grid-cols-3 gap-2">
               {COIN_PACKAGES.map((pkg) => (
                 <button
@@ -63,7 +58,6 @@ function SendCharismaModal({ student, onClose }: { student: StudentDirectoryEntr
                 </button>
               ))}
             </div>
-
             <button
               type="button"
               onClick={() => setSent(true)}
@@ -93,19 +87,20 @@ function ProfileModal({
   onMessage,
   onSendCharisma,
 }: {
-  student: StudentDirectoryEntry;
+  student: ProfileRow;
   isFriend: boolean;
   onToggleFriend: (id: string) => void;
   onClose: () => void;
   onMessage: () => void;
   onSendCharisma: () => void;
 }) {
+  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
+  const avg = getStudentAverageByProfile(student.id) ?? 0;
+  const rank = getStudentRankByProfile(student.id) ?? "D";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between">
           <div>
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
@@ -113,30 +108,34 @@ function ProfileModal({
           </div>
           <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
         </div>
-
         <div className="mt-3 flex flex-col items-center text-center">
-          <img src="/avatars/default-avatar.webp" alt={student.name} className="h-20 w-20 rounded-full object-cover" />
-          <h2 className="mt-3 text-2xl font-bold text-navy">{student.name}</h2>
-          <p className="mt-1 text-sm text-muted">Grade {student.gradeLevel} · {student.section}</p>
-          <RankBadge rank={student.overallRank} size="md" className="mt-3" />
+          <img
+            src={student.avatar_url || "/avatars/default-avatar.webp"}
+            alt={student.full_name}
+            className="h-20 w-20 rounded-full object-cover"
+          />
+          <h2 className="mt-3 text-2xl font-bold text-navy">{student.full_name}</h2>
+          <p className="mt-1 text-sm text-muted">
+            {[student.level_label, student.section].filter(Boolean).join(" · ")}
+          </p>
+          <RankBadge rank={rank} size="md" className="mt-3" />
         </div>
-
-        <p className="mt-4 text-center text-sm leading-6 text-muted">{student.bio}</p>
-
-        <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
-          {student.tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
-
-        <p className="mt-5 text-center text-xs uppercase tracking-wide text-muted">
-          Favorite subject · <span className="font-semibold text-navy">{student.favoriteSubject}</span>
-        </p>
-
+        {student.bio && <p className="mt-4 text-center text-sm leading-6 text-muted">{student.bio}</p>}
+        {student.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
+            {student.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        )}
+        {student.favorite_subject && (
+          <p className="mt-5 text-center text-xs uppercase tracking-wide text-muted">
+            Favorite subject · <span className="font-semibold text-navy">{student.favorite_subject}</span>
+          </p>
+        )}
         <div className="mt-4">
-          <StatRadarChart stats={student.stats} />
+          <StatRadarChart stats={{ academic: avg, physical: 0, charisma: 0 }} />
         </div>
-
         <div className="mt-5 grid grid-cols-3 gap-2">
           <button
             type="button"
@@ -169,21 +168,10 @@ function ProfileModal({
   );
 }
 
-function TeacherModal({
-  teacher,
-  onClose,
-  onMessage,
-}: {
-  teacher: TeacherEntry;
-  onClose: () => void;
-  onMessage: () => void;
-}) {
+function TeacherModal({ teacher, onClose, onMessage }: { teacher: ProfileRow; onClose: () => void; onMessage: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between">
           <div>
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
@@ -191,21 +179,23 @@ function TeacherModal({
           </div>
           <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
         </div>
-
         <div className="mt-3 flex flex-col items-center text-center">
-          <img src="/avatars/default-avatar.webp" alt={teacher.name} className="h-20 w-20 rounded-full object-cover" />
-          <h2 className="mt-3 text-2xl font-bold text-navy">{teacher.name}</h2>
-          <p className="mt-1 text-sm text-muted">{teacher.subject} Teacher · {teacher.office}</p>
+          <img
+            src={teacher.avatar_url || "/avatars/default-avatar.webp"}
+            alt={teacher.full_name}
+            className="h-20 w-20 rounded-full object-cover"
+          />
+          <h2 className="mt-3 text-2xl font-bold text-navy">{teacher.full_name}</h2>
+          <p className="mt-1 text-sm text-muted">{teacher.favorite_subject ?? "No subject listed"}</p>
         </div>
-
-        <p className="mt-4 text-center text-sm leading-6 text-muted">{teacher.bio}</p>
-
-        <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
-          {teacher.tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
-
+        {teacher.bio && <p className="mt-4 text-center text-sm leading-6 text-muted">{teacher.bio}</p>}
+        {teacher.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
+            {teacher.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           onClick={onMessage}
@@ -224,25 +214,28 @@ function ProfileCard({
   onToggleFriend,
   onOpenProfile,
 }: {
-  student: StudentDirectoryEntry;
+  student: ProfileRow;
   isFriend: boolean;
   onToggleFriend: (id: string) => void;
-  onOpenProfile: (student: StudentDirectoryEntry) => void;
+  onOpenProfile: (student: ProfileRow) => void;
 }) {
+  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
+  const rank = getStudentRankByProfile(student.id) ?? "D";
+
   return (
     <div className="flex items-center justify-between gap-4 py-4">
-      <button
-        type="button"
-        onClick={() => onOpenProfile(student)}
-        className="flex flex-1 min-w-0 items-center gap-3 text-left"
-      >
-        <img src="/avatars/default-avatar.webp" alt={student.name} className="h-12 w-12 shrink-0 rounded-full object-cover" />
+      <button type="button" onClick={() => onOpenProfile(student)} className="flex flex-1 min-w-0 items-center gap-3 text-left">
+        <img
+          src={student.avatar_url || "/avatars/default-avatar.webp"}
+          alt={student.full_name}
+          className="h-12 w-12 shrink-0 rounded-full object-cover"
+        />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-navy">{student.name}</p>
-          <p className="text-xs text-muted">Grade {student.gradeLevel} · {student.section}</p>
+          <p className="text-sm font-semibold text-navy">{student.full_name}</p>
+          <p className="text-xs text-muted">{[student.level_label, student.section].filter(Boolean).join(" · ")}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <RankBadge rank={student.overallRank} size="sm" />
-            <span className="text-xs text-muted">{student.favoriteSubject}</span>
+            <RankBadge rank={rank} size="sm" />
+            {student.favorite_subject && <span className="text-xs text-muted">{student.favorite_subject}</span>}
           </div>
         </div>
       </button>
@@ -261,23 +254,17 @@ function ProfileCard({
   );
 }
 
-function TeacherCard({
-  teacher,
-  onOpenProfile,
-}: {
-  teacher: TeacherEntry;
-  onOpenProfile: (teacher: TeacherEntry) => void;
-}) {
+function TeacherCard({ teacher, onOpenProfile }: { teacher: ProfileRow; onOpenProfile: (teacher: ProfileRow) => void }) {
   return (
-    <button
-      type="button"
-      onClick={() => onOpenProfile(teacher)}
-      className="flex w-full items-center gap-3 py-4 text-left"
-    >
-      <img src="/avatars/default-avatar.webp" alt={teacher.name} className="h-12 w-12 shrink-0 rounded-full object-cover" />
+    <button type="button" onClick={() => onOpenProfile(teacher)} className="flex w-full items-center gap-3 py-4 text-left">
+      <img
+        src={teacher.avatar_url || "/avatars/default-avatar.webp"}
+        alt={teacher.full_name}
+        className="h-12 w-12 shrink-0 rounded-full object-cover"
+      />
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-navy">{teacher.name}</p>
-        <p className="text-xs text-muted">{teacher.subject} Teacher · {teacher.office}</p>
+        <p className="text-sm font-semibold text-navy">{teacher.full_name}</p>
+        <p className="text-xs text-muted">{teacher.favorite_subject ?? "No subject listed"}</p>
         <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-gold">Faculty</p>
       </div>
     </button>
@@ -287,43 +274,53 @@ function TeacherCard({
 export default function SearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [friendIds, setFriendIds] = useState<string[]>(["s-010", "s-014", "s-022", "s-042"]);
-  const [openProfile, setOpenProfile] = useState<StudentDirectoryEntry | null>(null);
-  const [openTeacherProfile, setOpenTeacherProfile] = useState<TeacherEntry | null>(null);
-  const [charismaTarget, setCharismaTarget] = useState<StudentDirectoryEntry | null>(null);
+  const [openProfile, setOpenProfile] = useState<ProfileRow | null>(null);
+  const [openTeacherProfile, setOpenTeacherProfile] = useState<ProfileRow | null>(null);
+  const [charismaTarget, setCharismaTarget] = useState<ProfileRow | null>(null);
+
+  const { profiles: allStudents, loading: studentsLoading } = useSchoolProfiles({ role: "student" });
+  const { profiles: allTeachers, loading: teachersLoading } = useSchoolProfiles({ role: "teacher" });
+  const { friendIds, addFriend, removeFriend } = useFriendsStore();
 
   function toggleFriend(id: string) {
-    setFriendIds((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
+    if (friendIds.includes(id)) {
+      removeFriend(id);
+    } else {
+      addFriend(id);
+    }
   }
 
-  function messageStudent(student: StudentDirectoryEntry) {
+  function messageStudent(student: ProfileRow) {
     setOpenProfile(null);
     router.push(`/student/messages?with=${student.id}`);
   }
-
-  function messageTeacher(teacher: TeacherEntry) {
+  function messageTeacher(teacher: ProfileRow) {
     setOpenTeacherProfile(null);
     router.push(`/student/messages?with=${teacher.id}`);
   }
 
   const studentResults = useMemo(() => {
+    if (!query.trim()) return allStudents;
     const normalized = query.toLowerCase();
-    return STUDENT_DIRECTORY.filter((student) =>
-      student.name.toLowerCase().includes(normalized) ||
-      student.section.toLowerCase().includes(normalized) ||
-      student.favoriteSubject.toLowerCase().includes(normalized)
+    return allStudents.filter(
+      (student) =>
+        student.full_name.toLowerCase().includes(normalized) ||
+        (student.section ?? "").toLowerCase().includes(normalized) ||
+        (student.favorite_subject ?? "").toLowerCase().includes(normalized)
     );
-  }, [query]);
+  }, [allStudents, query]);
 
   const teacherResults = useMemo(() => {
+    if (!query.trim()) return allTeachers;
     const normalized = query.toLowerCase();
-    return TEACHER_DIRECTORY.filter((teacher) =>
-      teacher.name.toLowerCase().includes(normalized) ||
-      teacher.subject.toLowerCase().includes(normalized) ||
-      teacher.office.toLowerCase().includes(normalized)
+    return allTeachers.filter(
+      (teacher) =>
+        teacher.full_name.toLowerCase().includes(normalized) ||
+        (teacher.favorite_subject ?? "").toLowerCase().includes(normalized)
     );
-  }, [query]);
+  }, [allTeachers, query]);
 
+  const loading = studentsLoading || teachersLoading;
   const hasResults = studentResults.length > 0 || teacherResults.length > 0;
 
   return (
@@ -331,11 +328,13 @@ export default function SearchPage() {
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by name, section, or subject..."
+        placeholder="Search..."
         className="w-full max-w-md border-b border-base bg-transparent px-1 py-2 text-sm text-navy placeholder:text-muted outline-none focus:border-gold"
       />
 
-      {!hasResults ? (
+      {loading ? (
+        <p className="text-sm text-muted">Loading directory...</p>
+      ) : !hasResults ? (
         <p className="text-sm text-muted">No matching profiles found.</p>
       ) : (
         <>
@@ -355,7 +354,6 @@ export default function SearchPage() {
               </div>
             </section>
           )}
-
           {teacherResults.length > 0 && (
             <section className="space-y-1 border-t border-base pt-6">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Teachers</h2>
@@ -379,18 +377,10 @@ export default function SearchPage() {
           onSendCharisma={() => setCharismaTarget(openProfile)}
         />
       )}
-
       {openTeacherProfile && (
-        <TeacherModal
-          teacher={openTeacherProfile}
-          onClose={() => setOpenTeacherProfile(null)}
-          onMessage={() => messageTeacher(openTeacherProfile)}
-        />
+        <TeacherModal teacher={openTeacherProfile} onClose={() => setOpenTeacherProfile(null)} onMessage={() => messageTeacher(openTeacherProfile)} />
       )}
-
-      {charismaTarget && (
-        <SendCharismaModal student={charismaTarget} onClose={() => setCharismaTarget(null)} />
-      )}
+      {charismaTarget && <SendCharismaModal student={charismaTarget} onClose={() => setCharismaTarget(null)} />}
     </div>
   );
 }

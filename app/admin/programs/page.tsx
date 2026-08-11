@@ -371,7 +371,7 @@ export default function AdminProgramsPage() {
               <input
                 value={enrollQuery}
                 onChange={(e) => setEnrollQuery(e.target.value)}
-                placeholder="Search by name..."
+                placeholder="Search..."
                 className="mt-2 w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
               <div className="mt-3 max-h-64 space-y-1.5 overflow-y-auto pr-1">

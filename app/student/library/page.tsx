@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CURRENT_STUDENT } from "@/data/mockStudents";
+import { useMyProfile } from "@/lib/useMyProfile";
 import { LibraryBook } from "@/types/student";
 import { useLibraryStore } from "@/lib/libraryStore";
 
@@ -118,6 +118,7 @@ function BookModal({
 
 export default function LibraryPage() {
   const { books, log, requestBorrow } = useLibraryStore();
+  const { profile } = useMyProfile();
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
   const [query, setQuery] = useState("");
   const [genreFilter, setGenreFilter] = useState("All");
@@ -141,19 +142,20 @@ export default function LibraryPage() {
   }, [books, query, genreFilter]);
 
   const myActiveBooks = useMemo(
-    () => books.filter((book) => book.borrowedBy === CURRENT_STUDENT.id && book.status !== "available"),
-    [books]
+    () => books.filter((book) => book.borrowedBy === profile?.id && book.status !== "available"),
+    [books, profile]
   );
   const myHistory = useMemo(
-    () => log.filter((entry) => entry.studentId === CURRENT_STUDENT.id),
-    [log]
+    () => log.filter((entry) => entry.studentId === profile?.id),
+    [log, profile]
   );
 
   function handleRequestBorrow(book: LibraryBook) {
+    if (!profile) return;
     requestBorrow(book, {
-      id: CURRENT_STUDENT.id,
-      name: CURRENT_STUDENT.name,
-      gradeSection: `Grade ${CURRENT_STUDENT.gradeLevel} · ${CURRENT_STUDENT.section}`,
+      id: profile.id,
+      name: profile.full_name,
+      gradeSection: [profile.level_label, profile.section].filter(Boolean).join(" · "),
     });
   }
 
@@ -171,7 +173,7 @@ export default function LibraryPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search title or author..."
+              placeholder="Search..."
               className="flex-1 border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none placeholder:text-muted focus:border-gold"
             />
             <select
@@ -277,7 +279,7 @@ export default function LibraryPage() {
       {selectedBook && (
         <BookModal
           book={selectedBook}
-          isMine={selectedBook.borrowedBy === CURRENT_STUDENT.id}
+          isMine={selectedBook.borrowedBy === profile?.id}
           onClose={() => setSelectedBook(null)}
           onRequestBorrow={handleRequestBorrow}
         />

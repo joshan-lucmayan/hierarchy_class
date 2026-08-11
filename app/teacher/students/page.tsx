@@ -34,7 +34,7 @@ export default function TeacherStudentsPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, level, or section..."
+            placeholder="Search..."
             className="mt-4 w-full rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
           />
 

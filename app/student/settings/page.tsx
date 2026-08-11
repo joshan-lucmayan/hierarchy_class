@@ -83,7 +83,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v0.1.2</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v0.2.0</p>
     </div>
   );
 }

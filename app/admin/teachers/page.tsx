@@ -82,7 +82,7 @@ export default function AdminTeachersPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by teacher or subject..."
+              placeholder="Search..."
               className="w-full rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-2.5 text-sm text-navy outline-none"
             />
             <div className="mt-4 max-h-[480px] space-y-2 overflow-y-auto pr-1">

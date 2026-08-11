@@ -8,6 +8,7 @@ import { FlorinProvider } from "@/lib/florinStore";
 import { TeacherWorkspaceProvider } from "@/lib/teacherWorkspaceStore";
 import { ClassroomProvider } from "@/lib/classroomStore";
 import { TeacherTasksProvider } from "@/lib/teacherTasksStore";
+import { FriendsProvider } from "@/lib/friendsStore";
 import { ClassroomHierarchyProvider } from "@/lib/classroomHierarchyStore";
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <FlorinProvider>
                   <TeacherWorkspaceProvider>
                     <ClassroomProvider>
-                      <ClassroomHierarchyProvider><TeacherTasksProvider>{children}</TeacherTasksProvider></ClassroomHierarchyProvider>
+                      <ClassroomHierarchyProvider><TeacherTasksProvider><FriendsProvider>{children}</FriendsProvider></TeacherTasksProvider></ClassroomHierarchyProvider>
                     </ClassroomProvider>
                   </TeacherWorkspaceProvider>
                 </FlorinProvider>

@@ -106,7 +106,7 @@ export default function LibraryManagementPage() {
         <input
           value={catalogQuery}
           onChange={(e) => setCatalogQuery(e.target.value)}
-          placeholder="Search your catalog by title, author, or genre..."
+          placeholder="Search..."
           className="w-full rounded-2xl border border-base bg-[var(--surface-strong)] px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
         />
         {filteredCatalog.length === 0 ? (
@@ -206,7 +206,7 @@ export default function LibraryManagementPage() {
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by book title..."
+          placeholder="Search..."
           className="w-full rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm text-navy outline-none"
         />
         {searchQuery.trim() && (
