@@ -47,11 +47,11 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy px-4">
-      <div className="w-full max-w-sm rounded-2xl border-2 border-gold bg-surface p-10 shadow-xl sm:p-12">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
+      <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-8">
         <div className="flex flex-col items-center gap-8">
           <LogoLockup />
-          <div className="w-full border-t border-gold opacity-60" />
+          <div className="w-full border-t border-base" />
 
           {status === "done" ? (
             <div className="flex flex-col items-center gap-4 text-center">
@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
               </span>
               <h1 className="text-lg font-bold text-navy">Password updated</h1>
               <p className="text-sm text-muted">You can now sign in with your new password.</p>
-              <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy">
+              <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent">
                 Go to login
               </a>
             </div>
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-navy"
                     >
                       {showPassword ? "Hide" : "Show"}
                     </button>

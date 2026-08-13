@@ -9,7 +9,7 @@ The platform blends the customization and social feel of a profile-based
 app with the structure and accountability of a school information
 system.
 
-**Current version:** `1.0.0`
+**Current version:** `1.1.19`
 
 ## Concept
 
@@ -88,14 +88,14 @@ request)
 
 ## Navigation
 
-- Persistent collapsible left sidebar on desktop - icon-only by
-  default, expands to show labels on hover, with a pin toggle to keep it
-  expanded. A bottom tab bar is used on mobile instead.
-- A notification bell in the top header replaces the old inline
-  chat/theme icons.
-- Dark mode is the default appearance; it's toggled from Settings and
-  persists across navigation and reloads (only changes when the user
-  explicitly switches it).
+- Fixed **64px icon rail** on desktop (no expand, no pin) - icons
+  brighten on hover with tooltips; a bottom tab bar is used on mobile.
+- A notification bell in the top header shows unread notifications with
+  an accent dot; unread messages show a badge on the Messages rail icon.
+- The top bar shows the school name, the **Florin** balance pill (with a
+  designed coin mark), and the notification bell.
+- Dark mode is the default appearance; light mode is toggled from any
+  Settings page and persists across navigation and reloads.
 - Messaging is a dedicated full page (`/[role]/messages`), not a popup -
   contact list on the left, conversation thread on the right.
 
@@ -103,14 +103,19 @@ request)
 
 The tone sits between a game character sheet and a school portal -
 gamified, but professional and school-appropriate rather than a
-hardcore RPG aesthetic. Visual language includes stat bars, animated
-rank badges, and tier-based color coding (blue for academic stats, red
-for physical, gold for rank/social), built on a flat navy/white/gold
-identity with no gradients or heavy shadows. Page headers are
-theme-aware (light card in light mode, dark card in dark mode) rather
-than a fixed dark banner. Student-facing screens lean toward a game
-profile feel; teacher and admin dashboards use the same card-based
-layout patterns, populated with role-appropriate content.
+hardcore RPG aesthetic. The interface is a flat, minimal console
+system: Kettle Black page background, 10px-radius hairline-bordered
+cards, a 64px icon rail, and a grey/blue accent (Great Falls) instead
+of gold. No gradients, no glow, no drop shadows - a single 1px border
+is the only edge treatment, and every color routes through CSS tokens
+in `app/globals.css`.
+
+Both **dark and light themes** are supported (light is a warm grey,
+not pure white) and are switched with a toggle on every role's Settings
+page; the choice persists in `localStorage`. Shared components
+(RankBadge, CornerFrame cards, UserAvatar, CoinIcon, CrownMark,
+notification dots) are built once and reused across student, teacher,
+and admin screens so the look stays consistent everywhere.
 
 ## Tech stack
 
@@ -149,12 +154,67 @@ features - not mock data:
   approved grades, and the leaderboard is computed from approved entries
   via an aggregate-only RPC
 
+**v1.1.0 (this release):**
+- **Habit tracker** - a dedicated student page (`/student/habits`) plus
+  the home-dashboard card, backed by the real `habit_entries` table with
+  RLS, realtime, and a 10/week target per habit (study, exercise,
+  reading, sleep, focus)
+- **Light/dark theme switcher** on every role's Settings page, with a
+  token-based light palette (warm grey light theme, not pure white)
+- **New crown logo** (matches the `newhc_logo.png` lockup) in the
+  sidebar, top bar, auth lockup, and favicon
+- **Designed Florin coin** - a flat accent coin with the brand crown
+  struck in the center, replacing the old letter mark
+- **Teacher home redesign** - latest school feed on the left with the
+  teacher workspace (assigned tasks, pinned notes, schedule, lesson
+  plan) stacked in a right column, mirroring the student layout
+- **Teacher profile view** - an About section with favorite subject,
+  school, and the courses they teach
+- **Contrast-aware accent text** - text on the light accent always uses
+  a dedicated token, so chat bubbles, buttons, and badges stay readable
+  in both themes on every page
+- **Default avatar** - users without a photo get the school's default
+  avatar image everywhere (sidebar, search, rosters, messaging, profiles)
+- **Design system roll-out** - flat 10px hairline cards, 64px icon
+  rail, redesigned RankBadge (compact pill + score + progress track),
+  and a social-style profile view with a cover strip
+- **Loading states** for every route via per-segment `loading.tsx`
+- Rank badges removed from the teacher roster for a cleaner class list
+
+**v1.1.19 (this release):**
+- **Redesigned unread-message dot** - the Messages nav badge is now a
+  compact 8px dot with no ping pulse
+- **Social-style profile** - the "Edit Profile" button became an inline
+  pencil icon (Instagram-style) that opens the photo/editor flow; bio now
+  sits directly under the course/year line, and hobbies are shown on the
+  profile just as other people see it
+- **Rank-first badges** - the rank pill is now the hero element on the
+  profile and home cards (larger/bolder), while the academic-excellence
+  score was shrunk to a secondary line; leaderboard rows no longer print
+  the "Academic Excellence: n" text - just the rank badge
+- **Habit tracker WIP notice** - the habits page now carries a
+  "We're still working on this" note for the upcoming streak/reminder
+  features
+- **Search-result profile modal** - clicking a student/teacher in search
+  opens their profile in-place as an overlay, so the current menu is never
+  left; the profile's Message button now sits aligned on the name row
+- **Light-mode fixes** - primary buttons and sidebar hover states now use
+  theme tokens instead of fixed dark colors, so light mode stays light
+- **Chat delete fix** - re-messaging someone after deleting the
+  conversation now fully revives the thread (history cutoff cleared on
+  your side) and no longer surfaces the old deleted message as a preview
+- **Enrollment date control** - admins can now set both the enrolled-on
+  date and the expiry date for every student in the monitor
+- **New crown logo**, default avatar on all roles, and edge/radius
+  consistency sweep from the earlier 1.1.x passes
+
 **Not yet implemented:**
 - Real payment processing for Coin Charisma (wallet, ledger, fraud/spend
   limits) - Florin balances are read from the database but purchases stay
   intentionally disabled until a verified payment flow exists
 - Account deactivation / deletion actually removing or disabling data
   (requests are recorded and reviewable by admins)
+- School logos on the school picker (planned)
 
 ## Database
 

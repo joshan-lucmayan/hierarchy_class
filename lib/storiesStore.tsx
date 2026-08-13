@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { validateUpload, extensionForMime } from "@/lib/uploadUtils";
+import { randomId } from "@/lib/randomId";
 import type { StoryRow, StoryViewRow } from "@/types/supabase";
 
 export interface Story {
@@ -146,7 +147,7 @@ export function StoriesProvider({ children }: { children: React.ReactNode }) {
       }
 
       const ext = extensionForMime(file.type) ?? "jpg";
-      const path = `${profile.school_id}/${profile.id}/${crypto.randomUUID()}.${ext}`;
+      const path = `${profile.school_id}/${profile.id}/${randomId()}.${ext}`;
 
       const supabase = createClient();
       const { error: uploadError } = await supabase.storage

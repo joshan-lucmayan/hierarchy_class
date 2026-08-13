@@ -141,7 +141,7 @@ export function SignupForm() {
             placeholder="Jane"
             disabled={isLoading}
             autoComplete="given-name"
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
               ${errors.firstName ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
           />
           {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
@@ -158,7 +158,7 @@ export function SignupForm() {
             placeholder="Doe"
             disabled={isLoading}
             autoComplete="family-name"
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
               ${errors.lastName ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
           />
           {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
@@ -176,7 +176,7 @@ export function SignupForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
             ${errors.email ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
@@ -193,7 +193,7 @@ export function SignupForm() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Create a strong password"
           disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
             ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
@@ -208,7 +208,7 @@ export function SignupForm() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
             disabled={isLoading}
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
               ${errors.role ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
           >
             {ROLES.map((option) => (

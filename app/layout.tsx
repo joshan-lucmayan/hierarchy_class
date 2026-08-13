@@ -5,6 +5,7 @@ import { ChatProvider } from "@/lib/chatStore";
 import { LibraryProvider } from "@/lib/libraryStore";
 import { BannerProvider } from "@/lib/bannerStore";
 import { FlorinProvider } from "@/lib/florinStore";
+import { HabitProvider } from "@/lib/habitStore";
 import { TeacherWorkspaceProvider } from "@/lib/teacherWorkspaceStore";
 import { TeacherTasksProvider } from "@/lib/teacherTasksStore";
 import { FriendsProvider } from "@/lib/friendsStore";
@@ -18,7 +19,12 @@ export const metadata: Metadata = {
   title: "Hierarchy Class",
   description: "Climb the ranks - gamified academic tracking for students, teachers, and campuses",
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-64x64.png", type: "image/png", sizes: "64x64" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 
@@ -51,13 +57,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <LibraryProvider>
                       <BannerProvider>
                         <FlorinProvider>
-                          <TeacherWorkspaceProvider>
+                          <HabitProvider>
+                            <TeacherWorkspaceProvider>
                             <ClassroomHierarchyProvider>
                               <TeacherTasksProvider>
                                 <FriendsProvider>{children}</FriendsProvider>
                               </TeacherTasksProvider>
                             </ClassroomHierarchyProvider>
                           </TeacherWorkspaceProvider>
+                          </HabitProvider>
                         </FlorinProvider>
                       </BannerProvider>
                     </LibraryProvider>

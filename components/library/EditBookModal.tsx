@@ -41,7 +41,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -95,7 +95,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
           <button
             type="submit"
             disabled={submitting || !draft.title.trim() || !draft.author.trim()}
-            className="w-full rounded-full bg-navy py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy disabled:opacity-40"
+            className="w-full rounded-full bg-navy py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
           >
             {submitting ? "Saving..." : "Save changes"}
           </button>
@@ -111,7 +111,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
               Delete this book
             </button>
           ) : (
-            <div className="space-y-2 rounded-2xl border border-red-300 bg-red-500/5 p-4">
+            <div className="space-y-2 rounded-[10px] border border-red-300 bg-red-500/5 p-4">
               <p className="text-xs text-navy">
                 Delete &quot;{book.title}&quot; permanently? This can&apos;t be undone.
               </p>

@@ -24,6 +24,7 @@ export default function AdminStudentsPage() {
 
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [startDraft, setStartDraft] = useState("");
   const [expiryDraft, setExpiryDraft] = useState("");
   const [enrollMessage, setEnrollMessage] = useState<string | null>(null);
   const [levelDraft, setLevelDraft] = useState("");
@@ -52,10 +53,17 @@ export default function AdminStudentsPage() {
       setLevelDraft(selectedStudent.level_label ?? "");
       setSectionDraft(selectedStudent.section ?? "");
       setEdLevelDraft(selectedStudent.educational_level ?? "");
+      // Enrollment dates come from the live status row.
+      const info = statuses[selectedStudent.id];
+      setStartDraft(info?.startedAt ? new Date(info.startedAt).toISOString().slice(0, 10) : "");
+      setExpiryDraft(info?.expiresAt ? new Date(info.expiresAt).toISOString().slice(0, 10) : "");
+      setEnrollMessage(null);
       setAcademicMessage(null);
       setAcademicError(null);
     }
-  }, [selectedStudent?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Re-hydrate when the selected student changes AND when enrollment data
+    // arrives/updates (statuses keyed by student id).
+  }, [selectedStudent?.id, statuses]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedAcademicInfo = useMemo(() => {
     if (!selectedStudent) return null;
@@ -118,7 +126,7 @@ export default function AdminStudentsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Student Progress</p>
@@ -127,7 +135,7 @@ export default function AdminStudentsPage() {
               Every real signed-up student at your school, with a live average and rank computed from actual grades.
             </p>
           </div>
-          <div className="rounded-3xl border border-gold bg-[var(--surface-strong)] px-5 py-4 text-sm">
+          <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] px-5 py-4 text-sm">
             <p className="font-semibold text-gold">School average</p>
             <p className="text-muted">{overallAvg !== null ? `${overallAvg} / 100` : "No grades yet"}</p>
           </div>
@@ -139,12 +147,12 @@ export default function AdminStudentsPage() {
 
       {!loading && !error && (
         <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search..."
-              className="w-full rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-2.5 text-sm text-navy outline-none"
+              className="w-full rounded-[10px] border border-gold bg-[var(--surface-strong)] px-4 py-2.5 text-sm text-navy outline-none"
             />
             <div className="mt-4 max-h-[480px] space-y-2 overflow-y-auto pr-1">
               {filtered.length === 0 ? (
@@ -159,7 +167,7 @@ export default function AdminStudentsPage() {
                       type="button"
                       key={student.id}
                       onClick={() => setSelectedId(student.id)}
-                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                      className={`flex w-full items-center gap-3 rounded-[10px] border px-4 py-3 text-left transition ${
                         selectedStudent?.id === student.id
                           ? "border-gold bg-[var(--surface-strong)]"
                           : "border-base bg-surface hover:border-gold"
@@ -184,7 +192,7 @@ export default function AdminStudentsPage() {
             </div>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             {!selectedStudent ? (
               <p className="text-sm text-muted">Select a student from the roster to see details.</p>
             ) : (
@@ -207,19 +215,19 @@ export default function AdminStudentsPage() {
                 </div>
 
                 <div className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-center">
+                  <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-center">
                     <p className="text-2xl font-bold text-navy">
                       {getStudentAverageByProfile(selectedStudent.id) ?? "--"}
                     </p>
                     <p className="mt-1 text-xs uppercase tracking-wide text-muted">Academic Excellence</p>
                   </div>
-                  <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-center">
+                  <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-center">
                     <p className="text-2xl font-bold text-navy">{getEntriesByProfile(selectedStudent.id).length}</p>
                     <p className="mt-1 text-xs uppercase tracking-wide text-muted">Grades recorded</p>
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-gold/40 bg-[var(--surface-strong)] p-4">
+                <div className="mt-6 rounded-[10px] border border-gold/40 bg-[var(--surface-strong)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Enrollment status</p>
                   {enrollLoading ? (
                     <p className="mt-2 text-sm text-muted">Loading...</p>
@@ -251,7 +259,7 @@ export default function AdminStudentsPage() {
                                   ? "bg-amber-500/15 text-amber-600"
                                   : effective === "revoked"
                                   ? "bg-red-500/15 text-red-600"
-                                  : "bg-gray-500/15 text-gray-500"
+                                  : "bg-muted/15 text-muted"
                               }`}
                             >
                               {effective}
@@ -270,19 +278,35 @@ export default function AdminStudentsPage() {
                         )}
                       </div>
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <input
-                          type="date"
-                          value={expiryDraft}
-                          onChange={(e) => setExpiryDraft(e.target.value)}
-                          className="rounded-2xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                        />
+                        <label className="flex items-center gap-2 text-xs text-muted">
+                          <span className="shrink-0">Enrolled on</span>
+                          <input
+                            type="date"
+                            value={startDraft}
+                            onChange={(e) => setStartDraft(e.target.value)}
+                            className="rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                          />
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-muted">
+                          <span className="shrink-0">Expiry</span>
+                          <input
+                            type="date"
+                            value={expiryDraft}
+                            onChange={(e) => setExpiryDraft(e.target.value)}
+                            className="rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                          />
+                        </label>
                         <button
                           type="button"
                           onClick={async () => {
-                            const ok = await setEnrollment(selectedStudent.id, expiryDraft ? new Date(expiryDraft).toISOString() : null);
+                            const ok = await setEnrollment(
+                              selectedStudent.id,
+                              expiryDraft ? new Date(expiryDraft).toISOString() : null,
+                              startDraft ? new Date(startDraft).toISOString() : null
+                            );
                             setEnrollMessage(ok ? "Enrollment saved. It will lapse automatically after the expiry date." : "Couldn't save the enrollment.");
                           }}
-                          className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-navy transition hover:opacity-90"
+                          className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-on-accent transition hover:opacity-90"
                         >
                           {statuses[selectedStudent.id]?.expiresAt ? "Renew" : "Enroll"}
                         </button>
@@ -307,7 +331,7 @@ export default function AdminStudentsPage() {
                   )}
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+                <div className="mt-6 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Academic info</p>
                   <p className="mt-1 text-[11px] text-muted">
                     Educational level, grade/year level, and section. Level and section shown on the student&apos;s
@@ -320,7 +344,7 @@ export default function AdminStudentsPage() {
                         value={edLevelDraft}
                         onChange={(e) => setEdLevelDraft(e.target.value)}
                         placeholder="Elementary / High School / College"
-                        className="w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                       />
                     </label>
                     <label className="space-y-1">
@@ -329,7 +353,7 @@ export default function AdminStudentsPage() {
                         value={levelDraft}
                         onChange={(e) => setLevelDraft(e.target.value)}
                         placeholder="e.g. Grade 12"
-                        className="w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                       />
                     </label>
                     <label className="space-y-1">
@@ -338,7 +362,7 @@ export default function AdminStudentsPage() {
                         value={sectionDraft}
                         onChange={(e) => setSectionDraft(e.target.value)}
                         placeholder="e.g. A"
-                        className="w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                       />
                     </label>
                   </div>
@@ -346,7 +370,7 @@ export default function AdminStudentsPage() {
                     type="button"
                     disabled={savingAcademic}
                     onClick={handleSaveAcademic}
-                    className="mt-3 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy disabled:opacity-50"
+                    className="mt-3 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-50"
                   >
                     {savingAcademic ? "Saving..." : "Save academic info"}
                   </button>
@@ -382,7 +406,7 @@ export default function AdminStudentsPage() {
                       <p className="text-sm text-muted">No grades recorded in any course yet.</p>
                     ) : (
                       selectedCourseBreakdown.map((c) => (
-                        <div key={c.courseId} className="flex items-center justify-between rounded-xl border border-base px-3 py-2">
+                        <div key={c.courseId} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                           <div>
                             <p className="text-sm text-navy">{c.courseName}</p>
                             <p className="text-xs text-muted">{c.count} grade{c.count === 1 ? "" : "s"}</p>

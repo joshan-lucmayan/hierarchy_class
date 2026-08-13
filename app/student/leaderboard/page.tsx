@@ -30,7 +30,7 @@ export default function LeaderboardPage() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
       <section className="space-y-6">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Leaderboard</p>
           <h1 className="mt-2 text-3xl font-bold text-navy">School rankings</h1>
           <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">
@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
               <select
                 value={sectionFilter}
                 onChange={(e) => setSectionFilter(e.target.value)}
-                className="rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
+                className="rounded-[10px] border border-gold bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy outline-none"
               >
                 <option value="all">All sections</option>
                 {sections.map((s) => (
@@ -82,14 +82,14 @@ export default function LeaderboardPage() {
         </div>
       </section>
 
-      <CornerFrame className="h-fit rounded-3xl border border-base bg-surface p-6 shadow-card">
+      <CornerFrame className="h-fit rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-navy">Rank quick view</p>
         <div className="mt-4 space-y-4 text-sm text-muted">
           <p>
             Live standings based on approved grade submissions. Only aggregate averages are shown - individual
             grades stay private to each student and their teachers.
           </p>
-          <div className="rounded-2xl border border-gold bg-[var(--surface-strong)] p-4">
+          <div className="rounded-[10px] border border-gold bg-[var(--surface-strong)] p-4">
             <p className="text-xs uppercase tracking-wide text-muted">You are</p>
             <p className="mt-2 text-2xl font-bold text-navy">
               {myPosition > 0 ? `Rank ${myPosition} of ${ranked.length}` : "Not ranked yet"}

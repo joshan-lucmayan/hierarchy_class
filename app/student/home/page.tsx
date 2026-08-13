@@ -1,44 +1,28 @@
 "use client";
 
-import { useMemo } from "react";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
 import { RankBadge } from "@/components/ui/RankBadge";
-import { CornerFrame } from "@/components/ui/CornerFrame";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { StoriesRail } from "@/components/feed/StoriesRail";
 import { QuickSearchBar } from "@/components/search/QuickSearchBar";
+import SubjectStats from "@/components/dashboard/SubjectStats";
+import HabitTracker from "@/components/dashboard/HabitTracker";
+import WeeklyProgress from "@/components/dashboard/WeeklyProgress";
+import WeakestSubjectCard from "@/components/dashboard/WeakestSubjectCard";
 
 export default function StudentHomePage() {
   const { profile, loading, error } = useMyProfile();
-  const { getStudentAverageByProfile, getStudentRankByProfile, getEntriesByProfile, courses } =
-    useClassroomHierarchy();
+  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
   const { posts, loading: feedLoading, error: feedError } = useSchoolFeed();
 
   const avg = profile ? getStudentAverageByProfile(profile.id) : null;
   const rank = profile ? getStudentRankByProfile(profile.id) : null;
-  const entries = profile
-    ? getEntriesByProfile(profile.id).sort((a, b) => b.date.localeCompare(a.date))
-    : [];
 
   const academicExcellence = avg ?? 0;
   const displayRank = rank ?? "D";
-
-  const courseScores: Record<string, number[]> = {};
-  entries.forEach((e) => {
-    if (!courseScores[e.courseId]) courseScores[e.courseId] = [];
-    courseScores[e.courseId].push(e.score);
-  });
-  const courseAvgs = Object.entries(courseScores).map(([courseId, scores]) => ({
-    courseId,
-    avg: scores.reduce((a, b) => a + b, 0) / scores.length,
-  }));
-  const weakest = courseAvgs.sort((a, b) => a.avg - b.avg)[0];
-
-
-
-  const courseName = (courseId: string) => courses.find((c) => c.id === courseId)?.name ?? "Course";
 
   return (
     <div className="space-y-6">
@@ -46,10 +30,14 @@ export default function StudentHomePage() {
         <QuickSearchBar />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.7fr_0.9fr]">
+      <StoriesRail />
+
+      <h1 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.11em] text-faint">
+        Latest School Feed
+      </h1>
+
+      <div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
         <section className="space-y-4">
-          <StoriesRail />
-          <h1 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Latest School Feed</h1>
           {feedLoading ? (
             <p className="text-sm text-muted">Loading announcements...</p>
           ) : feedError ? (
@@ -65,84 +53,45 @@ export default function StudentHomePage() {
           )}
         </section>
 
-        <aside className="space-y-6">
-          <div className="pb-2">
+        <aside className="space-y-4">
+          {/* Profile / rank card */}
+          <div className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex flex-col items-center text-center">
               {loading ? (
                 <p className="text-sm text-muted">Loading...</p>
+              ) : error ? (
+                <p className="text-sm text-red-500">{error}</p>
               ) : (
                 <>
-                  <p className="text-lg font-bold text-navy">
+                  <UserAvatar
+                    name={profile?.full_name}
+                    src={profile?.avatar_url}
+                    size="xl"
+                    className="border-2 border-surface"
+                  />
+                  <p className="mt-3 text-[17px] font-bold text-navy">
                     {profile?.full_name ?? "Student"}
                   </p>
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-0.5 text-[12.5px] text-muted">
                     {[profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ")}
                   </p>
 
                   <div className="mt-5">
-                    <RankBadge rank={displayRank} size="lg" />
+                    <RankBadge
+                      rank={displayRank}
+                      size="lg"
+                      score={academicExcellence > 0 ? academicExcellence : null}
+                    />
                   </div>
-
-                  <div className="mt-3">
-                    <svg width="140" height="60" viewBox="0 0 140 60" fill="none">
-                      <path d="M14 10 L70 50 L126 10" stroke="var(--border)" strokeWidth="19" strokeLinecap="butt" strokeLinejoin="miter" />
-                      <path d="M14 10 L70 50 L126 10" stroke="var(--surface-strong)" strokeWidth="15" strokeLinecap="butt" strokeLinejoin="miter" />
-                      <path
-                        d="M14 10 L70 50 L126 10"
-                        stroke="#c9962c"
-                        strokeWidth="15"
-                        strokeLinecap="butt"
-                        strokeLinejoin="miter"
-                        strokeDasharray={138}
-                        strokeDashoffset={138 * (1 - academicExcellence / 100)}
-                      />
-                    </svg>
-                  </div>
-                  <div className="mt-1 flex flex-col items-center">
-                    <p className="text-lg font-bold text-navy">
-                      {academicExcellence > 0 ? academicExcellence : "--"}
-                      <span className="text-xs font-semibold text-muted">/100</span>
-                    </p>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Academic Excellence</p>
-                  </div>
-
                 </>
               )}
             </div>
           </div>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Recent grades</h2>
-            {entries.length === 0 ? (
-              <p className="mt-4 text-sm text-muted">No grades recorded yet.</p>
-            ) : (
-              <div className="mt-3 space-y-2">
-                {entries.slice(0, 5).map((e) => (
-                  <div key={e.id} className="flex items-center justify-between rounded-xl border border-base px-3 py-2">
-                    <div>
-                      <p className="text-xs font-semibold text-navy">{e.label}</p>
-                      <p className="text-[10px] text-muted">{e.type} · {courseName(e.courseId)} · {e.date}</p>
-                    </div>
-                    <p className={`text-sm font-bold ${e.score >= 90 ? "text-gold" : e.score >= 75 ? "text-blue-500" : "text-red-500"}`}>
-                      {e.score}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CornerFrame>
-
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Weakest Subject</h2>
-            {weakest ? (
-              <div className="mt-3">
-                <p className="text-sm font-semibold text-navy">{courseName(weakest.courseId)}</p>
-                <p className="mt-1 text-xs text-muted">Average: {weakest.avg.toFixed(1)}</p>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-muted">No subject-level grades recorded yet.</p>
-            )}
-          </CornerFrame>
+          <WeakestSubjectCard />
+          <SubjectStats />
+          <HabitTracker />
+          <WeeklyProgress />
         </aside>
       </div>
     </div>

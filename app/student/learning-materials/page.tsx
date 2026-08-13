@@ -89,7 +89,7 @@ export default function LearningMaterialsPage() {
                   href={material.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
                 >
                   Open resource →
                 </a>

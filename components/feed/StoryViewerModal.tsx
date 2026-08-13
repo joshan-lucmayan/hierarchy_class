@@ -64,7 +64,7 @@ export function StoryViewerModal({ stories, startIndex, onClose }: StoryViewerMo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div
-        className="animate-modal-in w-full max-w-sm overflow-hidden rounded-3xl border-2 border-gold bg-surface shadow-xl"
+        className="animate-modal-in w-full max-w-sm overflow-hidden rounded-[10px] border border-base bg-surface"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative aspect-[3/4] w-full bg-navy">

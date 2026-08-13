@@ -43,11 +43,11 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy px-4">
-      <div className="w-full max-w-sm rounded-2xl border-2 border-gold bg-surface p-10 shadow-xl sm:p-12">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
+      <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-8">
         <div className="flex flex-col items-center gap-8">
           <LogoLockup />
-          <div className="w-full border-t border-gold opacity-60" />
+          <div className="w-full border-t border-base" />
 
           {status === "sent" ? (
             <div className="flex flex-col items-center gap-4 text-center">
@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
               </p>
               <a
                 href="/login"
-                className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+                className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
               >
                 Back to login
               </a>

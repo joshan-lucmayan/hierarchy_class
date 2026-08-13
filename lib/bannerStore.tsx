@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { validateUpload, extensionForMime } from "@/lib/uploadUtils";
+import { randomId } from "@/lib/randomId";
 
 export const DEFAULT_BANNER_IMAGE = "/brand/bg-nhd.png";
 export const DEFAULT_BANNER_FOCAL_Y = 66;
@@ -99,7 +100,7 @@ export function BannerProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const ext = extensionForMime(file.type) ?? "jpg";
-      const path = `${profile.school_id}/${crypto.randomUUID()}.${ext}`;
+      const path = `${profile.school_id}/${randomId()}.${ext}`;
       const supabase = createClient();
 
       // Load the previous image path so we can remove it on success.

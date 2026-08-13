@@ -135,7 +135,7 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
             ${errors.email ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
         />
         {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
@@ -160,14 +160,14 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             disabled={isLoading}
-            className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-colors disabled:bg-surface-50 disabled:text-gray-400
+            className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
               ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-navy"
           >
             {showPassword ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -4,30 +4,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light theme lives on :root; dark theme on .dark (layout script defaults to dark). */
 :root {
   color-scheme: light;
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-strong: #f1f5f9;
-  --text: #0b0f2e;
-  --muted: #5b6178;
-  --border: #e2e8f0;
-  --gold: #c9962c;
-  --nav: #0b0f2e;
-  --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  --bg: #e9eaed; /* page background */
+  --kettle: #e1e2e6; /* sidebar */
+  --surface: #f5f6f8; /* cards / panels */
+  --surface-strong: #f7f8fa; /* hover / active */
+  --tile: #edeef1; /* inputs, chips, icon tiles, pills */
+  --border: #d6d8dd; /* line-soft: card hairline */
+  --line: #c8cbd1; /* tracks, stronger lines */
+  --text: #23252a; /* primary text */
+  --muted: #565a63; /* secondary text */
+  --faint: #8b8e97; /* labels / captions */
+  --gold: #8a94a0; /* Great Falls accent (deeper for light surfaces) */
+  --sealion: #8a95a1; /* fills, active border */
+  --asphalt: #b6bbc3; /* avatar placeholders, spark bars */
+  --warn: #b0605a; /* salmon warning text */
+  --warn-fill: #b47a74; /* spark low bars */
+  --low-fill: #a7acb4; /* lowest stat fill */
+  --nav: #6b6e75;
+  --on-accent: #141214; /* dark text that always sits on the light accent */
+  /* Flat cards: a plain 1px hairline border instead of a heavy drop shadow. */
+  --shadow: 0 0 0 1px var(--border);
 }
 
 .dark {
   color-scheme: dark;
-  --bg: #09101f;
-  --surface: #0f172a;
-  --surface-strong: #111827;
-  --text: #f8fafc;
-  --muted: #9ca3af;
-  --border: #334155;
-  --gold: #c9962c;
-  --nav: #e2b35d;
-  --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  --bg: #0f0f11; /* page background */
+  --kettle: #141214; /* sidebar */
+  --surface: #17181b; /* cards / panels */
+  --surface-strong: #1a1b1e; /* hover / active */
+  --tile: #1a1b1e; /* inputs, chips, icon tiles, pills */
+  --border: #232327; /* line-soft: card hairline */
+  --line: #2a2b2f; /* tracks, stronger lines */
+  --text: #f0f0f1; /* primary text */
+  --muted: #9a9ba1; /* secondary text */
+  --faint: #6c6d73; /* labels / captions */
+  --gold: #9ea7b3; /* Great Falls accent */
+  --sealion: #7f8995; /* fills, active border */
+  --asphalt: #464c55; /* avatar placeholders, spark bars */
+  --warn: #c98f8f; /* salmon warning text */
+  --warn-fill: #8a5f5f; /* spark low bars */
+  --low-fill: #5b5f66; /* lowest stat fill */
+  --nav: #c2c7cf;
+  --on-accent: #141214; /* dark text that always sits on the light accent */
+  --shadow: 0 0 0 1px var(--border);
 }
 
 html {
@@ -65,12 +87,44 @@ body {
   background-color: var(--surface);
 }
 
+.bg-tile {
+  background-color: var(--tile);
+}
+
+.text-faint {
+  color: var(--faint);
+}
+
+.text-warn {
+  color: var(--warn);
+}
+
+.bg-warn {
+  background-color: var(--warn);
+}
+
 .text-navy {
   color: var(--text);
 }
 
 .text-muted {
   color: var(--muted);
+}
+
+.bg-muted {
+  background-color: var(--muted);
+}
+
+.bg-sealion {
+  background-color: var(--sealion);
+}
+
+.text-on-accent {
+  color: var(--on-accent);
+}
+
+.bg-line {
+  background-color: var(--line);
 }
 
 .border-base {
@@ -116,10 +170,10 @@ body {
 
 @keyframes badgeGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 4px rgba(201, 150, 44, 0.4));
+    filter: drop-shadow(0 0 4px rgba(158, 167, 179, 0.4));
   }
   50% {
-    filter: drop-shadow(0 0 12px rgba(201, 150, 44, 0.8));
+    filter: drop-shadow(0 0 12px rgba(158, 167, 179, 0.8));
   }
 }
 
@@ -172,10 +226,10 @@ body {
 
 @keyframes labelGlow {
   0%, 100% {
-    text-shadow: 0 0 0 rgba(201, 150, 44, 0);
+    text-shadow: 0 0 0 rgba(158, 167, 179, 0);
   }
   50% {
-    text-shadow: 0 0 8px rgba(201, 150, 44, 0.6);
+    text-shadow: 0 0 8px rgba(158, 167, 179, 0.6);
   }
 }
 

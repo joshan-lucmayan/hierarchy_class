@@ -51,21 +51,19 @@ export function NotificationBell() {
         type="button"
         onClick={handleOpen}
         aria-label="Notifications"
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-base bg-surface text-navy transition hover:border-gold"
+        className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-tile text-muted transition hover:border-sealion"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 01-3.46 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-navy">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
+          <span className="absolute right-[5px] top-[5px] h-1.5 w-1.5 rounded-full bg-warn ring-[1.5px] ring-surface" />
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-40 mt-2 w-80 rounded-2xl border border-base bg-surface p-2 shadow-xl">
+        <div className="absolute right-0 z-40 mt-2 w-80 rounded-[10px] border border-base bg-surface p-2 shadow-xl">
           <div className="flex items-center justify-between gap-2 px-3 py-2">
             <p className="text-xs font-bold uppercase tracking-wide text-navy">Notifications</p>
             <div className="flex items-center gap-1">
@@ -111,7 +109,7 @@ export function NotificationBell() {
                 return (
                   <div
                     key={n.id}
-                    className={`flex items-start gap-2.5 rounded-xl px-3 py-2.5 hover:bg-[var(--surface-strong)] ${
+                    className={`flex items-start gap-2.5 rounded-[10px] px-3 py-2.5 hover:bg-[var(--surface-strong)] ${
                       isUnread ? "bg-[var(--surface-strong)]/60" : ""
                     }`}
                   >

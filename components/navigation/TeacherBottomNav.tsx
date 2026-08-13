@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TEACHER_NAV_ITEMS } from "@/components/navigation/navItems";
 import { MessagesBadge } from "@/components/navigation/MessagesBadge";
+import { CrownMark } from "@/components/ui/CrownMark";
 
 export function TeacherBottomNav() {
   const pathname = usePathname();
@@ -11,6 +12,9 @@ export function TeacherBottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-base bg-surface xl:hidden">
       <div className="mx-auto flex max-w-sm items-center justify-around py-2">
+        <Link href="/teacher/home" title="Hierarchy Class" aria-label="Hierarchy Class" className="px-2">
+          <CrownMark height={24} />
+        </Link>
         {TEACHER_NAV_ITEMS.map((item) => {
           const active = item.href ? pathname?.startsWith(item.href) : false;
           return (

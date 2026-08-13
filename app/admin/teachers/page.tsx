@@ -65,7 +65,7 @@ export default function AdminTeachersPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teacher Performance</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">Monitor teachers</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
@@ -78,12 +78,12 @@ export default function AdminTeachersPage() {
 
       {!teachersLoading && !teachersError && (
         <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search..."
-              className="w-full rounded-2xl border border-gold bg-[var(--surface-strong)] px-4 py-2.5 text-sm text-navy outline-none"
+              className="w-full rounded-[10px] border border-gold bg-[var(--surface-strong)] px-4 py-2.5 text-sm text-navy outline-none"
             />
             <div className="mt-4 max-h-[480px] space-y-2 overflow-y-auto pr-1">
               {filtered.length === 0 ? (
@@ -97,7 +97,7 @@ export default function AdminTeachersPage() {
                       type="button"
                       key={teacher.id}
                       onClick={() => { setSelectedId(teacher.id); setShowAssignForm(false); }}
-                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                      className={`flex w-full items-center gap-3 rounded-[10px] border px-4 py-3 text-left transition ${
                         selectedTeacher?.id === teacher.id
                           ? "border-gold bg-[var(--surface-strong)]"
                           : "border-base bg-surface hover:border-gold"
@@ -126,7 +126,7 @@ export default function AdminTeachersPage() {
             </div>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             {!selectedTeacher ? (
               <p className="text-sm text-muted">Select a teacher from the roster to see details.</p>
             ) : (
@@ -152,15 +152,15 @@ export default function AdminTeachersPage() {
                 </div>
 
                 <div className="mt-5 grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-3 text-center">
+                  <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-3 text-center">
                     <p className="text-xl font-bold text-navy">{selectedCourses.length}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-wide text-muted">Courses</p>
                   </div>
-                  <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-3 text-center">
+                  <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-3 text-center">
                     <p className="text-xl font-bold text-navy">{selectedStudentCount}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-wide text-muted">Students</p>
                   </div>
-                  <div className="rounded-2xl border border-base bg-[var(--surface-strong)] p-3 text-center">
+                  <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-3 text-center">
                     <p className="text-xl font-bold text-navy">{selectedSubmittedGrades.length}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-wide text-muted">Grades submitted</p>
                   </div>
@@ -178,7 +178,7 @@ export default function AdminTeachersPage() {
                           ? Math.round((entries.reduce((a, e) => a + e.score, 0) / entries.length) * 10) / 10
                           : null;
                         return (
-                          <div key={c.id} className="flex items-center justify-between rounded-xl border border-base px-3 py-2">
+                          <div key={c.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                             <div>
                               <p className="text-sm text-navy">{c.name}</p>
                               <p className="text-xs text-muted">{sectionName(c.sectionId)} · {getStudentsByCourse(c.id).length} students</p>
@@ -198,7 +198,7 @@ export default function AdminTeachersPage() {
                       <p className="text-sm text-muted">No grades submitted yet.</p>
                     ) : (
                       recentActivity.map((g) => (
-                        <div key={g.id} className="flex items-center justify-between rounded-xl border border-base px-3 py-2">
+                        <div key={g.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                           <p className="text-sm text-navy">{g.label ?? g.type}</p>
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-gold">{g.score}</p>
@@ -223,7 +223,7 @@ export default function AdminTeachersPage() {
                   </div>
 
                   {showAssignForm && (
-                    <form onSubmit={handleAssign} className="mt-3 space-y-2 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+                    <form onSubmit={handleAssign} className="mt-3 space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
                       <input
                         value={taskDraft.title}
                         onChange={(e) => setTaskDraft((d) => ({ ...d, title: e.target.value }))}
@@ -243,7 +243,7 @@ export default function AdminTeachersPage() {
                         onChange={(e) => setTaskDraft((d) => ({ ...d, dueDate: e.target.value }))}
                         className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                       />
-                      <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+                      <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
                         Assign
                       </button>
                     </form>
@@ -265,7 +265,7 @@ export default function AdminTeachersPage() {
                           t.status === "declined" ? "Declined" :
                           "Pending";
                         return (
-                          <div key={t.id} className="rounded-xl border border-base px-3 py-2">
+                          <div key={t.id} className="rounded-[10px] border border-base px-3 py-2">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-xs font-semibold text-navy">{t.title}</p>

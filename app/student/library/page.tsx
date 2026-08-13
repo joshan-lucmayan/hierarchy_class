@@ -59,7 +59,7 @@ function BookModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl bg-surface p-7 shadow-2xl"
+        className="w-full max-w-md rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
@@ -98,7 +98,7 @@ function BookModal({
               onRequestBorrow(book);
               onClose();
             }}
-            className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+            className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
           >
             Request to borrow
           </button>

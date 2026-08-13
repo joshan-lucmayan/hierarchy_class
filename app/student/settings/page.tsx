@@ -92,7 +92,7 @@ export default function SettingsPage() {
         {requestError && <p className="text-sm text-red-500">{requestError}</p>}
       </section>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v1.0.0</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v1.1.0</p>
     </div>
   );
 }

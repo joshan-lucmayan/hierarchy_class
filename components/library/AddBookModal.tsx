@@ -156,7 +156,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleClose}>
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -169,7 +169,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={() => { setMode("scan"); setScanState("idle"); setDraft(EMPTY_DRAFT); }}
             className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-              mode === "scan" ? "bg-gold text-navy" : "border border-base text-muted hover:border-gold hover:text-gold"
+              mode === "scan" ? "bg-gold text-on-accent" : "border border-base text-muted hover:border-gold hover:text-gold"
             }`}
           >
             Scan barcode
@@ -178,7 +178,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={async () => { await stopScanner(); setMode("manual"); setDraft(EMPTY_DRAFT); }}
             className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-              mode === "manual" ? "bg-gold text-navy" : "border border-base text-muted hover:border-gold hover:text-gold"
+              mode === "manual" ? "bg-gold text-on-accent" : "border border-base text-muted hover:border-gold hover:text-gold"
             }`}
           >
             Enter manually
@@ -219,7 +219,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
             <p className="text-xs text-muted">
               Point the camera at the barcode on the back of the book (the ISBN barcode).
             </p>
-            <div id={SCANNER_ELEMENT_ID} className="overflow-hidden rounded-2xl border border-base" />
+            <div id={SCANNER_ELEMENT_ID} className="overflow-hidden rounded-[10px] border border-base" />
             {scanState === "looking-up" && (
               <p className="text-center text-xs text-muted">Looking up book details...</p>
             )}
@@ -244,7 +244,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
               onKeyDown={handleDeviceKeyDown}
               autoFocus
               placeholder="Waiting for scan..."
-              className="w-full rounded-2xl border-2 border-dashed border-gold bg-[var(--surface-strong)] px-4 py-3 text-center text-sm text-navy outline-none"
+              className="w-full rounded-[10px] border-2 border-dashed border-gold bg-[var(--surface-strong)] px-4 py-3 text-center text-sm text-navy outline-none"
             />
             {scanState === "looking-up" && (
               <p className="text-center text-xs text-muted">Looking up book details...</p>
@@ -255,12 +255,12 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
         {showReviewForm && (
           <form onSubmit={handleSubmit} className="mt-5 space-y-3">
             {scanState === "not-found" && (
-              <p className="rounded-xl bg-gold/10 px-3 py-2 text-xs text-navy">
+              <p className="rounded-[10px] bg-gold/10 px-3 py-2 text-xs text-navy">
                 Couldn&apos;t find that ISBN online — fill in the details below manually.
               </p>
             )}
             {scanState === "found" && (
-              <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 px-3 py-2">
+              <div className="flex items-center justify-between rounded-[10px] bg-emerald-500/10 px-3 py-2">
                 <p className="text-xs text-emerald-700">Found it! Review the details below before saving.</p>
                 <button type="button" onClick={handleRetryScan} className="text-xs font-semibold text-emerald-700 underline">
                   Scan again
@@ -314,7 +314,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={submitting || !draft.title.trim() || !draft.author.trim()}
-              className="w-full rounded-full bg-navy py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy disabled:opacity-40"
+              className="w-full rounded-full bg-navy py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
             >
               {submitting ? "Adding..." : "Add to library"}
             </button>

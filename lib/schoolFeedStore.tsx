@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { validateUpload, extensionForMime } from "@/lib/uploadUtils";
+import { randomId } from "@/lib/randomId";
 import { notifyPostAudience } from "@/lib/notify";
 
 export interface SchoolPost {
@@ -118,7 +119,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
       return null;
     }
     const ext = extensionForMime(file.type) ?? "jpg";
-    const path = `${schoolId}/${crypto.randomUUID()}.${ext}`;
+    const path = `${schoolId}/${randomId()}.${ext}`;
     const supabase = createClient();
     const { error: uploadError } = await supabase.storage
       .from("feed")

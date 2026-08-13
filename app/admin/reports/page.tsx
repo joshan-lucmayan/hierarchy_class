@@ -112,7 +112,7 @@ export default function AdminReportsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Reports</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">School progress</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
@@ -128,7 +128,7 @@ export default function AdminReportsPage() {
             {SUMMARY_STATS.map((stat) => (
               <CornerFrame
                 key={stat.label}
-                className="rounded-3xl border border-base bg-surface p-6 shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                className="rounded-[10px] border border-base bg-surface p-5 transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <p className="text-xs uppercase tracking-[0.2em] text-muted">{stat.label}</p>
                 <p className="mt-4 text-3xl font-bold text-navy">{stat.value}</p>
@@ -137,7 +137,7 @@ export default function AdminReportsPage() {
           </section>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Rank distribution</h2>
               <div className="mt-4 space-y-2">
                 {Object.entries(rankDistribution).map(([rank, count]) => (
@@ -155,11 +155,11 @@ export default function AdminReportsPage() {
               </div>
             </CornerFrame>
 
-            <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Average by grade type</h2>
               <div className="mt-4 space-y-2">
                 {gradeTypeBreakdown.map((g) => (
-                  <div key={g.type} className="flex items-center justify-between rounded-2xl border border-base px-3 py-2">
+                  <div key={g.type} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                     <div>
                       <p className="text-sm text-navy">{g.type}</p>
                       <p className="text-xs text-muted">{g.count} submitted</p>
@@ -172,11 +172,11 @@ export default function AdminReportsPage() {
           </div>
 
           {programs.length > 0 && (
-            <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Average by program</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {programAverages.map(({ program, avg, courseCount }) => (
-                  <div key={program.id} className="rounded-2xl border border-base p-4">
+                  <div key={program.id} className="rounded-[10px] border border-base p-4">
                     <p className="text-sm font-semibold text-navy">{program.name}</p>
                     <p className="mt-1 text-xs text-muted">{courseCount} course{courseCount === 1 ? "" : "s"}</p>
                     <p className="mt-2 text-xl font-bold text-gold">{avg ?? "--"}</p>
@@ -186,12 +186,12 @@ export default function AdminReportsPage() {
             </CornerFrame>
           )}
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Course averages</h2>
             <div className="mt-4 space-y-2">
               {courseAverages.length === 0 && <p className="text-sm text-muted">No courses yet.</p>}
               {courseAverages.map(({ course, avg }) => (
-                <div key={course.id} className="flex items-center justify-between rounded-2xl border border-base px-3 py-2">
+                <div key={course.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                   <p className="text-sm text-navy">{course.name}</p>
                   <p className="text-sm font-bold text-gold">{avg !== null ? avg : "--"}</p>
                 </div>
@@ -200,14 +200,14 @@ export default function AdminReportsPage() {
           </CornerFrame>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Top performers</h2>
               <div className="mt-4 space-y-2">
                 {topPerformers.length === 0 ? (
                   <p className="text-sm text-muted">No grades recorded yet.</p>
                 ) : (
                   topPerformers.map((s, i) => (
-                    <div key={s.profile.id} className="flex items-center gap-3 rounded-2xl border border-base px-3 py-2">
+                    <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-base px-3 py-2">
                       <p className="w-5 text-center text-xs font-bold text-muted">{i + 1}</p>
                       <img
                         src={s.profile.avatar_url || "/avatars/default-avatar.webp"}
@@ -222,7 +222,7 @@ export default function AdminReportsPage() {
               </div>
             </CornerFrame>
 
-            <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Students needing attention</h2>
               <p className="mt-1 text-[11px] text-muted">Averages below 75</p>
               <div className="mt-3 space-y-2">
@@ -230,7 +230,7 @@ export default function AdminReportsPage() {
                   <p className="text-sm text-muted">No students below 75 right now.</p>
                 ) : (
                   needsAttention.map((s) => (
-                    <div key={s.profile.id} className="flex items-center gap-3 rounded-2xl border border-red-300 bg-red-500/5 px-3 py-2">
+                    <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-red-300 bg-red-500/5 px-3 py-2">
                       <img
                         src={s.profile.avatar_url || "/avatars/default-avatar.webp"}
                         alt={s.profile.full_name}
@@ -245,14 +245,14 @@ export default function AdminReportsPage() {
             </CornerFrame>
           </div>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Teacher submission activity</h2>
             <div className="mt-4 space-y-2">
               {teacherActivity.length === 0 ? (
                 <p className="text-sm text-muted">No teachers signed up yet.</p>
               ) : (
                 teacherActivity.map(({ teacher, count, lastDate }) => (
-                  <div key={teacher.id} className="flex items-center justify-between rounded-2xl border border-base px-3 py-2">
+                  <div key={teacher.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                     <div className="flex items-center gap-3">
                       <img
                         src={teacher.avatar_url || "/avatars/default-avatar.webp"}

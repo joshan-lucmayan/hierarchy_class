@@ -17,7 +17,31 @@ const MIME_TO_EXT: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
+/** Extensions we accept, mapped to the same values MIME_TO_EXT produces. */
+const EXT_TO_EXT: Record<string, string> = {
+  jpg: "jpg",
+  jpeg: "jpg",
+  png: "png",
+  webp: "webp",
+  gif: "gif",
+  pdf: "pdf",
+};
+
 export type UploadKind = "image" | "document";
+
+/**
+ * Resolves the safe extension for a file, preferring the MIME type but
+ * falling back to the file name extension. Browsers on Android or over
+ * plain HTTP often report `application/octet-stream` (or an empty MIME)
+ * for perfectly valid PDFs, which would otherwise be rejected.
+ */
+export function resolveFileExtension(file: File): string | null {
+  const byMime = MIME_TO_EXT[file.type];
+  if (byMime) return byMime;
+  if (file.type && file.type !== "application/octet-stream") return null;
+  const nameExt = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return EXT_TO_EXT[nameExt] ?? null;
+}
 
 export function validateUpload(file: File, kind: UploadKind): string | null {
   const max = kind === "image" ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
@@ -26,7 +50,7 @@ export function validateUpload(file: File, kind: UploadKind): string | null {
     return `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is ${Math.floor(max / 1024 / 1024)} MB.`;
   }
 
-  const ext = MIME_TO_EXT[file.type];
+  const ext = resolveFileExtension(file);
   if (!ext) {
     return kind === "image"
       ? "Only JPG, PNG, WebP, or GIF images are allowed."

@@ -26,7 +26,7 @@ function getGreeting(hour: number) {
 
 function FeedPostRow({ post, onEdit, onDelete }: { post: SchoolPost; onEdit: () => void; onDelete: () => void }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-base p-4 transition hover:border-gold/50">
+    <div className="flex items-start justify-between gap-4 rounded-[10px] border border-base p-4 transition hover:border-gold/50">
       <div className="min-w-0">
         {post.title && <p className="text-sm font-semibold text-navy">{post.title}</p>}
         <p className={`${post.title ? "mt-0.5" : ""} line-clamp-2 text-xs text-muted`}>{post.body}</p>
@@ -158,7 +158,7 @@ export default function AdminHomePage() {
           <button
             type="button"
             onClick={() => setEditingPost({ kind: "post", id: null })}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
           >
             + New post
           </button>
@@ -173,14 +173,14 @@ export default function AdminHomePage() {
       </div>
 
       {approvalError && (
-        <p className="rounded-2xl border border-red-300 bg-red-500/5 px-4 py-3 text-sm text-red-600">{approvalError}</p>
+        <p className="rounded-[10px] border border-red-300 bg-red-500/5 px-4 py-3 text-sm text-red-600">{approvalError}</p>
       )}
 
       {/* School posts + announcements - two clearly separate systems */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <CornerFrame className="overflow-hidden rounded-3xl border-2 border-gold bg-surface shadow-card">
+        <CornerFrame className="overflow-hidden rounded-[10px] border border-base bg-surface">
           <div className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-6 py-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-on-accent">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 19V5h4v14M16 19V5h4v14M12 5v14" />
               </svg>
@@ -206,9 +206,9 @@ export default function AdminHomePage() {
           </div>
         </CornerFrame>
 
-        <CornerFrame className="overflow-hidden rounded-3xl border-2 border-gold bg-surface shadow-card">
+        <CornerFrame className="overflow-hidden rounded-[10px] border border-base bg-surface">
           <div className="flex items-center gap-3 border-b border-gold/30 bg-gold/10 px-6 py-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-on-accent">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 9l9-5v16l-9-5H3a2 2 0 01-2-2v-2a2 2 0 012-2h1z" />
                 <path d="M18 8a5 5 0 010 8M21 5a9 9 0 010 14" />
@@ -237,7 +237,7 @@ export default function AdminHomePage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <CornerFrame className="space-y-4 rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="space-y-4 rounded-[10px] border border-base bg-surface p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Pending grade submissions</h2>
             <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
@@ -249,7 +249,7 @@ export default function AdminHomePage() {
           ) : (
             <div className="space-y-4">
               {pendingGrades.map((submission) => (
-                <div key={submission.id} className="rounded-3xl border border-base p-4">
+                <div key={submission.id} className="rounded-[10px] border border-base p-4">
                   {/* Who submitted, for which course, when */}
                   <div className="flex items-start gap-3">
                     <img
@@ -283,7 +283,7 @@ export default function AdminHomePage() {
 
                   <div className="mt-3 max-h-40 space-y-1.5 overflow-y-auto">
                     {submission.students.map((s) => (
-                      <div key={s.id} className="flex items-center justify-between rounded-xl bg-[var(--surface-strong)] px-3 py-1.5 text-sm">
+                      <div key={s.id} className="flex items-center justify-between rounded-[10px] bg-[var(--surface-strong)] px-3 py-1.5 text-sm">
                         <p className="truncate text-muted">{s.name}</p>
                         <p className="font-semibold text-navy">{s.score}</p>
                       </div>
@@ -318,7 +318,7 @@ export default function AdminHomePage() {
         </CornerFrame>
 
         <div className="space-y-6">
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Teacher tasks awaiting action</h2>
               <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
@@ -330,7 +330,7 @@ export default function AdminHomePage() {
                 <p className="text-sm text-muted">No tasks waiting for a teacher response.</p>
               ) : (
                 pendingTasks.slice(0, 6).map((task) => (
-                  <div key={task.id} className="rounded-2xl border border-base p-3">
+                  <div key={task.id} className="rounded-[10px] border border-base p-3">
                     <p className="text-sm font-semibold text-navy">{task.title}</p>
                     <p className="mt-0.5 text-xs text-muted">Assigned to {task.teacherName}{task.dueDate ? ` · due ${task.dueDate}` : ""}</p>
                   </div>
@@ -339,7 +339,7 @@ export default function AdminHomePage() {
             </div>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Account requests</h2>
               <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
@@ -351,7 +351,7 @@ export default function AdminHomePage() {
                 <p className="text-sm text-muted">No pending deactivation/deletion requests.</p>
               ) : (
                 pendingRequests.slice(0, 5).map((request) => (
-                  <div key={request.id} className="rounded-2xl border border-base p-3">
+                  <div key={request.id} className="rounded-[10px] border border-base p-3">
                     <p className="text-sm font-semibold text-navy">
                       {request.requester_name ?? "A user"} <span className="font-normal text-muted">· {request.requester_role}</span>
                     </p>
@@ -383,7 +383,7 @@ export default function AdminHomePage() {
         </div>
       </div>
 
-      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Recent system activity</h2>
         <div className="mt-4 space-y-2">
           {gradeEntries.length === 0 && tasks.length === 0 ? (
@@ -391,7 +391,7 @@ export default function AdminHomePage() {
           ) : (
             <>
               {gradeEntries.slice(0, 5).map((g) => (
-                <div key={g.id} className="flex items-center gap-3 rounded-2xl border border-base p-3">
+                <div key={g.id} className="flex items-center gap-3 rounded-[10px] border border-base p-3">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-gold" />
                   <p className="flex-1 text-sm text-navy">
                     {studentName(g.studentId)} scored {g.score} on {g.label ?? g.type} in {courseName(g.courseId)}{" "}
@@ -401,7 +401,7 @@ export default function AdminHomePage() {
                 </div>
               ))}
               {tasks.slice(0, 5).map((t) => (
-                <div key={t.id} className="flex items-center gap-3 rounded-2xl border border-base p-3">
+                <div key={t.id} className="flex items-center gap-3 rounded-[10px] border border-base p-3">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
                   <p className="flex-1 text-sm text-navy">
                     {t.status === "declined" ? `${t.teacherName} declined` : t.status === "accepted" ? `${t.teacherName} accepted` : t.status === "done" ? `${t.teacherName} completed` : `Assigned`} &quot;{t.title}&quot;

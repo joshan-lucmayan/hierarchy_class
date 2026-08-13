@@ -51,7 +51,7 @@ export function FeedbackForm() {
         <button
           type="submit"
           disabled={state === "sending" || !feedback.trim()}
-          className="inline-flex items-center justify-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state === "sending" ? "Sending..." : "Send feedback"}
         </button>

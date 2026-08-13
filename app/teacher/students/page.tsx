@@ -7,11 +7,11 @@ import { useSchoolEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import type { ProfileRow } from "@/types/supabase";
 import { CornerFrame } from "@/components/ui/CornerFrame";
-import { RankBadge } from "@/components/ui/RankBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export default function TeacherStudentsPage() {
   const { profiles: students, loading: studentsLoading, error: studentsError } = useSchoolProfiles({ role: "student" });
-  const { getStudentAverageByProfile, getStudentRankByProfile, sections, courses, programs, students: enrollments } =
+  const { getStudentAverageByProfile, sections, courses, programs, students: enrollments } =
     useClassroomHierarchy();
   const { statuses: enrollmentStatuses, loading: enrollLoading } = useSchoolEnrollments();
 
@@ -71,13 +71,13 @@ export default function TeacherStudentsPage() {
   return (
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Student roster</p>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search"
-            className="mt-4 w-full rounded-2xl border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+            className="mt-4 w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
           />
 
           {studentsLoading && <p className="mt-6 text-sm text-muted">Loading roster...</p>}
@@ -94,25 +94,25 @@ export default function TeacherStudentsPage() {
                   type="button"
                   key={student.id}
                   onClick={() => setSelectedId(student.id)}
-                  className={`w-full rounded-3xl border px-4 py-4 text-left transition ${
+                  className={`w-full rounded-[10px] border px-4 py-4 text-left transition ${
                     selectedStudent?.id === student.id
-                      ? "border-gold bg-[var(--surface-strong)]"
-                      : "border-base bg-surface hover:border-gold"
+                      ? "border-sealion bg-[var(--surface-strong)]"
+                      : "border-base bg-surface hover:border-sealion"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
+                  <div className="flex items-start gap-3">
+                    <UserAvatar name={student.full_name} src={student.avatar_url} size="md" />
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate font-semibold text-navy">{student.full_name}</p>
                         {!enrollLoading && <EnrolledBadge status={effectiveOf(student.id)} size="sm" />}
                       </div>
-                      <p className="truncate text-xs text-muted">
+                      <p className="mt-0.5 truncate text-xs text-muted">
                         {[student.educational_level, student.level_label, identity?.programs.join(" · ")]
                           .filter(Boolean)
                           .join(" · ")}
                       </p>
                     </div>
-                    <RankBadge rank={getStudentRankByProfile(student.id) ?? "D"} size="sm" />
                   </div>
                 </button>
               );
@@ -120,18 +120,14 @@ export default function TeacherStudentsPage() {
           </div>
         </CornerFrame>
 
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Selected student</p>
           {!selectedStudent ? (
             <p className="mt-4 text-sm text-muted">Select a student from the roster to see details.</p>
           ) : (
-            <div className="mt-4 rounded-3xl border border-gold bg-[var(--surface-strong)] p-6">
+            <div className="mt-4 rounded-[10px] border border-base bg-[var(--surface-strong)] p-6">
               <div className="flex items-center gap-4">
-                <img
-                  src={selectedStudent.avatar_url || "/avatars/default-avatar.webp"}
-                  alt={selectedStudent.full_name}
-                  className="h-16 w-16 rounded-full object-cover"
-                />
+                <UserAvatar name={selectedStudent.full_name} src={selectedStudent.avatar_url} size="xl" />
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>
@@ -144,7 +140,7 @@ export default function TeacherStudentsPage() {
                         .join(" · ") || "No level set"}
                     </p>
                   </div>
-                  <RankBadge rank={getStudentRankByProfile(selectedStudent.id) ?? "D"} size="sm" className="mt-2" />
+
                 </div>
               </div>
               <div className="mt-5 space-y-3 text-sm text-muted">

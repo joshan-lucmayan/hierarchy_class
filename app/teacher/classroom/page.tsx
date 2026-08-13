@@ -88,7 +88,7 @@ export default function TeacherClassroomPage() {
   if (!profile) {
     return (
       <div className="space-y-6">
-        <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-sm text-muted">Loading your profile...</p>
         </CornerFrame>
       </div>
@@ -97,7 +97,7 @@ export default function TeacherClassroomPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Classroom</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">Grade submission</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
@@ -116,7 +116,7 @@ export default function TeacherClassroomPage() {
                 <button
                   key={prog.id}
                   onClick={() => { setSelectedProgram(prog.id); setStep("sections"); }}
-                  className="flex flex-col items-start rounded-3xl border border-base bg-surface p-6 text-left shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                  className="flex flex-col items-start rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
                 >
                   <p className="text-lg font-bold text-navy">{prog.name}</p>
                   {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
@@ -136,7 +136,7 @@ export default function TeacherClassroomPage() {
               <button
                 key={sec.id}
                 onClick={() => { setSelectedSection(sec.id); setStep("courses"); }}
-                className="flex flex-col items-center justify-center rounded-3xl border-2 border-base bg-surface p-10 text-center shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                className="flex flex-col items-center justify-center rounded-[10px] border border-base bg-surface p-10 text-center transition hover:border-sealion"
               >
                 <p className="text-2xl font-bold text-navy">{sec.name}</p>
               </button>
@@ -154,7 +154,7 @@ export default function TeacherClassroomPage() {
               <button
                 key={crs.id}
                 onClick={() => { setSelectedCourse(crs.id); setStep("students"); setSubmitted(false); }}
-                className="flex flex-col items-start rounded-3xl border border-base bg-surface p-6 text-left shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                className="flex flex-col items-start rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
               >
                 <p className="text-lg font-bold text-navy">{crs.name}</p>
                 {crs.code && <p className="mt-1 text-xs text-muted">{crs.code}</p>}
@@ -168,16 +168,16 @@ export default function TeacherClassroomPage() {
         <div className="space-y-6">
           <button onClick={handleBack} className="text-sm font-semibold text-gold hover:text-gold/80">← Back</button>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Submit grades</p>
 
             {submitted && (
-              <div className="mt-3 rounded-2xl bg-green-500/10 border border-green-500/30 px-4 py-2">
+              <div className="mt-3 rounded-[10px] bg-green-500/10 border border-green-500/30 px-4 py-2">
                 <p className="text-sm font-semibold text-green-600">Grades submitted and sent for admin approval.</p>
               </div>
             )}
             {submitError && (
-              <div className="mt-3 rounded-2xl bg-red-500/10 border border-red-500/30 px-4 py-2">
+              <div className="mt-3 rounded-[10px] bg-red-500/10 border border-red-500/30 px-4 py-2">
                 <p className="text-sm font-semibold text-red-600">{submitError}</p>
               </div>
             )}
@@ -193,7 +193,7 @@ export default function TeacherClassroomPage() {
                       onClick={() => setGradeType(t)}
                       className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                         gradeType === t
-                          ? "bg-gold text-navy"
+                          ? "bg-gold text-on-accent"
                           : "border border-base text-muted hover:border-gold hover:text-gold"
                       }`}
                     >
@@ -229,7 +229,7 @@ export default function TeacherClassroomPage() {
                 const avg = getStudentAverage(std.id);
                 const rank = getStudentRank(std.id);
                 return (
-                  <div key={std.id} className="flex items-center gap-3 rounded-2xl border border-base bg-[var(--surface-strong)] p-3">
+                  <div key={std.id} className="flex items-center gap-3 rounded-[10px] border border-base bg-[var(--surface-strong)] p-3">
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-navy">{std.name}</p>
                       <p className="text-xs text-muted">
@@ -256,17 +256,17 @@ export default function TeacherClassroomPage() {
             <button
               type="button"
               onClick={handleSubmitGrades}
-              className="mt-4 w-full rounded-full bg-gold py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+              className="mt-4 w-full rounded-full bg-gold py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
             >
               Submit grades
             </button>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Course leaderboard</p>
             <div className="mt-4 space-y-2">
               {leaderboard.map((entry, i) => (
-                <div key={entry.student.id} className="flex items-center gap-3 rounded-2xl border border-base bg-[var(--surface-strong)] p-3">
+                <div key={entry.student.id} className="flex items-center gap-3 rounded-[10px] border border-base bg-[var(--surface-strong)] p-3">
                   <p className="w-6 text-center text-xs font-bold text-muted">{i + 1}</p>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-navy">{entry.student.name}</p>
@@ -274,10 +274,10 @@ export default function TeacherClassroomPage() {
                   <p className="text-sm font-bold text-gold">{entry.avg > 0 ? entry.avg : "-"}</p>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     entry.rank === "S++" ? "bg-navy text-gold" :
-                    entry.rank === "S" ? "bg-gold text-navy" :
+                    entry.rank === "S" ? "bg-gold text-on-accent" :
                     entry.rank === "A" ? "bg-blue-100 text-blue-700" :
                     entry.rank === "B" ? "bg-green-100 text-green-700" :
-                    entry.rank === "C" ? "bg-gray-100 text-gray-600" :
+                    entry.rank === "C" ? "bg-muted/15 text-muted" :
                     "bg-red-100 text-red-600"
                   }`}>{entry.rank}</span>
                 </div>
@@ -285,7 +285,7 @@ export default function TeacherClassroomPage() {
             </div>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Grade history</p>
             <div className="mt-4 space-y-4">
               {students.map((std) => {

@@ -57,7 +57,7 @@ export function BannerEditor() {
       <div
         ref={frameRef}
         onPointerDown={handlePointerDown}
-        className={`relative h-40 w-full touch-none select-none overflow-hidden rounded-2xl border ${dragging ? "border-gold" : "border-base"}`}
+        className={`relative h-40 w-full touch-none select-none overflow-hidden rounded-[10px] border ${dragging ? "border-gold" : "border-base"}`}
         style={{ cursor: dragging ? "grabbing" : "grab" }}
       >
         <img
@@ -92,7 +92,7 @@ export function BannerEditor() {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="rounded-full bg-navy px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+          className="rounded-full bg-navy px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
         >
           Upload new banner
         </button>

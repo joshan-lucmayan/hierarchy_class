@@ -3,48 +3,37 @@
 import { useState } from "react";
 import { BrandMark } from "@/components/navigation/BrandMark";
 import { NotificationBell } from "@/components/navigation/NotificationBell";
-import { useBanner } from "@/lib/bannerStore";
 import { useFlorin } from "@/lib/florinStore";
+import { useSchools } from "@/lib/useSchools";
 import { FlorinPurchaseModal } from "@/components/student/FlorinPurchaseModal";
+import { CoinIcon } from "@/components/ui/CoinIcon";
 
 export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: boolean }) {
-  const { imageUrl, focalY } = useBanner();
   const { balance } = useFlorin();
+  const { schools } = useSchools();
   const [purchaseOpen, setPurchaseOpen] = useState(false);
 
-  return (
-    <header className="relative mb-4 flex items-center justify-between rounded-2xl border border-base bg-surface px-5 py-3">
-      <div className="absolute inset-0 overflow-hidden rounded-2xl">
-        <img
-          src={imageUrl}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: `center ${focalY}%` }}
-        />
-        <div className="absolute inset-0 bg-navy/30" />
-      </div>
+  const schoolName = schools[0]?.name;
 
-      <div className="relative xl:hidden">
+  return (
+    <header className="mb-6 flex items-center justify-between border-b border-base pb-4">
+      <div className="min-w-0 xl:hidden">
         <BrandMark href={href} />
       </div>
-      <div className="relative hidden xl:block" />
-      <div className="relative flex items-center gap-2">
+      <p className="hidden min-w-0 truncate text-sm font-medium text-muted xl:block">
+        {schoolName ? `${schoolName} · Hierarchy Class` : "Hierarchy Class"}
+      </p>
+
+      <div className="relative flex shrink-0 items-center gap-2">
         {showFlorin && (
           <button
             type="button"
             onClick={() => setPurchaseOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-black/45 py-1.5 pl-1.5 pr-3 backdrop-blur transition hover:bg-black/60"
+            className="flex items-center gap-2 rounded-md border border-line bg-tile px-2.5 py-1.5 text-[13px] font-semibold text-navy transition hover:border-sealion"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-b from-[#f6d989] to-[#c9962c] shadow-inner">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a3b12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v10M15.5 9.5a2.5 2.5 0 00-3.5-2.3M8.5 14.5a2.5 2.5 0 003.5 2.3" />
-              </svg>
-            </span>
-            <span className="text-xs font-bold text-white">{balance.toLocaleString()}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-white/70">Florin</span>
-            <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-navy">+</span>
+            <CoinIcon size={18} />
+            <span>{balance.toLocaleString()} Florin</span>
+            <span className="text-[12px] text-faint">+</span>
           </button>
         )}
         <NotificationBell />

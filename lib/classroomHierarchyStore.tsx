@@ -118,6 +118,7 @@ interface ClassroomHierarchyContextType {
   getStudentRecordsByProfile: (profileId: string) => Student[];
   getStudentAverageByProfile: (profileId: string) => number | null;
   getStudentRankByProfile: (profileId: string) => TierRank | null;
+  getCourseAveragesByProfile: (profileId: string) => { courseId: string; avg: number }[];
   getEntriesByProfile: (profileId: string) => GradeEntry[];
   getEntriesByStudent: (studentId: string) => GradeEntry[];
   getEntriesByCourse: (courseId: string) => GradeEntry[];
@@ -436,6 +437,27 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     },
     [gradeEntries]
   );
+  // One average per course the student has APPROVED grades in. This is the
+  // single source of truth for per-subject averages - the student home's
+  // "Weakest Subject" card and the dashboard "Subject Stats" both consume it,
+  // so the two can never disagree about which subject is the weakest.
+  const getCourseAveragesByProfile = useCallback(
+    (profileId: string): { courseId: string; avg: number }[] => {
+      const byCourse = new Map<string, number[]>();
+      gradeEntries.forEach((e) => {
+        if (e.studentId === profileId && e.approvalStatus === "approved") {
+          const scores = byCourse.get(e.courseId) ?? [];
+          scores.push(e.score);
+          byCourse.set(e.courseId, scores);
+        }
+      });
+      return Array.from(byCourse.entries()).map(([courseId, scores]) => ({
+        courseId,
+        avg: Math.round((scores.reduce((acc, s) => acc + s, 0) / scores.length) * 10) / 10,
+      }));
+    },
+    [gradeEntries]
+  );
   const getEntriesByStudent = useCallback(
     (studentId: string) => {
       const profileId = enrollmentProfileId(studentId);
@@ -511,6 +533,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         getStudentRecordsByProfile,
         getStudentAverageByProfile,
         getStudentRankByProfile,
+        getCourseAveragesByProfile,
         getEntriesByProfile,
         getEntriesByStudent,
         getEntriesByCourse,

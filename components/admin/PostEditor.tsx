@@ -52,7 +52,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
@@ -77,7 +77,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={isAnnouncement ? "e.g. Enrollment for the new semester is open" : "e.g. School Sports Festival"}
-              className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
             />
           </label>
 
@@ -88,7 +88,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               onChange={(e) => setBody(e.target.value)}
               placeholder={isAnnouncement ? "Write the announcement..." : "Write your post..."}
               rows={4}
-              className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
             />
           </label>
 
@@ -98,7 +98,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               <select
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
-                className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
               >
                 {TAGS.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -110,7 +110,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               <select
                 value={audience}
                 onChange={(e) => setAudience(e.target.value as typeof audience)}
-                className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
               >
                 {AUDIENCES.map((a) => (
                   <option key={a.value} value={a.value}>{a.label}</option>
@@ -124,13 +124,13 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               <p className="text-sm font-semibold text-muted">Image (optional)</p>
               {post?.imageUrl && !image && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={post.imageUrl} alt="Current post image" className="max-h-32 rounded-2xl border border-base object-contain" />
+                <img src={post.imageUrl} alt="Current post image" className="max-h-32 rounded-[10px] border border-base object-contain" />
               )}
-              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-base bg-[var(--surface-strong)] px-4 py-3">
+              <div className="flex items-center gap-3 rounded-[10px] border border-dashed border-base bg-[var(--surface-strong)] px-4 py-3">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
                 >
                   Choose image
                 </button>
@@ -149,7 +149,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
           )}
 
           {isAnnouncement && (
-            <label className="flex items-center gap-2.5 rounded-2xl border border-base bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy">
+            <label className="flex items-center gap-2.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-4 py-3 text-sm font-semibold text-navy">
               <input
                 type="checkbox"
                 checked={notifyAudience}
@@ -169,7 +169,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               type="button"
               onClick={handleSave}
               disabled={submitting}
-              className="flex-1 rounded-full bg-gold py-3 text-sm font-semibold text-navy transition hover:opacity-90 disabled:opacity-50"
+              className="flex-1 rounded-full bg-gold py-3 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
             >
               {submitting ? "Publishing..." : post ? "Save changes" : isAnnouncement ? "Publish announcement" : "Publish post"}
             </button>

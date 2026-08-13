@@ -52,9 +52,9 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className={`flex w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-sm transition-colors
-            ${error ? "border-red-400" : "border-base"}
-            ${isOpen ? "border-navy ring-1 ring-gold" : "hover:border-base"}`}
+          className={`flex w-full items-center justify-between rounded-md border bg-tile px-3.5 py-2.5 text-left text-sm transition-colors
+            ${error ? "border-red-400" : "border-line"}
+            ${isOpen ? "border-sealion" : "hover:border-sealion"}`}
         >
           {value ? (
             <span className="flex items-center gap-2.5">
@@ -62,7 +62,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
               <span className="text-navy">{value.name}</span>
             </span>
           ) : (
-            <span className="text-gray-400">Select your institution</span>
+            <span className="text-faint">Select your institution</span>
           )}
           <svg
             width="16"
@@ -71,14 +71,14 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className={`shrink-0 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            className={`shrink-0 text-faint transition-transform ${isOpen ? "rotate-180" : ""}`}
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
         </button>
 
         {isOpen && (
-          <div className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-lg border border-base bg-surface shadow-lg">
+          <div className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-[10px] border border-base bg-surface">
             <div className="border-b border-base p-2">
               <input
                 autoFocus
@@ -92,7 +92,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
 
             <ul className="max-h-56 overflow-y-auto py-1">
               {filtered.length === 0 && (
-                <li className="px-3.5 py-3 text-sm text-gray-400">No schools found</li>
+                <li className="px-3.5 py-3 text-sm text-faint">No schools found</li>
               )}
               {filtered.map((school) => {
                 const isSelected = value?.id === school.id;
@@ -101,8 +101,8 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
                     <button
                       type="button"
                       onClick={() => handleSelect(school)}
-                      className={`flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm hover:bg-gray-50
-                        ${isSelected ? "bg-gray-50" : ""}`}
+                      className={`flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm hover:bg-[var(--surface-strong)]
+                        ${isSelected ? "bg-[var(--surface-strong)]" : ""}`}
                     >
                       <span className="flex items-center gap-2.5">
                         <Crest abbr={school.abbreviation} />

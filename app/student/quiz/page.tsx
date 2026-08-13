@@ -116,7 +116,7 @@ export default function StudentQuizPage() {
             type="button"
             onClick={nextQuestion}
             disabled={answers[questionIndex] === undefined}
-            className="mt-6 w-full rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy disabled:opacity-40"
+            className="mt-6 w-full rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
           >
             {questionIndex < activeQuiz.questions.length - 1 ? "Next question" : "Submit quiz"}
           </button>
@@ -135,7 +135,7 @@ export default function StudentQuizPage() {
         <button
           type="button"
           onClick={() => { setActiveQuiz(null); setResult(null); }}
-          className="mt-6 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+          className="mt-6 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
         >
           Back to quizzes
         </button>
@@ -161,7 +161,7 @@ export default function StudentQuizPage() {
               <button
                 type="button"
                 onClick={() => startQuiz(quiz)}
-                className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+                className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
               >
                 Start quiz
               </button>

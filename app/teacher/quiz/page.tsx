@@ -66,7 +66,7 @@ export default function TeacherQuizPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz builder</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">Create a timed quiz</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
@@ -75,13 +75,13 @@ export default function TeacherQuizPage() {
       </CornerFrame>
 
       {myCourses.length === 0 ? (
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-sm text-muted">
             You don&apos;t have any courses assigned to you yet. Ask your admin to assign you to a course first.
           </p>
         </CornerFrame>
       ) : (
-        <CornerFrame className="space-y-5 rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="space-y-5 rounded-[10px] border border-base bg-surface p-5">
           <div className="grid gap-4 lg:grid-cols-2">
             <label className="space-y-2 text-sm font-semibold text-muted">
               Quiz title
@@ -89,7 +89,7 @@ export default function TeacherQuizPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Chapter 4 Review"
-                className="w-full rounded-2xl border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
               />
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -98,7 +98,7 @@ export default function TeacherQuizPage() {
                 <select
                   value={courseId}
                   onChange={(e) => setCourseId(e.target.value)}
-                  className="w-full rounded-2xl border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-gold"
                 >
                   <option value="">Select a course</option>
                   {myCourses.map((c) => (
@@ -113,7 +113,7 @@ export default function TeacherQuizPage() {
                   min={30}
                   value={timeLimit}
                   onChange={(e) => setTimeLimit(Number(e.target.value))}
-                  className="w-full rounded-2xl border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-gold"
                 />
               </label>
             </div>
@@ -121,7 +121,7 @@ export default function TeacherQuizPage() {
 
           <div className="space-y-4">
             {questions.map((q, qIndex) => (
-              <div key={q.id} className="rounded-2xl border border-base p-4">
+              <div key={q.id} className="rounded-[10px] border border-base p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs font-bold uppercase tracking-wide text-muted">Question {qIndex + 1}</p>
                   {questions.length > 1 && (
@@ -134,13 +134,13 @@ export default function TeacherQuizPage() {
                   value={q.question}
                   onChange={(e) => updateQuestion(q.id, e.target.value)}
                   placeholder="Type the question..."
-                  className="mt-3 w-full rounded-xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-3 w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
                 />
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {q.options.map((opt, oIndex) => (
                     <label
                       key={oIndex}
-                      className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
+                      className={`flex items-center gap-2 rounded-[10px] border px-3 py-2 text-sm ${
                         q.correctIndex === oIndex ? "border-gold bg-[var(--surface-strong)]" : "border-base bg-surface"
                       }`}
                     >
@@ -175,7 +175,7 @@ export default function TeacherQuizPage() {
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+              className="rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
             >
               Publish quiz
             </button>
@@ -184,7 +184,7 @@ export default function TeacherQuizPage() {
         </CornerFrame>
       )}
 
-      <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Published quizzes</h2>
         <div className="mt-4 space-y-3">
           {quizzes.filter((q) => myCourses.some((c) => c.id === q.courseId)).length === 0 ? (
@@ -193,7 +193,7 @@ export default function TeacherQuizPage() {
             quizzes
               .filter((q) => myCourses.some((c) => c.id === q.courseId))
               .map((q) => (
-                <div key={q.id} className="rounded-2xl border border-base p-4">
+                <div key={q.id} className="rounded-[10px] border border-base p-4">
                   <p className="text-sm font-semibold text-navy">{q.title}</p>
                   <p className="mt-1 text-xs text-muted">
                     {q.courseName} · {q.questions.length} questions · {q.timeLimitSeconds}s

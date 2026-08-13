@@ -166,9 +166,14 @@ export function useAdminEnrollments() {
 
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
-  /** Set or renew an enrollment; returns false on RLS/validation failure. */
+  /**
+   * Set or renew an enrollment; returns false on RLS/validation failure.
+   * Both dates are configurable: `startedAt` is the enrolled-on date (defaults
+   * to now when omitted) and `expiresAt` the expiry. Every enroll/renew uses
+   * whatever dates the admin chose - never silently reuses stale values.
+   */
   const setEnrollment = useCallback(
-    async (studentId: string, expiresAt: string | null): Promise<boolean> => {
+    async (studentId: string, expiresAt: string | null, startedAt?: string | null): Promise<boolean> => {
       if (!profile) return false;
       const supabase = createClient();
       const { error: upsertError } = await (supabase.from("enrollment_status") as any)
@@ -178,7 +183,7 @@ export function useAdminEnrollments() {
             school_id: profile.school_id,
             status: "enrolled",
             expires_at: expiresAt,
-            started_at: statuses[studentId]?.startedAt ?? new Date().toISOString(),
+            started_at: startedAt ?? new Date().toISOString(),
             updated_by: profile.id,
             updated_at: new Date().toISOString(),
           },
@@ -191,7 +196,7 @@ export function useAdminEnrollments() {
       refetch();
       return true;
     },
-    [profile, statuses, refetch]
+    [profile, refetch]
   );
 
   /** Revoke an enrollment (no expiry, revoked immediately). */

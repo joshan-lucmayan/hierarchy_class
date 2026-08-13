@@ -7,7 +7,10 @@ import { useFriendsStore } from "@/lib/friendsStore";
 import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 import { useAcademicIdentity } from "@/lib/useAcademicIdentity";
 import { useSchoolEnrollments, effectiveFrom } from "@/lib/useEnrollment";
+import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useSchools } from "@/lib/useSchools";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { createClient } from "@/lib/supabase/client";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { CornerFrame } from "@/components/ui/CornerFrame";
@@ -25,6 +28,8 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   const router = useRouter();
   const { profile: me, loading: meLoading } = useMyProfile();
   const { averageOf } = useLeaderboard();
+  const { getCoursesByTeacher } = useClassroomHierarchy();
+  const { schools } = useSchools();
   const { friendIds, addFriend, removeFriend } = useFriendsStore();
   const identity = useAcademicIdentity(profileId);
   const { statuses } = useSchoolEnrollments();
@@ -79,6 +84,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
 
   const isStudent = person.role === "student";
   const isFriend = friendIds.includes(person.id);
+  const coursesTaught = isStudent ? [] : getCoursesByTeacher(person.id);
   const avg = averageOf(person.id) ?? 0;
   const rank = rankFromAverage(avg > 0 ? avg : null);
   const identityLine = [person.educational_level, person.level_label, identity.programNames.join(" · ")]
@@ -100,48 +106,58 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   return (
     <div className="flex min-h-[70vh] items-center justify-center">
       <div className="w-full max-w-2xl space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-8 shadow-card">
-        <div className="flex flex-col items-center gap-5 text-center">
-          <img
-            src={person.avatar_url || "/avatars/default-avatar.webp"}
-            alt={person.full_name}
-            className="h-24 w-24 rounded-full border-2 border-gold object-cover"
-          />
-          <div>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <h1 className="text-3xl font-bold text-navy">{person.full_name}</h1>
-              {isStudent && <EnrolledBadge status={enrollment} size="sm" />}
-            </div>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">
-              {isStudent ? "Student" : "Faculty"}
-            </p>
-            {isStudent && identityLine && <p className="mt-2 text-sm text-muted">{identityLine}</p>}
-          </div>
-
-          {isStudent && (
-            <div className="flex flex-col items-center gap-2">
-              <RankBadge rank={rank} size="lg" />
-              <p className="text-xs text-muted">
-                Academic excellence: <span className="font-semibold text-navy">{avg > 0 ? avg : "--"}</span>/100
-              </p>
-            </div>
-          )}
+      <CornerFrame className="overflow-hidden rounded-[10px] border border-base bg-surface">
+        {/* Flat social cover strip - decorative only, token-based. */}
+        <div className="relative h-24 bg-asphalt/50">
+          <div className="absolute right-6 top-5 h-8 w-8 rounded-lg border border-line bg-tile/40" />
+          <div className="absolute bottom-4 left-10 h-4 w-16 rounded-full border border-line bg-tile/30" />
         </div>
 
-        {person.bio && <p className="mt-6 text-center text-sm leading-6 text-muted">{person.bio}</p>}
-        {person.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted">
-            {person.tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
-          </div>
-        )}
+        <div className="px-6 pb-6">
+          <div className="-mt-12 flex flex-col items-center text-center">
+            <UserAvatar
+              name={person.full_name}
+              src={person.avatar_url}
+              size="2xl"
+              className="border-2 border-surface"
+            />
+            <div className="mt-3">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <h1 className="text-2xl font-bold text-navy">{person.full_name}</h1>
+                {isStudent && <EnrolledBadge status={enrollment} size="sm" />}
+              </div>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">
+                {isStudent ? "Student" : "Faculty"}
+              </p>
+              {isStudent && identityLine && <p className="mt-1.5 text-sm text-muted">{identityLine}</p>}
+            </div>
 
-        <div className="mt-7 grid gap-2 sm:grid-cols-2">
+            {isStudent && (
+              <div className="mt-4">
+                <RankBadge rank={rank} size="lg" score={avg > 0 ? avg : null} />
+              </div>
+            )}
+
+            {person.bio && <p className="mt-4 max-w-xl text-sm leading-6 text-muted">{person.bio}</p>}
+            {person.tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {person.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-line bg-tile px-2.5 py-0.5 text-[11px] text-muted"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => router.push(`/student/messages?with=${person.id}`)}
-            className="rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+            className="rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
           >
             Message
           </button>
@@ -152,7 +168,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
               className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
                 isFriend
                   ? "border border-base bg-surface text-muted hover:border-red-400 hover:text-red-600"
-                  : "bg-gold text-navy hover:opacity-90"
+                  : "bg-gold text-on-accent hover:opacity-90"
               }`}
             >
               {isFriend ? "Remove Friend" : "Add Friend"}
@@ -167,11 +183,47 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
               Send Charisma
             </button>
           )}
+          </div>
+
+          {!isStudent && (
+            <div className="mt-6 border-t border-base pt-5 text-left">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-faint">About</p>
+              <div className="mt-3 space-y-2.5 text-sm">
+                {person.favorite_subject && (
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted">Favorite subject</span>
+                    <span className="font-medium text-navy">{person.favorite_subject}</span>
+                  </div>
+                )}
+                {schools[0]?.name && (
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted">School</span>
+                    <span className="font-medium text-navy">{schools[0].name}</span>
+                  </div>
+                )}
+                {coursesTaught.length > 0 && (
+                  <div className="pt-1">
+                    <p className="mb-2 text-muted">Teaching</p>
+                    <div className="flex flex-wrap gap-2">
+                      {coursesTaught.map((course) => (
+                        <span
+                          key={course.id}
+                          className="rounded-full border border-line bg-tile px-2.5 py-0.5 text-[11px] text-navy"
+                        >
+                          {course.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </CornerFrame>
 
       {isStudent && (
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Stat overview</h2>
           <div className="mt-4">
             <StatRadarChart stats={{ academic: avg, physical: 0, charisma: 0 }} />
@@ -193,7 +245,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
   const [sent, setSent] = useState(false);
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7" onClick={(e) => e.stopPropagation()}>
         {sent ? (
           <div className="text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
@@ -208,7 +260,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
             <button
               type="button"
               onClick={onClose}
-              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
             >
               Close
             </button>
@@ -225,7 +277,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
                   key={pkg.coins}
                   type="button"
                   onClick={() => setSelected(pkg.coins)}
-                  className={`rounded-2xl border px-2 py-3 text-center transition ${
+                  className={`rounded-[10px] border px-2 py-3 text-center transition ${
                     selected === pkg.coins ? "border-gold bg-[var(--surface-strong)]" : "border-base bg-surface hover:border-gold"
                   }`}
                 >
@@ -238,7 +290,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
             <button
               type="button"
               onClick={() => setSent(true)}
-              className="mt-5 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-navy transition hover:opacity-90"
+              className="mt-5 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90"
             >
               Send {selected} coins
             </button>

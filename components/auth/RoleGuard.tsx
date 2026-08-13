@@ -46,7 +46,7 @@ export function RoleGuard({ role }: RoleGuardProps) {
   if (status !== "allowed") {
     return (
       <div className="flex min-h-[56vh] items-center justify-center px-4">
-        <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] px-6 py-8 text-center text-sm text-[var(--muted)] shadow-sm">
+        <div className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-6 py-8 text-center text-sm text-[var(--muted)]">
           Verifying access…
         </div>
       </div>

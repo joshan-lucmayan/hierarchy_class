@@ -15,10 +15,10 @@ export function MessagesBadge() {
   return (
     <span
       title={`${unread} unread message${unread === 1 ? "" : "s"}`}
-      className="absolute -right-1.5 -top-1.5 flex h-3 w-3 items-center justify-center"
+      className="absolute -right-1 -top-1 flex h-2 w-2 items-center justify-center"
     >
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-60" />
-      <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500 ring-2 ring-surface" />
+      {/* Compact 8px dot - no ping pulse, no oversized ring. */}
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface" />
     </span>
   );
 }

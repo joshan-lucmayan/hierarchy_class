@@ -11,6 +11,7 @@ import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useMyEnrollment } from "@/lib/useEnrollment";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export default function StudentProfilePage() {
   const { profile, loading, updateProfile, uploadAvatar, removeAvatar } = useMyProfile();
@@ -129,13 +130,14 @@ export default function StudentProfilePage() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
-      <CornerFrame className="space-y-6 rounded-3xl border border-base bg-surface p-6 shadow-card">
+      <CornerFrame className="space-y-6 rounded-[10px] border border-base bg-surface p-5">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="group relative">
-            <img
-              src={profile.avatar_url || "/avatars/default-avatar.webp"}
-              alt={profile.full_name}
-              className="h-24 w-24 rounded-full border-2 border-gold object-cover"
+            <UserAvatar
+              name={profile.full_name}
+              src={profile.avatar_url}
+              size="2xl"
+              className="border-2 border-surface"
             />
           </div>
           <div>
@@ -165,7 +167,7 @@ export default function StudentProfilePage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-gold bg-[var(--surface-strong)] p-5 text-center">
+        <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-5 text-center">
           <p className="text-xs uppercase tracking-[0.2em] text-muted">Academic Excellence</p>
           <p className="mt-3 text-4xl font-bold text-navy">{academicExcellence > 0 ? academicExcellence : "--"}</p>
           <RankBadge rank={overallRank} size="lg" className="mt-4" />
@@ -174,7 +176,7 @@ export default function StudentProfilePage() {
       </CornerFrame>
 
       <div className="space-y-6">
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Stat overview</h2>
           <StatRadarChart stats={{ academic: academicExcellence, physical: 0, charisma: 0 }} />
           <p className="mt-2 text-xs text-muted">
@@ -183,7 +185,7 @@ export default function StudentProfilePage() {
         </CornerFrame>
 
         {academicInfo && academicInfo.courses.length > 0 && (
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">My courses</h2>
             <div className="flex flex-wrap gap-2">
               {academicInfo.courses.map((c) => (
@@ -195,7 +197,7 @@ export default function StudentProfilePage() {
           </CornerFrame>
         )}
 
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Course stats</h2>
           {courseBreakdown.length === 0 ? (
             <p className="text-sm text-muted">No grades recorded yet.</p>
@@ -213,7 +215,7 @@ export default function StudentProfilePage() {
           <p className="mt-4 text-xs text-muted">Grades and ranks are set by your teachers and can&apos;t be edited here.</p>
         </CornerFrame>
 
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">About</h2>
             <button
@@ -230,7 +232,7 @@ export default function StudentProfilePage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
-              className="w-full rounded-2xl border border-base bg-surface p-4 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface p-4 text-sm text-navy outline-none focus:border-gold"
             />
           ) : (
             <p className="text-sm leading-6 text-muted">{bio || "No bio yet."}</p>
@@ -253,7 +255,7 @@ export default function StudentProfilePage() {
                   value={favoriteSubject}
                   onChange={(e) => setFavoriteSubject(e.target.value)}
                   placeholder="e.g. Physics"
-                  className="mt-2 w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-2 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 />
               ) : (
                 <p className="mt-2 text-sm text-navy">{favoriteSubject || "Not set"}</p>
@@ -275,7 +277,7 @@ export default function StudentProfilePage() {
                   value={hobbies}
                   onChange={(e) => setHobbies(e.target.value)}
                   placeholder="Separate with commas"
-                  className="mt-2 w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-2 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 />
               ) : (
                 <p className="mt-2 text-sm text-navy">{hobbies || "Not set"}</p>
@@ -299,7 +301,7 @@ export default function StudentProfilePage() {
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="Separate with commas"
-                className="mt-2 w-full rounded-xl border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                className="mt-2 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
             ) : (
               <p className="mt-2 text-sm text-navy">{tags || "Not set"}</p>
@@ -308,7 +310,7 @@ export default function StudentProfilePage() {
         </CornerFrame>
 
         {/* Friends Section */}
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Friends</h2>
           {friendsLoading ? (
             <p className="mt-4 text-sm text-muted">Loading friends...</p>
@@ -325,12 +327,8 @@ export default function StudentProfilePage() {
                   className="flex shrink-0 flex-col items-center gap-1.5 transition active:scale-95"
                 >
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-strong)] p-[2px]">
-                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-navy">
-                      <img
-                        src={friend.avatarUrl || "/avatars/default-avatar.webp"}
-                        alt={friend.fullName}
-                        className="h-full w-full object-cover"
-                      />
+                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface">
+                      <UserAvatar name={friend.fullName} src={friend.avatarUrl} size="xl" />
                     </div>
                   </div>
                   <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">
@@ -346,7 +344,7 @@ export default function StudentProfilePage() {
       {editOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditOpen(false)}>
           <div
-            className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl"
+            className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
@@ -354,10 +352,11 @@ export default function StudentProfilePage() {
             <h2 className="mt-2 text-xl font-bold text-navy">Profile picture</h2>
 
             <div className="mt-5 flex flex-col items-center text-center">
-              <img
-                src={profile.avatar_url || "/avatars/default-avatar.webp"}
-                alt={profile.full_name}
-                className="h-24 w-24 rounded-full border-2 border-gold object-cover"
+              <UserAvatar
+                name={profile.full_name}
+                src={profile.avatar_url}
+                size="2xl"
+                className="border-2 border-surface"
               />
               {photoMessage && <p className="mt-3 text-xs font-semibold text-emerald-600">{photoMessage}</p>}
               <p className="mt-2 text-xs text-muted">
@@ -370,7 +369,7 @@ export default function StudentProfilePage() {
                 type="button"
                 disabled={uploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-navy transition hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
               >
                 {uploading ? "Uploading..." : profile.avatar_url ? "Change photo" : "Upload photo"}
               </button>

@@ -51,17 +51,13 @@ function useNow() {
   return now;
 }
 
-function formatDisplayDate(now: Date) {
-  return now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-}
-
 type ModalKind = "note" | "schedule" | "lesson" | null;
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-7 shadow-2xl"
+        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -183,10 +179,30 @@ export default function TeacherHomePage() {
         {getGreeting(now.getHours())}{profileLoading ? "" : profile ? `, ${profile.full_name}` : ""}
       </h1>
 
-      <section className="space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Today · {today}, {formatDisplayDate(now)}</h2>
+      <div className="grid items-start gap-5 xl:grid-cols-[1.6fr_1fr]">
+        {/* Left column: latest school feed (same as student home). */}
+        <section className="space-y-4">
+          <h1 className="text-[11px] font-semibold uppercase tracking-[0.11em] text-faint">
+            Latest School Feed
+          </h1>
+          {feedLoading ? (
+            <p className="text-sm text-muted">Loading announcements...</p>
+          ) : feedError ? (
+            <p className="text-sm text-red-500">{feedError}</p>
+          ) : announcements.length === 0 ? (
+            <p className="text-sm text-muted">No announcements yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {announcements.map((post) => (
+                <FeedPost key={post.id} post={post} />
+              ))}
+            </div>
+          )}
+        </section>
 
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+        {/* Right column: teacher workspace cards, stacked. */}
+        <aside className="space-y-4">
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Assigned by admin</p>
             {assignedTasks.filter((t) => t.status === "pending").length > 0 && (
@@ -198,7 +214,7 @@ export default function TeacherHomePage() {
           <div className="mt-4 space-y-2">
             {assignedTasks.length === 0 && <p className="text-sm text-muted">No tasks assigned yet.</p>}
             {assignedTasks.map((task) => (
-              <div key={task.id} className="rounded-2xl border border-base p-3">
+              <div key={task.id} className="rounded-[10px] border border-base p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className={`text-sm font-semibold ${task.status === "done" ? "text-muted line-through" : "text-navy"}`}>
@@ -216,7 +232,7 @@ export default function TeacherHomePage() {
                       <button
                         type="button"
                         onClick={() => handleAccept(task.id)}
-                        className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                        className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
                       >
                         Accept
                       </button>
@@ -234,7 +250,7 @@ export default function TeacherHomePage() {
                     <button
                       type="button"
                       onClick={() => markTaskDone(task.id)}
-                      className="shrink-0 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy"
+                      className="shrink-0 rounded-full bg-navy px-3 py-1 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
                     >
                       Mark done
                     </button>
@@ -276,7 +292,7 @@ export default function TeacherHomePage() {
                 </div>
 
                 {decliningTaskId === task.id && (
-                  <div className="mt-3 space-y-2 rounded-xl border border-base bg-[var(--surface-strong)] p-3">
+                  <div className="mt-3 space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-3">
                     <p className="text-xs text-muted">Why are you declining this task?</p>
                     <textarea
                       value={declineReasonDraft}
@@ -309,25 +325,7 @@ export default function TeacherHomePage() {
           </div>
         </CornerFrame>
 
-        <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">School announcements</p>
-          {feedLoading ? (
-            <p className="mt-3 text-sm text-muted">Loading announcements...</p>
-          ) : feedError ? (
-            <p className="mt-3 text-sm text-red-500">{feedError}</p>
-          ) : announcements.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">No announcements yet.</p>
-          ) : (
-            <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-              {announcements.slice(0, 3).map((post) => (
-                <FeedPost key={post.id} post={post} />
-              ))}
-            </div>
-          )}
-        </CornerFrame>
-
-        <div className="grid items-start gap-4 xl:grid-cols-3">
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Pinned notes</p>
               <AddButton label="Add a note" onClick={() => setActiveModal("note")} />
@@ -335,14 +333,14 @@ export default function TeacherHomePage() {
             <div className="mt-4 space-y-2">
               {pinnedNotes.length === 0 && <p className="text-sm text-muted">No pinned notes.</p>}
               {pinnedNotes.map((note) => (
-                <div key={note.id} className="rounded-2xl border border-gold/50 bg-[var(--surface-strong)] p-3">
+                <div key={note.id} className="rounded-[10px] border border-gold/50 bg-[var(--surface-strong)] p-3">
                   <p className="text-sm text-navy">{note.text}</p>
                 </div>
               ))}
             </div>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Today&apos;s schedule</p>
               <AddButton label="Add to schedule" onClick={() => setActiveModal("schedule")} />
@@ -350,7 +348,7 @@ export default function TeacherHomePage() {
             <div className="mt-4 space-y-2">
               {todaySchedule.length === 0 && <p className="text-sm text-muted">Nothing left on today&apos;s schedule.</p>}
               {todaySchedule.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-base p-3">
+                <div key={item.id} className="rounded-[10px] border border-base p-3">
                   <p className="text-sm font-semibold text-navy">{item.subject}</p>
                   <p className="text-xs text-muted">{formatTimeLabel(item.startTime)} - {formatTimeLabel(item.endTime)}</p>
                 </div>
@@ -358,7 +356,7 @@ export default function TeacherHomePage() {
             </div>
           </CornerFrame>
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Today&apos;s lesson plan</p>
               <AddButton label="Add lesson plan" onClick={() => setActiveModal("lesson")} />
@@ -366,7 +364,7 @@ export default function TeacherHomePage() {
             <div className="mt-4 space-y-2">
               {todayLessonPlans.length === 0 && <p className="text-sm text-muted">Nothing left in today&apos;s lesson plan.</p>}
               {todayLessonPlans.map((plan) => (
-                <div key={plan.id} className="rounded-2xl border border-base p-3">
+                <div key={plan.id} className="rounded-[10px] border border-base p-3">
                   <p className="text-sm font-semibold text-navy">{plan.title}</p>
                   {plan.startTime && plan.endTime && (
                     <p className="text-xs text-gold">{formatTimeLabel(plan.startTime)} - {formatTimeLabel(plan.endTime)}</p>
@@ -376,8 +374,8 @@ export default function TeacherHomePage() {
               ))}
             </div>
           </CornerFrame>
-        </div>
-      </section>
+        </aside>
+      </div>
 
       {activeModal === "note" && (
         <Modal title="Notes" onClose={() => setActiveModal(null)}>
@@ -387,16 +385,16 @@ export default function TeacherHomePage() {
               onChange={(e) => setNoteDraft(e.target.value)}
               placeholder="Jot down a quick note..."
               rows={3}
-              className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
-            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
               Add note
             </button>
           </form>
           <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
             {notes.length === 0 && <p className="text-xs text-muted">No notes yet.</p>}
             {notes.map((note) => (
-              <div key={note.id} className="flex items-start justify-between gap-2 rounded-2xl border border-base p-3">
+              <div key={note.id} className="flex items-start justify-between gap-2 rounded-[10px] border border-base p-3">
                 <p className="text-sm text-navy">{note.text}</p>
                 <div className="flex shrink-0 items-center gap-2">
                   <button
@@ -422,7 +420,7 @@ export default function TeacherHomePage() {
             <select
               value={scheduleDraft.day}
               onChange={(e) => setScheduleDraft((d) => ({ ...d, day: e.target.value }))}
-              className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             >
               {DAYS.map((day) => (
                 <option key={day} value={day}>{day}</option>
@@ -435,7 +433,7 @@ export default function TeacherHomePage() {
                   type="time"
                   value={scheduleDraft.startTime}
                   onChange={(e) => setScheduleDraft((d) => ({ ...d, startTime: e.target.value }))}
-                  className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
                 />
               </label>
               <label className="block space-y-1">
@@ -444,7 +442,7 @@ export default function TeacherHomePage() {
                   type="time"
                   value={scheduleDraft.endTime}
                   onChange={(e) => setScheduleDraft((d) => ({ ...d, endTime: e.target.value }))}
-                  className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
                 />
               </label>
             </div>
@@ -452,17 +450,17 @@ export default function TeacherHomePage() {
               value={scheduleDraft.subject}
               onChange={(e) => setScheduleDraft((d) => ({ ...d, subject: e.target.value }))}
               placeholder="Subject or activity"
-              className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
             {scheduleFormError && <p className="text-xs text-red-500">{scheduleFormError}</p>}
-            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
               Add to schedule
             </button>
           </form>
           <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
             {scheduleItems.length === 0 && <p className="text-xs text-muted">Nothing scheduled yet.</p>}
             {scheduleItems.map((item) => (
-              <div key={item.id} className="flex items-start justify-between gap-2 rounded-2xl border border-base p-3">
+              <div key={item.id} className="flex items-start justify-between gap-2 rounded-[10px] border border-base p-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-gold">{item.day}</p>
                   <p className="text-sm font-semibold text-navy">{item.subject}</p>
@@ -484,13 +482,13 @@ export default function TeacherHomePage() {
               value={lessonDraft.title}
               onChange={(e) => setLessonDraft((d) => ({ ...d, title: e.target.value }))}
               placeholder="Lesson title"
-              className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
             <input
               type="date"
               value={lessonDraft.date}
               onChange={(e) => setLessonDraft((d) => ({ ...d, date: e.target.value }))}
-              className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
             <div className="grid grid-cols-2 gap-2">
               <label className="block space-y-1">
@@ -499,7 +497,7 @@ export default function TeacherHomePage() {
                   type="time"
                   value={lessonDraft.startTime}
                   onChange={(e) => setLessonDraft((d) => ({ ...d, startTime: e.target.value }))}
-                  className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
                 />
               </label>
               <label className="block space-y-1">
@@ -508,7 +506,7 @@ export default function TeacherHomePage() {
                   type="time"
                   value={lessonDraft.endTime}
                   onChange={(e) => setLessonDraft((d) => ({ ...d, endTime: e.target.value }))}
-                  className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
                 />
               </label>
             </div>
@@ -517,16 +515,16 @@ export default function TeacherHomePage() {
               onChange={(e) => setLessonDraft((d) => ({ ...d, description: e.target.value }))}
               placeholder="What will you cover?"
               rows={2}
-              className="w-full rounded-2xl border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
-            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
               Add lesson plan
             </button>
           </form>
           <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
             {lessonPlans.length === 0 && <p className="text-xs text-muted">No lesson plans yet.</p>}
             {lessonPlans.map((plan) => (
-              <div key={plan.id} className="flex items-start justify-between gap-2 rounded-2xl border border-base p-3">
+              <div key={plan.id} className="flex items-start justify-between gap-2 rounded-[10px] border border-base p-3">
                 <div>
                   <p className="text-sm font-semibold text-navy">{plan.title}</p>
                   {plan.date && <p className="text-xs text-gold">{plan.date}{plan.startTime ? ` · ${formatTimeLabel(plan.startTime)} - ${formatTimeLabel(plan.endTime)}` : ""}</p>}

@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
-import { validateUpload, extensionForMime } from "@/lib/uploadUtils";
+import { validateUpload, resolveFileExtension } from "@/lib/uploadUtils";
+import { randomId } from "@/lib/randomId";
 
 export interface LearningMaterial {
   id: string;
@@ -31,7 +32,7 @@ interface MaterialsContextValue {
     type: string;
     description: string;
     file?: File | null;
-  }) => Promise<boolean>;
+  }) => Promise<{ ok: boolean; error?: string }>;
   deleteMaterial: (id: string) => Promise<void>;
   refresh: () => void;
 }
@@ -75,7 +76,10 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rows = (data ?? []) as any[];
-      const storagePaths = rows.map((r) => r.url).filter((u: string | null) => u && u.startsWith("materials/"));
+      // Storage paths are stored WITHOUT the bucket prefix ("{school}/{profile}/{uuid}.ext")
+      // so that storage RLS's foldername(name)[1] === school_id works. Anything that
+      // doesn't start with http is a storage path; real external links start with http(s).
+      const storagePaths = rows.map((r) => r.url).filter((u: string | null) => u && !u.startsWith("http"));
       const signed =
         storagePaths.length > 0
           ? await supabase.storage.from("materials").createSignedUrls(storagePaths, 3600)
@@ -88,7 +92,7 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       setMaterials(
         rows.map((r: any) => {
-          const isStorage = r.url && r.url.startsWith("materials/");
+          const isStorage = r.url && !r.url.startsWith("http");
           return {
             id: r.id,
             title: r.title,
@@ -125,25 +129,31 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
       type: string;
       description: string;
       file?: File | null;
-    }): Promise<boolean> => {
-      if (!profile) return false;
+    }): Promise<{ ok: boolean; error?: string }> => {
+      if (!profile) return { ok: false, error: "You're not signed in. Reload the page and try again." };
 
       let url: string | null = null;
       if (input.file) {
         const validationError = validateUpload(input.file, "document");
         if (validationError) {
           setError(validationError);
-          return false;
+          return { ok: false, error: validationError };
         }
-        const ext = extensionForMime(input.file.type) ?? "pdf";
-        const path = `materials/${profile.school_id}/${profile.id}/${crypto.randomUUID()}.${ext}`;
+        const ext = resolveFileExtension(input.file) ?? "pdf";
+        // Path is relative to the "materials" bucket and MUST NOT include the
+        // bucket name as a prefix — storage RLS reads the school id from
+        // foldername(name)[1], so the first folder has to be the school UUID.
+        const path = `${profile.school_id}/${profile.id}/${randomId()}.${ext}`;
         const supabase = createClient();
         const { error: uploadError } = await supabase.storage
           .from("materials")
           .upload(path, input.file, { contentType: input.file.type, upsert: false });
         if (uploadError) {
           setError("Couldn't upload the file.");
-          return false;
+          return {
+            ok: false,
+            error: `Couldn't upload the file: ${uploadError.message}. ${uploadError.status === 403 ? "Storage permission issue — check the materials bucket policies." : ""}`,
+          };
         }
         url = path;
       }
@@ -163,12 +173,15 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
       if (insertError) {
         if (url) await supabase.storage.from("materials").remove([url]);
         setError("Couldn't save the material.");
-        return false;
+        return {
+          ok: false,
+          error: `Couldn't save the material: ${insertError.message}. ${insertError.code === "42501" ? "The database rejected the insert — check the learning_materials RLS policies." : ""}`,
+        };
       }
 
       setError(null);
       refresh();
-      return true;
+      return { ok: true };
     },
     [profile, refresh]
   );

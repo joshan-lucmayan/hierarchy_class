@@ -18,7 +18,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-2xl bg-surface p-7 shadow-2xl"
+        className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
@@ -30,7 +30,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           {FLORIN_PACKAGES.map((pkg) => (
-            <div key={pkg.florin} className="rounded-2xl border border-base bg-surface px-3 py-3 text-center opacity-60">
+            <div key={pkg.florin} className="rounded-[10px] border border-base bg-surface px-3 py-3 text-center opacity-60">
               <p className="text-lg font-bold text-navy">{pkg.florin}</p>
               <p className="text-[11px] text-muted">Florin</p>
               <p className="mt-1 text-xs font-semibold text-gold">₱{pkg.price}</p>
@@ -38,7 +38,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
 
-        <div className="mt-5 rounded-2xl border border-base bg-[var(--surface-strong)] p-4 text-center">
+        <div className="mt-5 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-center">
           <p className="text-sm font-semibold text-navy">Purchases coming soon</p>
           <p className="mt-1 text-xs leading-5 text-muted">
             Coin packages aren&apos;t connected to a payment processor yet. Your balance only changes through verified
@@ -49,7 +49,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy"
+          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
         >
           Close
         </button>

@@ -6,6 +6,7 @@ import { useChatStore, ChatRole } from "@/lib/chatStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useMyProfile } from "@/lib/useMyProfile";
 import type { ProfileRow } from "@/types/supabase";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -159,10 +160,8 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
     if (ok) setDraft("");
   }
 
-  const defaultAvatar = "/avatars/default-avatar.webp";
-
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-[520px] overflow-hidden rounded-2xl border border-base">
+    <div className="flex h-[calc(100vh-220px)] min-h-[520px] overflow-hidden rounded-[10px] border border-base">
       {/* Left column: conversation list / search */}
       <div className="flex w-full max-w-[300px] shrink-0 flex-col border-r border-base">
         <div className="flex items-center justify-between border-b border-base p-4">
@@ -201,11 +200,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   onClick={() => handleStartConversation(person)}
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)]"
                 >
-                  <img
-                    src={person.avatar_url || defaultAvatar}
-                    alt={person.full_name}
-                    className="h-9 w-9 shrink-0 rounded-full border border-base object-cover"
-                  />
+                  <UserAvatar name={person.full_name} src={person.avatar_url} size="md" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-navy">{person.full_name}</p>
                     <p className="truncate text-[11px] text-muted">
@@ -237,11 +232,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   activeId === c.id ? "bg-[var(--surface-strong)]" : "hover:bg-[var(--surface-strong)]"
                 }`}
               >
-                <img
-                  src={c.avatarUrl || defaultAvatar}
-                  alt={c.name}
-                  className="h-11 w-11 shrink-0 rounded-full border border-base object-cover"
-                />
+                <UserAvatar name={c.name} src={c.avatarUrl} size="lg" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-semibold text-navy">{c.name}</p>
@@ -250,7 +241,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-xs text-muted">{c.lastMessage || "No messages yet"}</p>
                     {c.unread > 0 && (
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-navy">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-on-accent">
                         {c.unread}
                       </span>
                     )}
@@ -267,11 +258,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
         {active ? (
           <>
             <div className="flex items-center gap-3 border-b border-base p-4">
-              <img
-                src={active.avatarUrl || defaultAvatar}
-                alt={active.name}
-                className="h-10 w-10 rounded-full border border-base object-cover"
-              />
+              <UserAvatar name={active.name} src={active.avatarUrl} size="lg" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-navy">{active.name}</p>
                 {active.otherId && (
@@ -298,7 +285,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   {menuOpen && (
                     <>
                       <button type="button" aria-label="Close menu" className="fixed inset-0 z-10 cursor-default" onClick={() => setMenuOpen(false)} />
-                      <div className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-2xl border border-base bg-surface py-1 shadow-2xl">
+                      <div className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-[10px] border border-base bg-surface py-1">
                         <button
                           type="button"
                           onClick={() => { setMenuOpen(false); markUnread(active.id); }}
@@ -367,7 +354,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
             </div>
 
             <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-5">
-              {actionError && <p className="rounded-xl border border-red-300 bg-red-500/5 px-3 py-2 text-xs text-red-600">{actionError}</p>}
+              {actionError && <p className="rounded-[10px] border border-red-300 bg-red-500/5 px-3 py-2 text-xs text-red-600">{actionError}</p>}
               {active.messagesLoading ? (
                 <p className="text-center text-sm text-muted">Loading messages...</p>
               ) : active.messages.length === 0 ? (
@@ -376,8 +363,8 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                 active.messages.map((m) => (
                   <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
                     <span
-                      className={`max-w-[65%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm ${
-                        m.mine ? "bg-gold text-navy" : "bg-[var(--surface-strong)] text-navy"
+                      className={`max-w-[65%] whitespace-pre-wrap break-words rounded-[10px] px-4 py-2.5 text-sm ${
+                        m.mine ? "bg-gold text-on-accent" : "bg-[var(--surface-strong)] text-navy"
                       }`}
                     >
                       {m.text}
@@ -413,7 +400,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     type="button"
                     onClick={handleSend}
                     disabled={sending || !draft.trim()}
-                    className="rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {sending ? "Sending..." : "Send"}
                   </button>

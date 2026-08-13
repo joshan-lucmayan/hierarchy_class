@@ -190,7 +190,7 @@ export default function AdminProgramsPage() {
 
   return (
     <div className="space-y-6">
-      <CornerFrame className="rounded-3xl border-2 border-gold bg-surface p-6 shadow-card">
+      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Programs & Curriculum</p>
         <h1 className="mt-2 text-3xl font-bold text-navy">Manage hierarchy</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
@@ -202,13 +202,13 @@ export default function AdminProgramsPage() {
         <div className="space-y-4">
           <button
             onClick={openProgramForm}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
           >
             {showProgramForm ? "Cancel" : "+ Add program"}
           </button>
 
           {showProgramForm && (
-            <form onSubmit={handleProgramSubmit} className="space-y-2 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+            <form onSubmit={handleProgramSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
               <input
                 value={programDraft.name}
                 onChange={(e) => setProgramDraft((d) => ({ ...d, name: e.target.value }))}
@@ -221,7 +221,7 @@ export default function AdminProgramsPage() {
                 placeholder="Description (optional)"
                 className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
-              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
                 {editingProgramId ? "Save changes" : "Create"}
               </button>
             </form>
@@ -232,7 +232,7 @@ export default function AdminProgramsPage() {
               <div
                 key={prog.id}
                 onClick={() => handleProgramSelect(prog.id)}
-                className="cursor-pointer rounded-3xl border border-base bg-surface p-6 text-left shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-lg font-bold text-navy">{prog.name}</p>
@@ -253,20 +253,20 @@ export default function AdminProgramsPage() {
           <button onClick={handleBack} className="text-sm font-semibold text-gold transition hover:text-gold/80">← Back</button>
           <button
             onClick={openSectionForm}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
           >
             {showSectionForm ? "Cancel" : "+ Add section"}
           </button>
 
           {showSectionForm && (
-            <form onSubmit={handleSectionSubmit} className="space-y-2 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+            <form onSubmit={handleSectionSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
               <input
                 value={sectionDraft}
                 onChange={(e) => setSectionDraft(e.target.value)}
                 placeholder="Section name (e.g., Grade 10, Year 1)"
                 className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
-              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
                 {editingSectionId ? "Save changes" : "Create"}
               </button>
             </form>
@@ -277,7 +277,7 @@ export default function AdminProgramsPage() {
               <div
                 key={sec.id}
                 onClick={() => handleSectionSelect(sec.id)}
-                className="relative cursor-pointer rounded-3xl border-2 border-base bg-surface p-8 text-center shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                className="relative cursor-pointer rounded-[10px] border border-base bg-surface p-8 text-center transition hover:border-sealion"
               >
                 <div className="absolute right-3 top-3 flex gap-1.5">
                   <IconBtn onClick={(e) => startEditSection(e, sec.id, sec.name)} label="Edit section" variant="edit">✎</IconBtn>
@@ -295,13 +295,13 @@ export default function AdminProgramsPage() {
           <button onClick={handleBack} className="text-sm font-semibold text-gold transition hover:text-gold/80">← Back</button>
           <button
             onClick={openCourseForm}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
           >
             {showCourseForm ? "Cancel" : "+ Add course"}
           </button>
 
           {showCourseForm && (
-            <form onSubmit={handleCourseSubmit} className="space-y-2 rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+            <form onSubmit={handleCourseSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
               <input
                 value={courseDraft.name}
                 onChange={(e) => setCourseDraft((d) => ({ ...d, name: e.target.value }))}
@@ -327,7 +327,7 @@ export default function AdminProgramsPage() {
                   <option key={t.id} value={t.id}>{t.full_name}</option>
                 ))}
               </select>
-              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-navy">
+              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
                 {editingCourseId ? "Save changes" : "Create"}
               </button>
             </form>
@@ -338,7 +338,7 @@ export default function AdminProgramsPage() {
               <div
                 key={crs.id}
                 onClick={() => handleCourseSelect(crs.id)}
-                className="cursor-pointer rounded-3xl border border-base bg-surface p-6 text-left shadow-card transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
+                className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-lg font-bold text-navy">{crs.name}</p>
@@ -360,13 +360,13 @@ export default function AdminProgramsPage() {
           <button onClick={handleBack} className="text-sm font-semibold text-gold transition hover:text-gold/80">← Back</button>
           <button
             onClick={() => setShowEnrollPicker(!showEnrollPicker)}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:opacity-90"
+            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
           >
             {showEnrollPicker ? "Cancel" : "+ Enroll student"}
           </button>
 
           {showEnrollPicker && (
-            <CornerFrame className="rounded-2xl border border-base bg-[var(--surface-strong)] p-4">
+            <CornerFrame className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">Signed-up students at your school</p>
               <input
                 value={enrollQuery}
@@ -398,7 +398,7 @@ export default function AdminProgramsPage() {
             </CornerFrame>
           )}
 
-          <CornerFrame className="rounded-3xl border border-base bg-surface p-6 shadow-card">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Students enrolled</p>
             <div className="mt-4 space-y-2">
               {students.length === 0 ? (
@@ -408,7 +408,7 @@ export default function AdminProgramsPage() {
                   const avg = getStudentAverage(std.id);
                   const rank = getStudentRank(std.id);
                   return (
-                    <div key={std.id} className="flex items-center justify-between gap-3 rounded-2xl border border-base bg-[var(--surface-strong)] p-3">
+                    <div key={std.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-base bg-[var(--surface-strong)] p-3">
                       <div>
                         <p className="text-sm font-semibold text-navy">{std.name}</p>
                         <p className="text-xs text-muted">{avg !== null ? `Avg ${avg}${rank ? ` · ${rank}` : ""}` : "No grades yet"}</p>
