@@ -9,7 +9,7 @@ and tiered **ranks** (S++ down to D), while grading data stays strictly
 controlled by teachers and admins. It blends the social feel of a profile app
 with the structure and accountability of a school information system.
 
-**Current version:** `1.1.20`
+**Current version:** `1.1.22`
 
 ---
 
