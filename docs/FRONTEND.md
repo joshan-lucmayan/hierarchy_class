@@ -14,8 +14,7 @@ Next.js 14 (App Router) + React 18 + TypeScript + Tailwind. Pages live in
 | Teacher | `/teacher/home`, `/teacher/classroom`, `/teacher/students`, `/teacher/quiz`, `/teacher/learning-materials`, `/teacher/library-management`, `/teacher/messages`, `/teacher/settings` |
 | Admin | `/admin/home`, `/admin/users`, `/admin/programs`, `/admin/students`, `/admin/teachers`, `/admin/reports`, `/admin/messages`, `/admin/settings` |
 
-Each role has its own `layout.tsx` (wraps `AppShell` + RoleGuard) and
-`loading.tsx`.
+Each role has its own `layout.tsx` (wraps `AppShell`) and `loading.tsx`.
 
 ---
 
@@ -28,7 +27,7 @@ is no mock data.
 
 | Provider / hook | Purpose |
 |---|---|
-| `ClassroomHierarchyProvider` | Programs → sections → courses → enrollments + grade getters |
+| `ClassroomHierarchyProvider` | Education levels → programs → year/levels → courses → enrollments + grade getters |
 | `ChatProvider` | Shared-thread messaging (see ARCHITECTURE §5) |
 | `NotificationsProvider` | Notification bell + mark read |
 | `SchoolFeedProvider` | Feed/announcements |
@@ -88,3 +87,7 @@ is no mock data.
    today's entry (real DB writes + optimistic update).
 6. **Theming** — light/dark toggle in every role's settings page; version
    shown there too (from `lib/version.ts`).
+7. **Academic info (admin)** — Admin → Students → Academic info picks
+   education level → program → year/level (or **None** to clear); saving
+   auto-enrolls the student in that year's courses via `autoEnrollInSection`
+   and the roster/identity updates everywhere through realtime.

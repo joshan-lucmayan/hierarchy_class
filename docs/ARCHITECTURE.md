@@ -1,6 +1,6 @@
 # Hierarchy Class — Architecture
 
-**Version 1.1.20.** A gamified academic-tracking platform ("Climb the ranks")
+**Version 1.1.22.** A gamified academic-tracking platform ("Climb the ranks")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).
@@ -56,8 +56,8 @@ hierarchy_class/
 │   ├── dashboard/           SubjectStats, HabitTracker, WeeklyProgress
 │   ├── profile/             ProfileModal (in-place profile preview)
 │   ├── search/              QuickSearchBar
-│   ├── admin/               PostEditor, BannerEditor
-│   ├── auth/                Login/Signup forms, SchoolSelector, RoleGuard
+│   ├── admin/               PostEditor
+│   ├── auth/                Login/Signup forms, SchoolSelector
 │   ├── library/             Catalog, AddBookModal, EditBookModal
 │   ├── leaderboard/         LeaderboardRow
 │   ├── student/             FlorinPurchaseModal
@@ -66,7 +66,7 @@ hierarchy_class/
 │   └── FeedbackForm.tsx     Shared feedback/report form
 │
 ├── lib/                     SHARED LOGIC — data layer + helpers
-│   ├── supabase/            client.ts (browser), server.ts, middleware.ts
+│   ├── supabase/            client.ts (browser), auth.ts (server reads)
 │   ├── *Store.tsx           React context providers → live Supabase data
 │   ├── use*.ts              Data hooks (profile, roster, leaderboard,
 │   │                        enrollment, schools, account requests)
@@ -77,10 +77,9 @@ hierarchy_class/
 │   └── weekUtils.ts         Date/week helpers
 │
 ├── database/                DATABASE — everything Postgres
-│   ├── migrations/          Numbered SQL migrations 001 → 031 (see DATABASE.md)
+│   ├── migrations/          Numbered SQL migrations 001 → 033 (see DATABASE.md)
 │   └── README.md            How to apply migrations
 │
-├── supabase/                Supabase CLI config (linked project, storage)
 ├── types/                   TypeScript types (supabase.ts, school.ts, ...)
 ├── scripts/                 Seed scripts (seed-schools.sql, seed.ts, ...)
 ├── public/                  Static assets (favicons, default avatar)
@@ -92,9 +91,9 @@ Concern → folder cheat sheet:
 | Concern | Where |
 |---|---|
 | Frontend UI & routes | `app/`, `components/` |
-| Backend (server-side) | `app/api/`, `app/actions/`, `middleware.ts`, `lib/supabase/server.ts` |
+| Backend (server-side) | `app/api/`, `app/actions/`, `middleware.ts`, `lib/supabase/auth.ts` |
 | Database (schema, RLS, RPCs, triggers) | `database/migrations/` |
-| Security (auth, RLS, role guards) | `middleware.ts`, `database/migrations/` (RLS), `components/auth/RoleGuard` |
+| Security (auth, RLS, role guards) | `middleware.ts`, `database/migrations/` (RLS) |
 | Client data layer | `lib/` (stores + hooks) |
 
 ---
@@ -124,8 +123,8 @@ Postgres
 - **Fake-auth fallback**: when `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` are absent,
   middleware blocks nothing and the client stores render empty/error states —
   intentional for UI-only work, a deployment hazard if env vars are forgotten.
-- **RoleGuard** re-checks role client-side inside each role layout as a second
-  layer (defense in depth; RLS remains the real gate).
+- Role routing is enforced in **middleware only** (no client-side role-guard
+  component); RLS remains the real gate for data.
 
 ---
 

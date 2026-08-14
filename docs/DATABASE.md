@@ -14,15 +14,15 @@ migration index. Migrations live in `database/migrations/` — see
 | Table | Purpose | Key columns |
 |---|---|---|
 | `schools` | The tenant (a school/campus) | name, abbreviation |
-| `profiles` | One row per app user (student/teacher/admin) | user_id, role, school_id, full_name, avatar_url, bio, hobbies, tags, favorite_subject, educational_level, level_label, section, is_librarian |
+| `profiles` | One row per app user (student/teacher/admin) | user_id, role, school_id, full_name, avatar_url, bio, hobbies, tags, favorite_subject, educational_level, program, level_label, section (legacy), is_librarian |
 | `account_requests` | Deactivate/delete requests | profile_id, type, status |
 
 ### Academics (the hierarchy)
 
 | Table | Purpose |
 |---|---|
-| `programs` | Top of the hierarchy: track / grade band / department |
-| `sections` | Year/grade level inside a program |
+| `programs` | Self-referencing (`parent_id`): education levels at the top (`parent_id` NULL), programs nested under them (`parent_id` set) |
+| `sections` | Year/grade level inside a program (e.g. Year 1, Grade 12) |
 | `courses` | Individual subjects, assigned to a teacher, in a section |
 | `course_enrollments` | Student ↔ course membership |
 | `grade_entries` | The core grade row: student, course, type (Exam/Quiz/Activity/Assignment), score, `approval_status` ('pending'/'approved'/'rejected'), submitted_by |
@@ -167,6 +167,8 @@ All files live in `database/migrations/`.
 | 029 | Habit tracker: `habit_entries` table + RLS (school-scoped through profiles) |
 | 030 | Teacher workspace: `teacher_notes`, `teacher_schedule`, `teacher_lesson_plans` + RLS |
 | 031 | Messaging delete fix: `delete_conversation` clears the shared last-message preview once both sides have deleted |
+| 032 | Education Level Management: `programs.parent_id` self-reference so levels → programs → year/levels nest; idempotent orphan reparenting |
+| 033 | `profiles.program` column — the program saved from Academic info (level · program · year) |
 
 > Numbers 026–028 were created and removed during the rank-system rollback;
 > the sequence is intentionally 025 → 029.

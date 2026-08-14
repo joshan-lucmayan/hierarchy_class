@@ -76,6 +76,7 @@ file per change, run against Supabase in order:
 | Feed, stories, banners, library, materials | 019–024 |
 | Notifications, habits, enrollment status | 025–030 |
 | Education level → program nesting (`parent_id`) | 032 |
+| `profiles.program` column (Academic info) | 033 |
 
 Apply a migration in the Supabase SQL editor (or `psql -f database/migrations/NNN_*.sql`).
 Migrations are idempotent where it matters (`IF NOT EXISTS` / `DROP POLICY IF

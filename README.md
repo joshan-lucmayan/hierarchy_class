@@ -15,8 +15,9 @@ with the structure and accountability of a school information system.
 
 ## What it's for
 
-Each school builds its own academic hierarchy — **Programs** → **Sections**
-→ **Courses**, each assigned to a teacher and enrolled with real students.
+Each school builds its own academic hierarchy — **Education Levels** →
+**Programs** → **Year/Levels** → **Courses**, each assigned to a teacher and
+enrolled with real students.
 Teachers submit daily grades, admins approve them through a review queue, and
 students see live ranks, progress charts, and a social-style profile on top
 of verified academic data.
@@ -90,6 +91,9 @@ For a new or upgraded database, apply the numbered migrations in
 - **Rank-first UI** — the rank badge is the hero on profile/home cards;
   leaderboard rows show just the rank.
 - **Enrollment dates** — admins set both the enrolled-on and expiry dates.
+- **Education Level Management** — admins build levels → programs →
+  year/levels → courses, and Academic info in the student monitor saves a
+  student's level/program/year and auto-enrolls them in that year's courses.
 
 ## Documentation
 

@@ -50,8 +50,10 @@ raw grade rows.
 
 ## 4. Client-side hardening
 
-- **RoleGuard** in each role layout re-checks the role after hydration as a
-  second layer; RLS remains authoritative.
+- **Role routing is enforced in `middleware.ts`** on every request — it
+  matches `user_metadata.role` against the `/student|/teacher|/admin` prefix
+  and bounces mismatches to the user's own home; RLS remains authoritative
+  for data.
 - **No service-role keys in the browser.** All client code uses the anon key.
 - **Upload validation** (`lib/uploadUtils.ts`): MIME whitelist, size caps,
   extension derived from MIME (with fallback), UUID file paths. Storage
