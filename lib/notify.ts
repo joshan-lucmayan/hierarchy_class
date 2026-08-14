@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 
 /**
  * Thin wrappers around the SECURITY DEFINER notification functions in
- * migrations/014_notifications.sql. These are the ONLY ways notifications
+ * database/migrations/014_notifications.sql. These are the ONLY ways notifications
  * get created - the table has no client INSERT policy.
  */
 

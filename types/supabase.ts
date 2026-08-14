@@ -23,6 +23,7 @@ export interface ProfileRow {
   level_label: string | null;
   section: string | null;
   educational_level: string | null;
+  program: string | null;
   initials: string | null;
   bio: string | null;
   overall_rank: string;

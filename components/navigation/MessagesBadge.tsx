@@ -15,10 +15,13 @@ export function MessagesBadge() {
   return (
     <span
       title={`${unread} unread message${unread === 1 ? "" : "s"}`}
-      className="absolute -right-1 -top-1 flex h-2 w-2 items-center justify-center"
+      aria-label={`${unread} unread message${unread === 1 ? "" : "s"}`}
+      className="absolute -right-0.5 -top-0.5 flex h-1.5 w-1.5 items-center justify-center"
     >
-      {/* Compact 8px dot - no ping pulse, no oversized ring. */}
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface" />
+      {/* Minimal 6px dot in the palette's salmon tone - no ping pulse, no
+          bright red, no ring, sized so it reads as a notification but never
+          dominates the 40px nav rail. */}
+      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-warn" />
     </span>
   );
 }

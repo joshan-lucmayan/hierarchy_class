@@ -33,7 +33,7 @@ export default function AdminUsersPage() {
         !normalized ||
         p.full_name.toLowerCase().includes(normalized) ||
         (p.level_label ?? "").toLowerCase().includes(normalized) ||
-        (p.section ?? "").toLowerCase().includes(normalized);
+        (p.program ?? "").toLowerCase().includes(normalized);
       return matchesRole && matchesQuery;
     });
   }, [directory, roleFilter, query]);
@@ -106,7 +106,7 @@ export default function AdminUsersPage() {
                   <div>
                     <p className="text-sm font-semibold text-navy">{person.full_name}</p>
                     <p className="text-xs text-muted">
-                      {[person.educational_level, person.level_label, person.section].filter(Boolean).join(" · ") || "No level set"}
+                      {[person.educational_level, person.program, person.level_label].filter(Boolean).join(" · ") || "No level set"}
                       {person.role === "teacher" && person.is_librarian ? " · Librarian" : ""}
                     </p>
                   </div>

@@ -5,12 +5,12 @@ import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useAdminEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { CornerFrame } from "@/components/ui/CornerFrame";
-import { RankBadge } from "@/components/ui/RankBadge";
+import { ActionButton } from "@/components/ui/ActionButton";
 import { createClient } from "@/lib/supabase/client";
 import type { ProfileRow } from "@/types/supabase";
 
 export default function AdminStudentsPage() {
-  const { profiles: students, loading, error } = useSchoolProfiles({ role: "student" });
+  const { profiles: students, loading, error, refetch: refetchStudents } = useSchoolProfiles({ role: "student" });
   const {
     courses,
     sections,
@@ -19,6 +19,8 @@ export default function AdminStudentsPage() {
     getStudentRankByProfile,
     getEntriesByProfile,
     getStudentRecordsByProfile,
+    autoEnrollInSection,
+    clearStudentCourseData,
   } = useClassroomHierarchy();
   const { statuses, loading: enrollLoading, setEnrollment, revokeEnrollment } = useAdminEnrollments();
 
@@ -27,12 +29,16 @@ export default function AdminStudentsPage() {
   const [startDraft, setStartDraft] = useState("");
   const [expiryDraft, setExpiryDraft] = useState("");
   const [enrollMessage, setEnrollMessage] = useState<string | null>(null);
-  const [levelDraft, setLevelDraft] = useState("");
-  const [sectionDraft, setSectionDraft] = useState("");
-  const [edLevelDraft, setEdLevelDraft] = useState("");
+  // Academic cascade holds selected IDs (not names) so the year/level list
+  // can never silently come back empty due to name collisions.
+  const [edLevelId, setEdLevelId] = useState("");
+  const [programId, setProgramId] = useState("");
+  const [sectionId, setSectionId] = useState("");
   const [academicMessage, setAcademicMessage] = useState<string | null>(null);
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [savingAcademic, setSavingAcademic] = useState(false);
+  const [courseMessage, setCourseMessage] = useState<string | null>(null);
+  const [courseError, setCourseError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -40,19 +46,24 @@ export default function AdminStudentsPage() {
       (s) =>
         s.full_name.toLowerCase().includes(q) ||
         (s.level_label ?? "").toLowerCase().includes(q) ||
-        (s.section ?? "").toLowerCase().includes(q)
+        (s.program ?? "").toLowerCase().includes(q)
     );
   }, [students, query]);
 
   const selectedStudent: ProfileRow | undefined =
     filtered.find((s) => s.id === selectedId) ?? filtered[0];
 
-  // Hydrate the academic-edit drafts whenever the selected student changes.
+  // Hydrate the academic-edit selections whenever the selected student changes.
   useEffect(() => {
     if (selectedStudent) {
-      setLevelDraft(selectedStudent.level_label ?? "");
-      setSectionDraft(selectedStudent.section ?? "");
-      setEdLevelDraft(selectedStudent.educational_level ?? "");
+      const ed = programs.find((p) => !p.parentId && p.name === selectedStudent.educational_level);
+      const prog = programs.find(
+        (p) => p.parentId === ed?.id && p.name === (selectedStudent as any).program
+      );
+      const sec = sections.find((s) => s.programId === prog?.id && s.name === selectedStudent.level_label);
+      setEdLevelId(ed?.id ?? "");
+      setProgramId(prog?.id ?? "");
+      setSectionId(sec?.id ?? "");
       // Enrollment dates come from the live status row.
       const info = statuses[selectedStudent.id];
       setStartDraft(info?.startedAt ? new Date(info.startedAt).toISOString().slice(0, 10) : "");
@@ -60,6 +71,8 @@ export default function AdminStudentsPage() {
       setEnrollMessage(null);
       setAcademicMessage(null);
       setAcademicError(null);
+      setCourseMessage(null);
+      setCourseError(null);
     }
     // Re-hydrate when the selected student changes AND when enrollment data
     // arrives/updates (statuses keyed by student id).
@@ -85,44 +98,94 @@ export default function AdminStudentsPage() {
     setAcademicMessage(null);
     setAcademicError(null);
     const supabase = createClient();
+    const levelName = educationLevels.find((l) => l.id === edLevelId)?.name ?? null;
+    const programName = nestedPrograms.find((p) => p.id === programId)?.name ?? null;
+    const sectionName = yearLevelSections.find((s) => s.id === sectionId)?.name ?? null;
     const { error } = await (supabase.from("profiles") as any)
       .update({
-        level_label: levelDraft.trim() || null,
-        section: sectionDraft.trim() || null,
-        educational_level: edLevelDraft.trim() || null,
+        level_label: sectionName,
+        educational_level: levelName,
+        program: programName,
       })
       .eq("id", selectedStudent.id);
-    setSavingAcademic(false);
     if (error) {
+      setSavingAcademic(false);
       setAcademicError("Couldn't save the academic info. Only admins can edit these fields.");
-    } else {
-      setAcademicMessage("Academic info saved.");
+      return;
     }
+    // Grant course access: enroll the student in every course under the chosen
+    // year/level section (skips courses they're already in).
+    let enrolled = 0;
+    if (sectionId) enrolled = await autoEnrollInSection(sectionId, selectedStudent.id);
+    // Refresh the roster so the student's stored level/program/year show
+    // immediately (realtime also covers this, but don't wait on it).
+    refetchStudents();
+    setSavingAcademic(false);
+    setAcademicMessage(
+      enrolled > 0
+        ? `Academic info saved - enrolled in ${enrolled} course${enrolled === 1 ? "" : "s"} under ${sectionName}.`
+        : "Academic info saved."
+    );
   }
-
   const overallAvg = useMemo(() => {
     const avgs = students.map((s) => getStudentAverageByProfile(s.id)).filter((v): v is number => v !== null);
     if (avgs.length === 0) return null;
     return Math.round((avgs.reduce((a, b) => a + b, 0) / avgs.length) * 10) / 10;
   }, [students, getStudentAverageByProfile]);
 
-  const courseName = (courseId: string) => courses.find((c) => c.id === courseId)?.name ?? "Unknown course";
+  // Education-level cascade: top-level programs are EDUCATION LEVELS, programs
+  // with a parent are the PROGRAMS inside them, and sections are the year/levels.
+  const educationLevels = programs.filter((p) => !p.parentId);
+  const nestedPrograms = edLevelId ? programs.filter((p) => p.parentId === edLevelId) : [];
+  const yearLevelSections = programId ? sections.filter((s) => s.programId === programId) : [];
 
-  const selectedCourseBreakdown = useMemo(() => {
+  // Every course the student is enrolled in (not just ones with grades) so the
+  // admin can clear any of them.
+  const enrolledCourses = useMemo(() => {
     if (!selectedStudent) return [];
-    const entries = getEntriesByProfile(selectedStudent.id);
-    const byCourse = new Map<string, number[]>();
-    entries.forEach((e) => {
-      if (!byCourse.has(e.courseId)) byCourse.set(e.courseId, []);
-      byCourse.get(e.courseId)!.push(e.score);
-    });
-    return Array.from(byCourse.entries()).map(([courseId, scores]) => ({
-      courseId,
-      courseName: courseName(courseId),
-      avg: Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10,
-      count: scores.length,
-    }));
-  }, [selectedStudent, getEntriesByProfile, courses]);
+    const myIds = getStudentRecordsByProfile(selectedStudent.id).map((r) => r.courseId);
+    return courses.filter((c) => myIds.includes(c.id));
+  }, [selectedStudent, getStudentRecordsByProfile, courses]);
+
+  async function handleClearCourse(courseId: string, courseName: string) {
+    if (!selectedStudent) return;
+    if (
+      !confirm(
+        `Clear \"${courseName}\" for ${selectedStudent.full_name}? This removes their enrollment and every grade for this course.`
+      )
+    )
+      return;
+    const res = await clearStudentCourseData(selectedStudent.id, courseId);
+    if (res.removedCourses === 0 && res.removedGrades === 0) {
+      setCourseMessage(null);
+      setCourseError("Nothing to clear, or the removal was blocked by the database.");
+    } else {
+      setCourseMessage(
+        `Cleared ${courseName} - removed ${res.removedGrades} grade${res.removedGrades === 1 ? "" : "s"}.`
+      );
+      setCourseError(null);
+    }
+  }
+
+  async function handleClearAllCourses() {
+    if (!selectedStudent) return;
+    if (
+      !confirm(
+        `Clear ALL course data for ${selectedStudent.full_name}? This removes every course enrollment and grade. This cannot be undone.`
+      )
+    )
+      return;
+    const res = await clearStudentCourseData(selectedStudent.id);
+    if (res.removedCourses === 0 && res.removedGrades === 0) {
+      setCourseMessage(null);
+      setCourseError("No course data to clear.");
+    } else {
+      setCourseMessage(
+        `Cleared all course data - removed ${res.removedCourses} enrollment${res.removedCourses === 1 ? "" : "s"} and ${res.removedGrades} grade${res.removedGrades === 1 ? "" : "s"}.`
+      );
+      setCourseError(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -160,7 +223,6 @@ export default function AdminStudentsPage() {
               ) : (
                 filtered.map((student) => {
                   const avg = getStudentAverageByProfile(student.id);
-                  const rank = getStudentRankByProfile(student.id) ?? "D";
                   const courseCount = getStudentRecordsByProfile(student.id).length;
                   return (
                     <button
@@ -184,7 +246,6 @@ export default function AdminStudentsPage() {
                           {courseCount} course{courseCount === 1 ? "" : "s"} · {avg !== null ? `Avg ${avg}` : "No grades yet"}
                         </p>
                       </div>
-                      <RankBadge rank={rank} size="sm" />
                     </button>
                   );
                 })
@@ -206,20 +267,19 @@ export default function AdminStudentsPage() {
                   <div>
                     <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>
                     <p className="text-sm text-muted">
-                      {[selectedStudent.educational_level, selectedStudent.level_label, selectedStudent.section]
+                      {[selectedStudent.educational_level, selectedStudent.program, selectedStudent.level_label]
                         .filter(Boolean)
                         .join(" · ") || "No level set"}
                     </p>
-                    <RankBadge rank={getStudentRankByProfile(selectedStudent.id) ?? "D"} size="sm" className="mt-2" />
                   </div>
                 </div>
 
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-center">
-                    <p className="text-2xl font-bold text-navy">
-                      {getStudentAverageByProfile(selectedStudent.id) ?? "--"}
+                    <p className="text-2xl font-extrabold text-navy">
+                      {getStudentRankByProfile(selectedStudent.id) ?? "D"}
                     </p>
-                    <p className="mt-1 text-xs uppercase tracking-wide text-muted">Academic Excellence</p>
+                    <p className="mt-1 text-xs uppercase tracking-wide text-muted">Current rank</p>
                   </div>
                   <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-center">
                     <p className="text-2xl font-bold text-navy">{getEntriesByProfile(selectedStudent.id).length}</p>
@@ -334,48 +394,97 @@ export default function AdminStudentsPage() {
                 <div className="mt-6 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Academic info</p>
                   <p className="mt-1 text-[11px] text-muted">
-                    Educational level, grade/year level, and section. Level and section shown on the student&apos;s
-                    profile, search results, and leaderboard; section is kept for administration.
+                    The education level and grade/year level are picked from what was set up in the Education Level
+                    Management menu - shown on the student&apos;s profile, search results, and leaderboard.
                   </p>
-                  <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <label className="space-y-1">
-                      <span className="text-xs text-muted">Educational level</span>
-                      <input
-                        value={edLevelDraft}
-                        onChange={(e) => setEdLevelDraft(e.target.value)}
-                        placeholder="Elementary / High School / College"
+                      <span className="text-xs text-muted">Education level</span>
+                      <select
+                        value={edLevelId}
+                        onChange={(e) => {
+                          setEdLevelId(e.target.value);
+                          setProgramId("");
+                          setSectionId("");
+                        }}
                         className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                      />
+                      >
+                        <option value="">None</option>
+                        {educationLevels.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="space-y-1">
+                      <span className="text-xs text-muted">Program</span>
+                      <select
+                        value={programId}
+                        onChange={(e) => {
+                          setProgramId(e.target.value);
+                          setSectionId("");
+                        }}
+                        disabled={!edLevelId}
+                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:opacity-50"
+                      >
+                        <option value="">None</option>
+                        {nestedPrograms.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
                     </label>
                     <label className="space-y-1">
                       <span className="text-xs text-muted">Grade / year level</span>
-                      <input
-                        value={levelDraft}
-                        onChange={(e) => setLevelDraft(e.target.value)}
-                        placeholder="e.g. Grade 12"
-                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                      />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-xs text-muted">Section (admin only)</span>
-                      <input
-                        value={sectionDraft}
-                        onChange={(e) => setSectionDraft(e.target.value)}
-                        placeholder="e.g. A"
-                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                      />
+                      <select
+                        value={sectionId}
+                        onChange={(e) => setSectionId(e.target.value)}
+                        disabled={!programId}
+                        className="w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:opacity-50"
+                      >
+                        <option value="">None</option>
+                        {yearLevelSections.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
                     </label>
                   </div>
-                  <button
-                    type="button"
-                    disabled={savingAcademic}
+                  <ActionButton
+                    variant="navy"
                     onClick={handleSaveAcademic}
-                    className="mt-3 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-50"
+                    disabled={savingAcademic}
+                    className="mt-3"
                   >
                     {savingAcademic ? "Saving..." : "Save academic info"}
-                  </button>
+                  </ActionButton>
                   {academicMessage && <p className="mt-2 text-xs font-semibold text-emerald-600">{academicMessage}</p>}
                   {academicError && <p className="mt-2 text-xs text-red-500">{academicError}</p>}
+
+                  {(() => {
+                    const info = statuses[selectedStudent.id];
+                    const active =
+                      effectiveFrom(
+                        info
+                          ? ({
+                              student_id: info.studentId,
+                              school_id: "",
+                              status: info.status as "enrolled" | "revoked",
+                              started_at: info.startedAt ?? "",
+                              expires_at: info.expiresAt,
+                              updated_by: null,
+                              created_at: "",
+                              updated_at: "",
+                            } as any)
+                          : null
+                      ) === "enrolled";
+                    return active ? (
+                      <p className="mt-2 text-[11px] font-semibold text-emerald-600">
+                        ● Enrollment verified - course access active.
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-[11px] font-semibold text-amber-600">
+                        ● Not verified - set the Enrolled on &amp; Expiry dates above to grant course access.
+                      </p>
+                    );
+                  })()}
 
                   {selectedAcademicInfo && selectedAcademicInfo.programs.length > 0 && (
                     <div className="mt-3 space-y-1 border-t border-base pt-3">
@@ -400,22 +509,58 @@ export default function AdminStudentsPage() {
                 </div>
 
                 <div className="mt-6">
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Per-course breakdown</p>
-                  <div className="mt-3 space-y-2">
-                    {selectedCourseBreakdown.length === 0 ? (
-                      <p className="text-sm text-muted">No grades recorded in any course yet.</p>
-                    ) : (
-                      selectedCourseBreakdown.map((c) => (
-                        <div key={c.courseId} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
-                          <div>
-                            <p className="text-sm text-navy">{c.courseName}</p>
-                            <p className="text-xs text-muted">{c.count} grade{c.count === 1 ? "" : "s"}</p>
-                          </div>
-                          <p className="text-sm font-bold text-gold">{c.avg}</p>
-                        </div>
-                      ))
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Per-course breakdown</p>
+                    {enrolledCourses.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleClearAllCourses}
+                        className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-red-400 hover:text-red-600"
+                      >
+                        Clear all course data
+                      </button>
                     )}
                   </div>
+                  <div className="mt-3 space-y-2">
+                    {enrolledCourses.length === 0 ? (
+                      <p className="text-sm text-muted">Not enrolled in any courses yet.</p>
+                    ) : (
+                      enrolledCourses.map((c) => {
+                        const entries = getEntriesByProfile(selectedStudent.id).filter(
+                          (e) => e.courseId === c.id
+                        );
+                        const avg =
+                          entries.length === 0
+                            ? null
+                            : Math.round(
+                                (entries.reduce((a, b) => a + b.score, 0) / entries.length) * 10
+                              ) / 10;
+                        return (
+                          <div
+                            key={c.id}
+                            className="flex items-center justify-between gap-3 rounded-[10px] border border-base px-3 py-2"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm text-navy">{c.name}</p>
+                              <p className="text-xs text-muted">
+                                {entries.length} grade{entries.length === 1 ? "" : "s"}
+                                {avg !== null ? ` · Avg ${avg}` : ""}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleClearCourse(c.id, c.name)}
+                              className="shrink-0 rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-red-400 hover:text-red-600"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                  {courseMessage && <p className="mt-2 text-xs font-semibold text-emerald-600">{courseMessage}</p>}
+                  {courseError && <p className="mt-2 text-xs text-red-500">{courseError}</p>}
                 </div>
               </>
             )}

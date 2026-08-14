@@ -7,6 +7,7 @@ import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useMyProfile } from "@/lib/useMyProfile";
 import type { ProfileRow } from "@/types/supabase";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ActionButton } from "@/components/ui/ActionButton";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -396,14 +397,19 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     placeholder="Type a message..."
                     className="flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
                   />
-                  <button
-                    type="button"
+                  <ActionButton
+                    variant="navy"
                     onClick={handleSend}
                     disabled={sending || !draft.trim()}
-                    className="rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
+                    icon={
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+                      </svg>
+                    }
                   >
                     {sending ? "Sending..." : "Send"}
-                  </button>
+                  </ActionButton>
                 </div>
               )}
             </div>

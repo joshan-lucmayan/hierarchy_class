@@ -85,14 +85,21 @@ function toMessage(m: any, myProfileId: string): ChatMessage {
 function toConversation(row: ConversationRow, myProfileId: string, unread: number): Conversation {
   const iAmA = row.user_a_id === myProfileId;
   const other = iAmA ? row.b : row.a;
+  const cutoff = myCutoff(row, myProfileId);
+  // After I deleted this thread, the SHARED last_message column is stale for
+  // me until real new activity revives the thread (last_message_at > cutoff).
+  // Rows in the inbox list already passed isVisible() so they're unaffected;
+  // this guard fixes direct fetches (ensure_conversation) that re-add a
+  // deleted thread and would otherwise show the old message + old timestamp.
+  const stalePreview = !!cutoff && (!row.last_message_at || row.last_message_at <= cutoff);
   return {
     id: row.id,
     otherId: iAmA ? row.user_b_id : row.user_a_id,
     otherRole: ((iAmA ? row.role_b : row.role_a) ?? other?.role ?? "student") as ChatRole,
     name: other?.full_name ?? "Unknown",
     avatarUrl: other?.avatar_url ?? null,
-    lastMessage: row.last_message,
-    lastMessageAt: row.last_message_at,
+    lastMessage: stalePreview ? null : row.last_message,
+    lastMessageAt: stalePreview ? null : row.last_message_at,
     lastReadAt: iAmA ? row.read_at_a : row.read_at_b,
     archived: !!(iAmA ? row.archived_a : row.archived_b),
     messages: [],
@@ -388,7 +395,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const messages = cutoff ? allMessages.filter((m) => m.createdAt > cutoff) : allMessages;
       messages.forEach((m) => seenMessageIds.current.add(m.id));
 
-      const missing = !conversationsRef.current.some((c) => c.id === conversationId);
+      // The list preview must match what the thread actually shows: for a
+      // thread I deleted, the shared last_message column can hold a pre-delete
+      // message, so derive the preview from the visible messages instead.
+      const lastVisible = messages[messages.length - 1] ?? null;
+
       setConversations((prev) => {
         const exists = prev.some((c) => c.id === conversationId);
         if (!exists) {
@@ -399,6 +410,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               ...toConversation(r, myProfileId, 0),
               messages,
               messagesLoading: false,
+              lastMessage: lastVisible ? lastVisible.text : null,
+              lastMessageAt: lastVisible ? lastVisible.createdAt : null,
               lastReadAt: new Date().toISOString(),
             },
             ...prev,
@@ -406,7 +419,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
         return prev.map((c) =>
           c.id === conversationId
-            ? { ...c, messages, messagesLoading: false, unread: 0, lastReadAt: new Date().toISOString() }
+            ? {
+                ...c,
+                messages,
+                messagesLoading: false,
+                // Derive the preview from the messages actually visible to me -
+                // never from the shared column: a deleted thread re-opened with
+                // no post-delete messages must show nothing, not the old text.
+                lastMessage: lastVisible ? lastVisible.text : null,
+                lastMessageAt: lastVisible ? lastVisible.createdAt : null,
+                unread: 0,
+                lastReadAt: new Date().toISOString(),
+              }
             : c
         );
       });
@@ -447,11 +471,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     async (conversationId: string) => {
       if (!profile) return;
       const supabase = createClient();
-      await (supabase as any).rpc("delete_conversation", {
+      const { error } = await (supabase as any).rpc("delete_conversation", {
         p_conversation_id: conversationId,
       });
+      // If the server rejected the delete, keep the thread visible - hiding it
+      // locally while the row is untouched would make it "ghost" back later.
+      if (error) return;
       // Remove from my inbox. My history cutoff is set server-side, so if the
       // thread revives later it comes back without the old messages.
+      if (activeConversation.current === conversationId) activeConversation.current = null;
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
     },
     [profile]

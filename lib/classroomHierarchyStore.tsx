@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { notifyAdmins } from "@/lib/notify";
@@ -12,6 +12,9 @@ export interface Program {
   id: string;
   name: string;
   description?: string;
+  /** Self-referencing parent: null = top-level education level (e.g. College),
+   *  set = a program nested inside it (e.g. DIT). */
+  parentId: string | null;
 }
 
 export interface Section {
@@ -93,7 +96,7 @@ interface ClassroomHierarchyContextType {
   refetch: () => void;
 
   addProgram: (p: Omit<Program, "id">) => Promise<void>;
-  updateProgram: (id: string, p: Omit<Program, "id">) => Promise<void>;
+  updateProgram: (id: string, p: Partial<Omit<Program, "id">>) => Promise<void>;
   deleteProgram: (id: string) => Promise<void>;
 
   addSection: (s: Omit<Section, "id">) => Promise<void>;
@@ -106,6 +109,10 @@ interface ClassroomHierarchyContextType {
 
   addStudent: (s: Omit<Student, "id">) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
+  /** Enroll a student in every course of a year/level section at once. */
+  autoEnrollInSection: (sectionId: string, profileId: string) => Promise<number>;
+  /** Remove a student's course data: enrollments + grades, for one course or all. */
+  clearStudentCourseData: (profileId: string, courseId?: string) => Promise<{ removedCourses: number; removedGrades: number }>;
 
   submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => Promise<boolean>;
   deleteGradeEntry: (id: string) => Promise<void>;
@@ -140,6 +147,10 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchTick, setRefetchTick] = useState(0);
+  // Only the first load should flip `loading` - later refetches (realtime
+  // events, enrollments, grade approvals) happen silently behind the current
+  // data so nothing on screen blinks.
+  const loadedOnce = useRef(false);
 
   const supabaseConfigured =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -156,7 +167,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     const supabase = createClient();
 
     async function loadAll() {
-      setLoading(true);
+      if (!loadedOnce.current) setLoading(true);
 
       const [
         { data: programsData, error: programsErr },
@@ -181,7 +192,12 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
       }
 
       setPrograms(
-        ((programsData ?? []) as any[]).map((p) => ({ id: p.id, name: p.name, description: p.description ?? undefined }))
+        ((programsData ?? []) as any[]).map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description ?? undefined,
+          parentId: p.parent_id ?? null,
+        }))
       );
       setSections(
         ((sectionsData ?? []) as any[]).map((s) => ({ id: s.id, programId: s.program_id, name: s.name }))
@@ -221,6 +237,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           approvalStatus: g.approval_status ?? "pending",
         }))
       );
+      loadedOnce.current = true;
       setError(null);
       setLoading(false);
     }
@@ -253,13 +270,19 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
   const addProgram = useCallback(async (p: Omit<Program, "id">) => {
     if (!profile) return;
     const supabase = createClient();
-    await supabase.from("programs").insert({ school_id: profile.school_id, name: p.name, description: p.description ?? null } as any);
+    await supabase
+      .from("programs")
+      .insert({ school_id: profile.school_id, name: p.name, description: p.description ?? null, parent_id: p.parentId ?? null } as any);
     refetch();
   }, [profile, refetch]);
 
-  const updateProgram = useCallback(async (id: string, p: Omit<Program, "id">) => {
+  const updateProgram = useCallback(async (id: string, p: Partial<Omit<Program, "id">>) => {
     const supabase = createClient();
-    await (supabase.from("programs") as any).update({ name: p.name, description: p.description ?? null }).eq("id", id);
+    const patch: any = {};
+    if (p.name !== undefined) patch.name = p.name;
+    if (p.description !== undefined) patch.description = p.description ?? null;
+    if (p.parentId !== undefined) patch.parent_id = p.parentId ?? null;
+    await (supabase.from("programs") as any).update(patch).eq("id", id);
     refetch();
   }, [refetch]);
 
@@ -333,6 +356,63 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     await supabase.from("course_enrollments").delete().eq("id", id);
     refetch();
   }, [refetch]);
+
+  /**
+   * Enroll a student in every course under a year/level section. Skips courses
+   * they're already in (course_enrollments has a UNIQUE (course_id,
+   * student_id) constraint, so the upsert doubles as the dedupe). Returns the
+   * number of new enrollments written.
+   */
+  const autoEnrollInSection = useCallback(
+    async (sectionId: string, profileId: string): Promise<number> => {
+      if (!profile) return 0;
+      const supabase = createClient();
+      const sectionCourses = courses.filter((c) => c.sectionId === sectionId);
+      if (sectionCourses.length === 0) return 0;
+      const already = new Set(
+        students.filter((s) => s.profileId === profileId).map((s) => s.courseId)
+      );
+      const rows = sectionCourses
+        .filter((c) => !already.has(c.id))
+        .map((c) => ({ school_id: profile.school_id, course_id: c.id, student_id: profileId }));
+      if (rows.length === 0) return 0;
+      const { error } = await (supabase.from("course_enrollments") as any).upsert(rows, {
+        onConflict: "course_id,student_id",
+      });
+      if (error) return 0;
+      refetch();
+      return rows.length;
+    },
+    [profile, courses, students, refetch]
+  );
+
+  /**
+   * Clear a student's course data. With `courseId` it only clears that one
+   * course (enrollment + its grades); without it, everything is removed.
+   * Both deletes are covered by RLS: enrollments_admin_write (ALL) and
+   * grade_entries_admin_delete.
+   */
+  const clearStudentCourseData = useCallback(
+    async (profileId: string, courseId?: string): Promise<{ removedCourses: number; removedGrades: number }> => {
+      const supabase = createClient();
+      let enrollQuery = supabase.from("course_enrollments").delete().eq("student_id", profileId);
+      let gradeQuery = supabase.from("grade_entries").delete().eq("student_id", profileId);
+      if (courseId) {
+        enrollQuery = enrollQuery.eq("course_id", courseId);
+        gradeQuery = gradeQuery.eq("course_id", courseId);
+      }
+      const [enrollRes, gradeRes] = await Promise.all([
+        (enrollQuery as any).select("id"),
+        (gradeQuery as any).select("id"),
+      ]);
+      if (enrollRes.error || gradeRes.error) return { removedCourses: 0, removedGrades: 0 };
+      const removedCourses = ((enrollRes.data ?? []) as any[]).length;
+      const removedGrades = ((gradeRes.data ?? []) as any[]).length;
+      if (removedCourses > 0 || removedGrades > 0) refetch();
+      return { removedCourses, removedGrades };
+    },
+    [refetch]
+  );
 
   const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => {
     if (!profile) return false;
@@ -523,6 +603,8 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         deleteCourse,
         addStudent,
         deleteStudent,
+        autoEnrollInSection,
+        clearStudentCourseData,
         submitGrades,
         deleteGradeEntry,
         setGradeApproval,

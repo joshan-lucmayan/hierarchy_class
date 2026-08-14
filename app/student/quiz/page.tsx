@@ -116,7 +116,7 @@ export default function StudentQuizPage() {
             type="button"
             onClick={nextQuestion}
             disabled={answers[questionIndex] === undefined}
-            className="mt-6 w-full rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
+            className="mt-6 w-full justify-center rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
           >
             {questionIndex < activeQuiz.questions.length - 1 ? "Next question" : "Submit quiz"}
           </button>

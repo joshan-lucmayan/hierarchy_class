@@ -77,7 +77,7 @@ export function SideNav({ role, brandHref }: { role: Role; brandHref: string }) 
               title={item.label}
               aria-label={item.label}
               className={`group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
-                active ? "bg-tile" : "hover:bg-tile"
+                active ? "bg-tile" : "hover:bg-[var(--tile)]"
               }`}
             >
               <span
@@ -115,7 +115,7 @@ export function SideNav({ role, brandHref }: { role: Role; brandHref: string }) 
             disabled={isLoggingOut}
             title={isLoggingOut ? "Signing out..." : "Logout"}
             aria-label="Logout"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-faint transition-colors hover:bg-tile hover:text-navy disabled:opacity-60"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-faint transition-colors hover:bg-[var(--tile)] hover:text-navy disabled:opacity-60"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

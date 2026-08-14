@@ -5,6 +5,7 @@ import { useMaterials } from "@/lib/materialsStore";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { ActionButton, PlusIcon } from "@/components/ui/ActionButton";
 
 export default function TeacherLearningMaterialsPage() {
   const { materials, loading, error, createMaterial, deleteMaterial } = useMaterials();
@@ -190,13 +191,9 @@ export default function TeacherLearningMaterialsPage() {
             {message && (
               <p className={`text-sm ${message.kind === "ok" ? "text-emerald-600" : "text-red-500"}`}>{message.text}</p>
             )}
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex items-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-60"
-            >
+            <ActionButton type="submit" variant="navy" icon={<PlusIcon size={12} />} disabled={submitting}>
               {submitting ? "Uploading..." : "Add material"}
-            </button>
+            </ActionButton>
           </form>
         </CornerFrame>
 

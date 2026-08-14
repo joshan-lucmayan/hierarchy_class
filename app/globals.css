@@ -1,7 +1,5 @@
 @tailwind base;
 @tailwind components;
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 /* Light theme lives on :root; dark theme on .dark (layout script defaults to dark). */
@@ -24,6 +22,7 @@
   --warn-fill: #b47a74; /* spark low bars */
   --low-fill: #a7acb4; /* lowest stat fill */
   --nav: #6b6e75;
+  --btn: #3d434e; /* primary button fill - deep slate, clearly visible on light */
   --on-accent: #141214; /* dark text that always sits on the light accent */
   /* Flat cards: a plain 1px hairline border instead of a heavy drop shadow. */
   --shadow: 0 0 0 1px var(--border);
@@ -48,6 +47,7 @@
   --warn-fill: #8a5f5f; /* spark low bars */
   --low-fill: #5b5f66; /* lowest stat fill */
   --nav: #c2c7cf;
+  --btn: #525b69; /* primary button fill - lifted above the page so buttons read clearly */
   --on-accent: #141214; /* dark text that always sits on the light accent */
   --shadow: 0 0 0 1px var(--border);
 }
@@ -113,6 +113,12 @@ body {
 
 .bg-muted {
   background-color: var(--muted);
+}
+
+/* bg-navy is used for primary buttons across the app; make it theme-aware so
+   buttons stay clearly visible in both light and dark mode. */
+.bg-navy {
+  background-color: var(--btn);
 }
 
 .bg-sealion {

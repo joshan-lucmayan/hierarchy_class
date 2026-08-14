@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ProfileRow } from "@/types/supabase";
 import { createClient } from "@/lib/supabase/client";
 import { validateUpload, extensionForMime, storagePathFromUrl } from "@/lib/uploadUtils";
+import { randomId } from "@/lib/randomId";
 
 interface UseMyProfileResult {
   profile: ProfileRow | null;
@@ -59,8 +60,23 @@ export function useMyProfile(): UseMyProfileResult {
       setLoading(false);
     });
 
+    // Realtime: when this user's profile changes anywhere (their own edit, or
+    // an admin updating their academic info/avatar), every open page that
+    // renders the profile refreshes - nav bars, profile views, the monitor.
+    const channel = supabase
+      .channel(`my-profile-${randomId()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          if (!cancelled) setRefetchTick((t) => t + 1);
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [supabaseConfigured, refetchTick]);
 

@@ -9,6 +9,7 @@ import { useProgramByStudent } from "@/lib/useAcademicIdentity";
 import type { ProfileRow } from "@/types/supabase";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { ProfileModal } from "@/components/profile/ProfileModal";
 
 const RESULT_LIMIT = 5;
 
@@ -16,6 +17,7 @@ export function QuickSearchBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
+  const [viewing, setViewing] = useState<ProfileRow | null>(null);
   const { profiles: students } = useSchoolProfiles({ role: "student", excludeSelf: true });
   const { profiles: teachers } = useSchoolProfiles({ role: "teacher", excludeSelf: true });
   const { friendIds } = useFriendsStore();
@@ -30,7 +32,7 @@ export function QuickSearchBar() {
       .filter(
         (s) =>
           s.full_name.toLowerCase().includes(normalized) ||
-          (s.section ?? "").toLowerCase().includes(normalized) ||
+          (s.program ?? "").toLowerCase().includes(normalized) ||
           (s.level_label ?? "").toLowerCase().includes(normalized) ||
           (s.educational_level ?? "").toLowerCase().includes(normalized) ||
           (s.favorite_subject ?? "").toLowerCase().includes(normalized)
@@ -66,9 +68,10 @@ export function QuickSearchBar() {
     if (blurTimeout.current) clearTimeout(blurTimeout.current);
     setFocused(false);
     setQuery("");
-    // Clicking a result opens that person's profile directly - the general
-    // results page is only reached by pressing Enter on a query.
-    router.push(`/student/profile/${person.id}`);
+    // Clicking a result opens that person's profile in place, over the current
+    // menu - the user never leaves the page they're on. The full profile page
+    // is still reachable from inside the preview or via Enter (results page).
+    setViewing(person);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -148,6 +151,8 @@ export function QuickSearchBar() {
         />
       </div>
 
+      {viewing && <ProfileModal person={viewing} onClose={() => setViewing(null)} />}
+
       {showDropdown && (
         <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-[10px] border border-base bg-surface">
           {!hasResults ? (
@@ -164,7 +169,7 @@ export function QuickSearchBar() {
                       key={student.id}
                       person={student}
                       subtitle={
-                        [student.educational_level, student.level_label, programByStudent[student.id]]
+                        [student.educational_level, student.program ?? programByStudent[student.id], student.level_label]
                           .filter(Boolean)
                           .join(" · ") || "Student"
                       }

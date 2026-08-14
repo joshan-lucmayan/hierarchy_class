@@ -221,7 +221,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   },
   {
     href: "/admin/programs",
-    label: "Programs",
+    label: "Education Levels",
     icon: (active) => (
       <svg {...iconProps(active)}>
         <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />

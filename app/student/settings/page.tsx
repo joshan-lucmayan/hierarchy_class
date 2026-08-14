@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
+import { APP_VERSION } from "@/lib/version";
 
 export default function SettingsPage() {
   const { request } = useAccountRequests();
@@ -92,7 +93,7 @@ export default function SettingsPage() {
         {requestError && <p className="text-sm text-red-500">{requestError}</p>}
       </section>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v1.1.0</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v{APP_VERSION}</p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
+import { APP_VERSION } from "@/lib/version";
 
 export default function AdminSettingsPage() {
   const { requests, loading: requestsLoading, error: requestsError, resolve: resolveRequest } = useAccountRequests();
@@ -92,7 +93,7 @@ export default function AdminSettingsPage() {
         </div>
       </CornerFrame>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v1.1.0</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v{APP_VERSION}</p>
     </div>
   );
 }

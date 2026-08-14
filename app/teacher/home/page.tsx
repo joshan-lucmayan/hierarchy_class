@@ -6,6 +6,7 @@ import { useTeacherWorkspace, TeacherNote, ScheduleItem, LessonPlanItem } from "
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { ActionButton, PlusIcon } from "@/components/ui/ActionButton";
 import { FeedPost } from "@/components/feed/FeedPost";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -387,9 +388,9 @@ export default function TeacherHomePage() {
               rows={3}
               className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
-            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+            <ActionButton type="submit" icon={<PlusIcon size={12} />} className="w-full justify-center">
               Add note
-            </button>
+            </ActionButton>
           </form>
           <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
             {notes.length === 0 && <p className="text-xs text-muted">No notes yet.</p>}
@@ -453,9 +454,9 @@ export default function TeacherHomePage() {
               className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
             {scheduleFormError && <p className="text-xs text-red-500">{scheduleFormError}</p>}
-            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+            <ActionButton type="submit" icon={<PlusIcon size={12} />} className="w-full justify-center">
               Add to schedule
-            </button>
+            </ActionButton>
           </form>
           <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
             {scheduleItems.length === 0 && <p className="text-xs text-muted">Nothing scheduled yet.</p>}
@@ -517,9 +518,9 @@ export default function TeacherHomePage() {
               rows={2}
               className="w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
             />
-            <button type="submit" className="w-full rounded-full bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+            <ActionButton type="submit" icon={<PlusIcon size={12} />} className="w-full justify-center">
               Add lesson plan
-            </button>
+            </ActionButton>
           </form>
           <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
             {lessonPlans.length === 0 && <p className="text-xs text-muted">No lesson plans yet.</p>}

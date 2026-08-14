@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
+import { randomId } from "@/lib/randomId";
 import type { TierRank } from "@/lib/classroomHierarchyStore";
 
 export interface LeaderboardEntry {
@@ -52,6 +53,7 @@ export function useLeaderboard(): UseLeaderboardResult {
   const supabaseConfigured =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Fetch standings. Re-runs when `tick` bumps (grade event or focus refresh).
   useEffect(() => {
     if (!supabaseConfigured || !profile) {
       setLoading(false);
@@ -83,17 +85,27 @@ export function useLeaderboard(): UseLeaderboardResult {
         }
         setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseConfigured, profile, tick]);
 
-    // Realtime: grade INSERT/UPDATE events (teacher submits, admin approves)
-    // refresh the standings immediately. RLS scopes the events this user can
-    // see; combined with the focus refresh below, rankings stay current.
+  // Realtime lives in its own effect: it is created once per mount and never
+  // re-created when a grade event bumps `tick`. The channel name is unique per
+  // instance so multiple consumers (e.g. the home search bar and the profile
+  // preview open at the same time) never collide - a fixed name made the second
+  // mount grab the already-subscribed channel and `.on()` threw:
+  //   "cannot add postgres_changes callbacks ... after subscribe()".
+  useEffect(() => {
+    if (!supabaseConfigured || !profile) return;
+    const supabase = createClient();
     const channel = supabase
-      .channel("leaderboard-grades")
+      .channel(`leaderboard-grades-${randomId()}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "grade_entries" },
         () => {
-          if (!cancelled) setTick((t) => t + 1);
+          setTick((t) => t + 1);
         }
       )
       .subscribe();
@@ -103,11 +115,10 @@ export function useLeaderboard(): UseLeaderboardResult {
     const onFocus = () => setTick((t) => t + 1);
     window.addEventListener("focus", onFocus);
     return () => {
-      cancelled = true;
       window.removeEventListener("focus", onFocus);
       supabase.removeChannel(channel);
     };
-  }, [supabaseConfigured, profile, tick]);
+  }, [supabaseConfigured, profile]);
 
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 

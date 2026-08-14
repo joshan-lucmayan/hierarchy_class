@@ -56,7 +56,7 @@ export async function signUpWithProfile(
 
     // Sign up user with Supabase Auth. The profile row (and florin balance,
     // for students) is created automatically by a database trigger
-    // (see migrations/003_auto_create_profile.sql) that reads this same
+    // (see database/migrations/003_auto_create_profile.sql) that reads this same
     // metadata - it runs at the DB level regardless of whether email
     // confirmation is required, so there's no client-side RLS race here.
     const { data: authData, error: signUpError } = await supabase.auth.signUp({

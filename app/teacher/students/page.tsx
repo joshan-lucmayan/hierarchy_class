@@ -57,7 +57,7 @@ export default function TeacherStudentsPage() {
     return students.filter(
       (student) =>
         student.full_name.toLowerCase().includes(normalized) ||
-        (student.section ?? "").toLowerCase().includes(normalized) ||
+        (student.program ?? "").toLowerCase().includes(normalized) ||
         (student.level_label ?? "").toLowerCase().includes(normalized) ||
         (student.educational_level ?? "").toLowerCase().includes(normalized)
     );
@@ -108,7 +108,7 @@ export default function TeacherStudentsPage() {
                         {!enrollLoading && <EnrolledBadge status={effectiveOf(student.id)} size="sm" />}
                       </div>
                       <p className="mt-0.5 truncate text-xs text-muted">
-                        {[student.educational_level, student.level_label, identity?.programs.join(" · ")]
+                        {[student.educational_level, student.program ?? identity?.programs.join(" · "), student.level_label]
                           .filter(Boolean)
                           .join(" · ")}
                       </p>
@@ -135,7 +135,7 @@ export default function TeacherStudentsPage() {
                   </div>
                   <div className="mt-1 text-sm text-muted">
                     <p>
-                      {[selectedStudent.educational_level, selectedStudent.level_label, selectedIdentity?.programs.join(" · ")]
+                      {[selectedStudent.educational_level, selectedStudent.program ?? selectedIdentity?.programs.join(" · "), selectedStudent.level_label]
                         .filter(Boolean)
                         .join(" · ") || "No level set"}
                     </p>

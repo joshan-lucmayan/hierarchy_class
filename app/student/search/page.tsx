@@ -44,7 +44,7 @@ function StudentCard({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-navy">{student.full_name}</p>
         <p className="text-xs text-muted">
-          {[student.educational_level, student.level_label, programByStudent[student.id]]
+          {[student.educational_level, student.program ?? programByStudent[student.id], student.level_label]
             .filter(Boolean)
             .join(" · ")}
         </p>
@@ -130,7 +130,7 @@ function SearchPageInner() {
 
   const matches = (p: ProfileRow, normalized: string) =>
     p.full_name.toLowerCase().includes(normalized) ||
-    (p.section ?? "").toLowerCase().includes(normalized) ||
+    (p.program ?? "").toLowerCase().includes(normalized) ||
     (p.level_label ?? "").toLowerCase().includes(normalized) ||
     (p.educational_level ?? "").toLowerCase().includes(normalized) ||
     (p.favorite_subject ?? "").toLowerCase().includes(normalized);

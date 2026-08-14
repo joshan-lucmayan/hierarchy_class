@@ -5,6 +5,7 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
+import { APP_VERSION } from "@/lib/version";
 
 export default function TeacherSettingsPage() {
   const { request } = useAccountRequests();
@@ -96,7 +97,7 @@ export default function TeacherSettingsPage() {
         {requestError && <p className="mt-3 text-sm text-red-500">{requestError}</p>}
       </CornerFrame>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v1.1.0</p>
+      <p className="text-center text-xs text-muted">Hierarchy Class · v{APP_VERSION}</p>
     </div>
   );
 }

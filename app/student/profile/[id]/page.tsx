@@ -12,6 +12,7 @@ import { useSchools } from "@/lib/useSchools";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { createClient } from "@/lib/supabase/client";
+import { randomId } from "@/lib/randomId";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
@@ -38,6 +39,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [charismaOpen, setCharismaOpen] = useState(false);
+  const [refetchTick, setRefetchTick] = useState(0);
 
   useEffect(() => {
     if (meLoading) return;
@@ -61,10 +63,23 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
         }
         setLoading(false);
       });
+    // Live profile: an admin editing this student's academic info (or the
+    // student changing their avatar/bio) updates the open profile instantly.
+    const channel = supabase
+      .channel(`view-profile-${randomId()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          if (!cancelled) setRefetchTick((t) => t + 1);
+        }
+      )
+      .subscribe();
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
-  }, [profileId, me, meLoading, router]);
+  }, [profileId, me, meLoading, router, refetchTick]);
 
   if (loading || meLoading) {
     return (
@@ -87,7 +102,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   const coursesTaught = isStudent ? [] : getCoursesByTeacher(person.id);
   const avg = averageOf(person.id) ?? 0;
   const rank = rankFromAverage(avg > 0 ? avg : null);
-  const identityLine = [person.educational_level, person.level_label, identity.programNames.join(" · ")]
+  const identityLine = [person.educational_level, person.program ?? identity.programNames.join(" · "), person.level_label]
     .filter(Boolean)
     .join(" · ");
   const enrollment = statuses[person.id]
@@ -121,15 +136,24 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
               size="2xl"
               className="border-2 border-surface"
             />
-            <div className="mt-3">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <h1 className="text-2xl font-bold text-navy">{person.full_name}</h1>
-                {isStudent && <EnrolledBadge status={enrollment} size="sm" />}
+            <div className="mt-3 flex w-full items-center justify-center gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <h1 className="text-2xl font-bold text-navy">{person.full_name}</h1>
+                  {isStudent && <EnrolledBadge status={enrollment} size="sm" />}
+                </div>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">
+                  {isStudent ? "Student" : "Faculty"}
+                </p>
+                {isStudent && identityLine && <p className="mt-1.5 text-sm text-muted">{identityLine}</p>}
               </div>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">
-                {isStudent ? "Student" : "Faculty"}
-              </p>
-              {isStudent && identityLine && <p className="mt-1.5 text-sm text-muted">{identityLine}</p>}
+              <button
+                type="button"
+                onClick={() => router.push(`/student/messages?with=${person.id}`)}
+                className="shrink-0 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+              >
+                Message
+              </button>
             </div>
 
             {isStudent && (
@@ -139,6 +163,15 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
             )}
 
             {person.bio && <p className="mt-4 max-w-xl text-sm leading-6 text-muted">{person.bio}</p>}
+            {Array.isArray(person.hobbies) && person.hobbies.length > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {person.hobbies.map((h) => (
+                  <span key={h} className="rounded-full border border-line bg-tile px-2.5 py-0.5 text-[11px] text-muted">
+                    {h}
+                  </span>
+                ))}
+              </div>
+            )}
             {person.tags.length > 0 && (
               <div className="mt-3 flex flex-wrap justify-center gap-2">
                 {person.tags.map((tag) => (
@@ -154,13 +187,6 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
           </div>
 
           <div className="mt-6 grid gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => router.push(`/student/messages?with=${person.id}`)}
-            className="rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
-          >
-            Message
-          </button>
           {isStudent && (
             <button
               type="button"

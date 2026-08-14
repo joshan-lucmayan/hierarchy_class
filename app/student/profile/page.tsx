@@ -85,6 +85,7 @@ export default function StudentProfilePage() {
 
   const academicExcellence = profile ? getStudentAverageByProfile(profile.id) ?? 0 : 0;
   const overallRank = profile ? getStudentRankByProfile(profile.id) ?? "D" : "D";
+  const hobbiesList = hobbies.split(",").map((h) => h.trim()).filter(Boolean);
 
   const academicInfo = useMemo(() => {
     if (!profile) return null;
@@ -144,19 +145,36 @@ export default function StudentProfilePage() {
             <div className="flex flex-wrap items-center justify-center gap-2">
               <h1 className="text-3xl font-bold text-navy">{profile.full_name}</h1>
               {!enrollmentLoading && <EnrolledBadge status={enrollment} size="sm" />}
+              {/* Instagram-style pencil: profile photo/name editing lives in the modal. */}
+              <button
+                type="button"
+                onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
+                aria-label="Edit profile"
+                title="Edit profile"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-base bg-surface text-muted transition hover:border-gold hover:text-navy"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
             </div>
             <p className="mt-2 text-sm text-muted">
-              {[profile.educational_level, profile.level_label, (academicInfo?.programs ?? []).map((p) => p.name).join(" · ")]
+              {[profile.educational_level, profile.program ?? (academicInfo?.programs ?? []).map((p) => p.name).join(" · "), profile.level_label]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
-            <button
-              type="button"
-              onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
-              className="mt-3 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
-            >
-              Edit Profile
-            </button>
+            {/* Bio sits right under the course/year line, like a social profile. */}
+            {bio.trim() && <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">{bio}</p>}
+            {hobbiesList.length > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {hobbiesList.map((h) => (
+                  <span key={h} className="rounded-full border border-line bg-tile px-2.5 py-0.5 text-[11px] text-muted">
+                    {h}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap justify-center gap-2">
             {tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
@@ -168,9 +186,8 @@ export default function StudentProfilePage() {
         </div>
 
         <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-5 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted">Academic Excellence</p>
-          <p className="mt-3 text-4xl font-bold text-navy">{academicExcellence > 0 ? academicExcellence : "--"}</p>
-          <RankBadge rank={overallRank} size="lg" className="mt-4" />
+          {/* Rank is the hero; the excellence score renders smaller underneath. */}
+          <RankBadge rank={overallRank} size="lg" score={academicExcellence > 0 ? academicExcellence : null} />
         </div>
 
       </CornerFrame>

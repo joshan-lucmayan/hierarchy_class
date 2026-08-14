@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { ProfileRow } from "@/types/supabase";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
+import { randomId } from "@/lib/randomId";
 
 interface UseSchoolProfilesOptions {
   /** Only fetch profiles with this role. Omit to fetch every role. */
@@ -24,7 +25,7 @@ interface UseSchoolProfilesResult {
 
 /**
  * Fetches every profile at the current user's own school (RLS enforces this
- * boundary server-side via migrations/004_profiles_school_read.sql - a
+ * boundary server-side via database/migrations/004_profiles_school_read.sql - a
  * logged in user can only ever see rows where school_id matches their own
  * JWT metadata, so there's no risk of leaking another school's roster here
  * even though this hook itself doesn't pass a school_id).
@@ -71,13 +72,34 @@ export function useSchoolProfiles(options: UseSchoolProfilesOptions = {}): UseSc
       setLoading(false);
     });
 
+    // Realtime: any profile change at this school (academic info, avatar,
+    // name, bio, hobbies...) refreshes the roster everywhere it's shown - an
+    // admin saving a student's education level/program shows up on search,
+    // directories, and the student monitor without a manual reload. RLS
+    // scopes which events this user receives to their own school. Each
+    // instance gets a unique channel so mounting two copies never collides.
+    const channel = supabase
+      .channel(`school-profiles-${randomId()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          if (!cancelled) setRefetchTick((t) => t + 1);
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [role, excludeSelf, enabled, me?.id, refetchTick]);
 
   function refetch() {
-    setLoading(true);
+    // Background refresh: keep the current roster on screen while the new
+    // data loads. Loading only flips on the initial fetch, so saves and
+    // realtime updates never unmount the UI (no loading blink / "refresh"
+    // feeling). The initial state already starts as loading=true.
     setRefetchTick((t) => t + 1);
   }
 

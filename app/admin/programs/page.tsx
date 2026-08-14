@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { ActionButton, PlusIcon, MinusIcon, CheckIcon, BackIcon } from "@/components/ui/ActionButton";
 
-type Step = "programs" | "sections" | "courses" | "students";
+type Step = "levels" | "programs" | "sections" | "courses" | "students";
 
 function IconBtn({ onClick, label, variant, children }: { onClick: (e: React.MouseEvent) => void; label: string; variant: "edit" | "delete"; children: React.ReactNode }) {
   return (
@@ -29,11 +30,12 @@ export default function AdminProgramsPage() {
     programs, addProgram, updateProgram, deleteProgram,
     getSectionsByProgram, addSection, updateSection, deleteSection,
     getCoursesBySection, addCourse, updateCourse, deleteCourse,
-    getStudentsByCourse, addStudent, deleteStudent,
+    getStudentsByCourse, deleteStudent,
     getStudentAverage, getStudentRank,
   } = useClassroomHierarchy();
 
-  const [step, setStep] = useState<Step>("programs");
+  const [step, setStep] = useState<Step>("levels");
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -50,11 +52,13 @@ export default function AdminProgramsPage() {
   const [courseDraft, setCourseDraft] = useState({ name: "", code: "", teacherId: "", teacherName: "" });
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
-  const [showEnrollPicker, setShowEnrollPicker] = useState(false);
-  const [enrollQuery, setEnrollQuery] = useState("");
-
-  const { profiles: signedUpStudents, loading: profilesLoading, error: profilesError } = useSchoolProfiles({ role: "student" });
   const { profiles: signedUpTeachers } = useSchoolProfiles({ role: "teacher" });
+
+  // Education levels are top-level programs (no parent); programs nest inside.
+  const levels = programs.filter((p) => !p.parentId);
+  const levelPrograms = selectedLevel ? programs.filter((p) => p.parentId === selectedLevel) : [];
+  const selectedLevelName = levels.find((l) => l.id === selectedLevel)?.name ?? "";
+  const selectedProgramName = levelPrograms.find((p) => p.id === selectedProgram)?.name ?? "";
 
   const sections = selectedProgram ? getSectionsByProgram(selectedProgram) : [];
   const courses = selectedSection ? getCoursesBySection(selectedSection) : [];
@@ -74,10 +78,13 @@ export default function AdminProgramsPage() {
   function handleProgramSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!programDraft.name.trim()) return;
+    // At the "levels" step this creates an education level (no parent); at the
+    // "programs" step it creates a program nested under the selected level.
+    const parentId = step === "levels" ? null : selectedLevel;
     if (editingProgramId) {
       updateProgram(editingProgramId, programDraft);
     } else {
-      addProgram(programDraft);
+      addProgram({ ...programDraft, parentId });
     }
     setProgramDraft({ name: "", description: "" });
     setEditingProgramId(null);
@@ -85,7 +92,7 @@ export default function AdminProgramsPage() {
   }
   function handleDeleteProgram(e: React.MouseEvent, id: string, name: string) {
     e.stopPropagation();
-    if (confirm(`Delete "${name}"? This also removes its sections, courses, students, and grades.`)) {
+    if (confirm(`Delete "${name}"? This also removes its programs, sections, courses, students, and grades.`)) {
       deleteProgram(id);
     }
   }
@@ -157,16 +164,19 @@ export default function AdminProgramsPage() {
     }
   }
 
-  function handleEnroll(profileId: string, fullName: string) {
-    if (!selectedCourse) return;
-    addStudent({ courseId: selectedCourse, name: fullName, profileId });
-  }
   function handleDeleteStudent(id: string, name: string) {
     if (confirm(`Remove "${name}" from this course? This also removes their grades for it.`)) {
       deleteStudent(id);
     }
   }
 
+  function handleLevelSelect(levelId: string) {
+    setSelectedLevel(levelId);
+    setSelectedProgram(null);
+    setSelectedSection(null);
+    setSelectedCourse(null);
+    setStep("programs");
+  }
   function handleProgramSelect(programId: string) {
     setSelectedProgram(programId);
     setSelectedSection(null);
@@ -186,26 +196,101 @@ export default function AdminProgramsPage() {
     if (step === "students") { setStep("courses"); setSelectedCourse(null); }
     else if (step === "courses") { setStep("sections"); setSelectedSection(null); }
     else if (step === "sections") { setStep("programs"); setSelectedProgram(null); }
+    else if (step === "programs") { setStep("levels"); setSelectedLevel(null); }
   }
 
   return (
     <div className="space-y-6">
       <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Programs & Curriculum</p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">Manage hierarchy</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Education Level Management</p>
+        <h1 className="mt-2 text-3xl font-bold text-navy">
+          {step === "levels" ? "Education levels" : selectedLevelName}
+        </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          Create, edit, and remove programs, sections, courses, and enrolled students.
+          {step === "levels"
+            ? "Education levels are the top of the hierarchy. Open one to manage the programs inside it, their year/level sections, courses, and enrolled students."
+            : step === "programs"
+            ? `Programs under "${selectedLevelName}". Open one to manage its year/level sections.`
+            : step === "sections"
+            ? `Year / level sections under "${selectedProgramName}". Open one to manage its courses.`
+            : step === "courses"
+            ? "Courses under this year/level. Open one to enroll students."
+            : "Students enrolled in this course."}
         </p>
       </CornerFrame>
 
+      {step === "levels" && (
+        <div className="space-y-4">
+          <ActionButton
+            onClick={openProgramForm}
+            variant={showProgramForm ? "neutral" : "gold"}
+            icon={showProgramForm ? <MinusIcon /> : <PlusIcon />}
+          >
+            {showProgramForm ? "Cancel" : "Add education level"}
+          </ActionButton>
+
+          {showProgramForm && (
+            <form onSubmit={handleProgramSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
+              <input
+                value={programDraft.name}
+                onChange={(e) => setProgramDraft((d) => ({ ...d, name: e.target.value }))}
+                placeholder="Education level name"
+                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              />
+              <input
+                value={programDraft.description}
+                onChange={(e) => setProgramDraft((d) => ({ ...d, description: e.target.value }))}
+                placeholder="Description (optional)"
+                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              />
+              <ActionButton type="submit" variant="navy" icon={editingProgramId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
+                {editingProgramId ? "Save changes" : "Create"}
+              </ActionButton>
+            </form>
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {levels.length === 0 && (
+              <p className="text-sm text-muted">No education levels yet - add one to get started.</p>
+            )}
+            {levels.map((level) => {
+              const programCount = programs.filter((p) => p.parentId === level.id).length;
+              return (
+                <div
+                  key={level.id}
+                  onClick={() => handleLevelSelect(level.id)}
+                  className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-lg font-bold text-navy">{level.name}</p>
+                    <div className="flex shrink-0 gap-1.5">
+                      <IconBtn onClick={(e) => startEditProgram(e, level.id, level.name, level.description)} label="Edit education level" variant="edit">✎</IconBtn>
+                      <IconBtn onClick={(e) => handleDeleteProgram(e, level.id, level.name)} label="Delete education level" variant="delete">✕</IconBtn>
+                    </div>
+                  </div>
+                  {level.description && <p className="mt-2 text-xs text-muted">{level.description}</p>}
+                  <p className="mt-3 text-xs font-semibold text-gold">
+                    {programCount} program{programCount === 1 ? "" : "s"} inside
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {step === "programs" && (
         <div className="space-y-4">
-          <button
-            onClick={openProgramForm}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
-          >
-            {showProgramForm ? "Cancel" : "+ Add program"}
-          </button>
+          <div className="flex items-center gap-3">
+            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
+            <ActionButton
+              onClick={openProgramForm}
+              variant={showProgramForm ? "neutral" : "gold"}
+              icon={showProgramForm ? <MinusIcon /> : <PlusIcon />}
+            >
+              {showProgramForm ? "Cancel" : "Add program"}
+            </ActionButton>
+          </div>
 
           {showProgramForm && (
             <form onSubmit={handleProgramSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
@@ -221,58 +306,73 @@ export default function AdminProgramsPage() {
                 placeholder="Description (optional)"
                 className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
-              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+              <ActionButton type="submit" variant="navy" icon={editingProgramId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
                 {editingProgramId ? "Save changes" : "Create"}
-              </button>
+              </ActionButton>
             </form>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {programs.map((prog) => (
-              <div
-                key={prog.id}
-                onClick={() => handleProgramSelect(prog.id)}
-                className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-lg font-bold text-navy">{prog.name}</p>
-                  <div className="flex shrink-0 gap-1.5">
-                    <IconBtn onClick={(e) => startEditProgram(e, prog.id, prog.name, prog.description)} label="Edit program" variant="edit">✎</IconBtn>
-                    <IconBtn onClick={(e) => handleDeleteProgram(e, prog.id, prog.name)} label="Delete program" variant="delete">✕</IconBtn>
+            {levelPrograms.length === 0 && (
+              <p className="text-sm text-muted">No programs under {selectedLevelName} yet - add one to get started.</p>
+            )}
+            {levelPrograms.map((prog) => {
+              const sectionCount = getSectionsByProgram(prog.id).length;
+              return (
+                <div
+                  key={prog.id}
+                  onClick={() => handleProgramSelect(prog.id)}
+                  className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-lg font-bold text-navy">{prog.name}</p>
+                    <div className="flex shrink-0 gap-1.5">
+                      <IconBtn onClick={(e) => startEditProgram(e, prog.id, prog.name, prog.description)} label="Edit program" variant="edit">✎</IconBtn>
+                      <IconBtn onClick={(e) => handleDeleteProgram(e, prog.id, prog.name)} label="Delete program" variant="delete">✕</IconBtn>
+                    </div>
                   </div>
+                  {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
+                  <p className="mt-3 text-xs font-semibold text-gold">
+                    {sectionCount} year/level{sectionCount === 1 ? "" : "s"} inside
+                  </p>
                 </div>
-                {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
       {step === "sections" && (
         <div className="space-y-4">
-          <button onClick={handleBack} className="text-sm font-semibold text-gold transition hover:text-gold/80">← Back</button>
-          <button
-            onClick={openSectionForm}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
-          >
-            {showSectionForm ? "Cancel" : "+ Add section"}
-          </button>
+          <div className="flex items-center gap-3">
+            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
+            <ActionButton
+              onClick={openSectionForm}
+              variant={showSectionForm ? "neutral" : "gold"}
+              icon={showSectionForm ? <MinusIcon /> : <PlusIcon />}
+            >
+              {showSectionForm ? "Cancel" : "Add year / level"}
+            </ActionButton>
+          </div>
 
           {showSectionForm && (
             <form onSubmit={handleSectionSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
               <input
                 value={sectionDraft}
                 onChange={(e) => setSectionDraft(e.target.value)}
-                placeholder="Section name (e.g., Grade 10, Year 1)"
+                placeholder="Year / level name"
                 className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
               />
-              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+              <ActionButton type="submit" variant="navy" icon={editingSectionId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
                 {editingSectionId ? "Save changes" : "Create"}
-              </button>
+              </ActionButton>
             </form>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {sections.length === 0 && (
+              <p className="text-sm text-muted">No year/levels under {selectedProgramName} yet.</p>
+            )}
             {sections.map((sec) => (
               <div
                 key={sec.id}
@@ -280,8 +380,8 @@ export default function AdminProgramsPage() {
                 className="relative cursor-pointer rounded-[10px] border border-base bg-surface p-8 text-center transition hover:border-sealion"
               >
                 <div className="absolute right-3 top-3 flex gap-1.5">
-                  <IconBtn onClick={(e) => startEditSection(e, sec.id, sec.name)} label="Edit section" variant="edit">✎</IconBtn>
-                  <IconBtn onClick={(e) => handleDeleteSection(e, sec.id, sec.name)} label="Delete section" variant="delete">✕</IconBtn>
+                  <IconBtn onClick={(e) => startEditSection(e, sec.id, sec.name)} label="Edit year/level" variant="edit">✎</IconBtn>
+                  <IconBtn onClick={(e) => handleDeleteSection(e, sec.id, sec.name)} label="Delete year/level" variant="delete">✕</IconBtn>
                 </div>
                 <p className="text-2xl font-bold text-navy">{sec.name}</p>
               </div>
@@ -292,13 +392,16 @@ export default function AdminProgramsPage() {
 
       {step === "courses" && (
         <div className="space-y-4">
-          <button onClick={handleBack} className="text-sm font-semibold text-gold transition hover:text-gold/80">← Back</button>
-          <button
-            onClick={openCourseForm}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
-          >
-            {showCourseForm ? "Cancel" : "+ Add course"}
-          </button>
+          <div className="flex items-center gap-3">
+            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
+            <ActionButton
+              onClick={openCourseForm}
+              variant={showCourseForm ? "neutral" : "gold"}
+              icon={showCourseForm ? <MinusIcon /> : <PlusIcon />}
+            >
+              {showCourseForm ? "Cancel" : "Add course"}
+            </ActionButton>
+          </div>
 
           {showCourseForm && (
             <form onSubmit={handleCourseSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
@@ -327,13 +430,16 @@ export default function AdminProgramsPage() {
                   <option key={t.id} value={t.id}>{t.full_name}</option>
                 ))}
               </select>
-              <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+              <ActionButton type="submit" variant="navy" icon={editingCourseId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
                 {editingCourseId ? "Save changes" : "Create"}
-              </button>
+              </ActionButton>
             </form>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {courses.length === 0 && (
+              <p className="text-sm text-muted">No courses in this year/level yet.</p>
+            )}
             {courses.map((crs) => (
               <div
                 key={crs.id}
@@ -357,68 +463,35 @@ export default function AdminProgramsPage() {
 
       {step === "students" && (
         <div className="space-y-4">
-          <button onClick={handleBack} className="text-sm font-semibold text-gold transition hover:text-gold/80">← Back</button>
-          <button
-            onClick={() => setShowEnrollPicker(!showEnrollPicker)}
-            className="rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
-          >
-            {showEnrollPicker ? "Cancel" : "+ Enroll student"}
-          </button>
+          <div className="flex items-center gap-3">
+            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
+          </div>
 
-          {showEnrollPicker && (
-            <CornerFrame className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Signed-up students at your school</p>
-              <input
-                value={enrollQuery}
-                onChange={(e) => setEnrollQuery(e.target.value)}
-                placeholder="Search..."
-                className="mt-2 w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <div className="mt-3 max-h-64 space-y-1.5 overflow-y-auto pr-1">
-                {profilesLoading && <p className="text-sm text-muted">Loading roster...</p>}
-                {profilesError && <p className="text-sm text-muted">{profilesError}</p>}
-                {!profilesLoading && !profilesError && signedUpStudents
-                  .filter((p) => !students.some((s) => s.profileId === p.id))
-                  .filter((p) => p.full_name.toLowerCase().includes(enrollQuery.toLowerCase()))
-                  .map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleEnroll(p.id, p.full_name)}
-                      className="flex w-full items-center justify-between rounded-lg border border-base bg-surface px-3 py-2 text-left text-sm text-navy transition hover:border-gold"
-                    >
-                      <span>{p.full_name}</span>
-                      <span className="text-xs text-gold">+ Enroll</span>
-                    </button>
-                  ))}
-                {!profilesLoading && !profilesError && signedUpStudents.filter((p) => !students.some((s) => s.profileId === p.id)).length === 0 && (
-                  <p className="text-sm text-muted">All signed-up students are already enrolled in this course.</p>
-                )}
-              </div>
-            </CornerFrame>
-          )}
-
-          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Students enrolled</p>
-            <div className="mt-4 space-y-2">
-              {students.length === 0 ? (
-                <p className="text-sm text-muted">No students enrolled yet.</p>
-              ) : (
-                students.map((std) => {
-                  const avg = getStudentAverage(std.id);
-                  const rank = getStudentRank(std.id);
-                  return (
-                    <div key={std.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-base bg-[var(--surface-strong)] p-3">
-                      <div>
-                        <p className="text-sm font-semibold text-navy">{std.name}</p>
-                        <p className="text-xs text-muted">{avg !== null ? `Avg ${avg}${rank ? ` · ${rank}` : ""}` : "No grades yet"}</p>
-                      </div>
-                      <IconBtn onClick={() => handleDeleteStudent(std.id, std.name)} label="Remove from course" variant="delete">✕</IconBtn>
+          <CornerFrame className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Students in this course</p>
+            {students.length === 0 ? (
+              <p className="mt-2 text-sm text-muted">
+                No students here yet. Enroll them from Admin &gt; Students - picking their education level, program,
+                and year/level in Academic info automatically gives them access to this course&apos;s classes.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {students.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-base bg-surface px-3 py-2">
+                    <div>
+                      <p className="text-sm font-semibold text-navy">{s.name}</p>
+                      {s.profileId && (
+                        <p className="text-xs text-muted">
+                          {getStudentAverage(s.profileId) !== null ? `Average ${getStudentAverage(s.profileId)}` : "No grades yet"}
+                          {getStudentRank(s.profileId) ? ` · Rank ${getStudentRank(s.profileId)}` : ""}
+                        </p>
+                      )}
                     </div>
-                  );
-                })
-              )}
-            </div>
+                    <IconBtn onClick={(e) => { e.stopPropagation(); handleDeleteStudent(s.id, s.name); }} label="Remove student" variant="delete">✕</IconBtn>
+                  </div>
+                ))}
+              </div>
+            )}
           </CornerFrame>
         </div>
       )}

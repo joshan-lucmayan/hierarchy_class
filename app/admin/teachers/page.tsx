@@ -5,6 +5,7 @@ import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { ActionButton } from "@/components/ui/ActionButton";
 import type { ProfileRow } from "@/types/supabase";
 
 export default function AdminTeachersPage() {
@@ -243,9 +244,9 @@ export default function AdminTeachersPage() {
                         onChange={(e) => setTaskDraft((d) => ({ ...d, dueDate: e.target.value }))}
                         className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                       />
-                      <button type="submit" className="w-full rounded-lg bg-navy py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+                      <ActionButton type="submit" variant="navy" className="w-full justify-center">
                         Assign
-                      </button>
+                      </ActionButton>
                     </form>
                   )}
 
