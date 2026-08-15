@@ -25,7 +25,7 @@ export function CrownMark({
       className={`shrink-0 ${className}`}
       aria-hidden
     >
-      <g fill="var(--text)">
+      <g fill="currentColor">
         {/* Left peak */}
         <polygon points="428,293 585,412 515,565 415,300" />
         {/* Center peak */}

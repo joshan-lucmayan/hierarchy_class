@@ -1,7 +1,7 @@
 "use client";
 
 import { CornerFrame } from "@/components/ui/CornerFrame";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemePicker } from "@/components/ThemePicker";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { APP_VERSION } from "@/lib/version";
@@ -21,12 +21,9 @@ export default function AdminSettingsPage() {
 
       <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Appearance</h2>
-        <div className="mt-4 flex items-center justify-between rounded-[10px] border border-base p-4">
-          <div>
-            <p className="text-sm font-semibold text-navy">Dark mode</p>
-            <p className="mt-1 text-xs text-muted">Switch between light and dark theme.</p>
-          </div>
-          <ThemeToggle />
+        <p className="mt-1 text-xs text-muted">Choose the theme you want to use the app in.</p>
+        <div className="mt-4">
+          <ThemePicker />
         </div>
       </CornerFrame>
 

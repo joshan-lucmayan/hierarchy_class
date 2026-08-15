@@ -18,6 +18,7 @@ export interface SchoolPost {
   imagePath: string | null;
   authorName: string | null;
   authorAvatar: string | null;
+  authorId: string | null;
   createdAt: string;
 }
 
@@ -65,7 +66,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
     async function load() {
       const { data, error: fetchError } = await supabase
         .from("school_feed_posts")
-        .select("*, author:profiles!author_id(full_name, avatar_url)")
+        .select("*, author:profiles!author_id(id, full_name, avatar_url)")
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -97,6 +98,7 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
           imagePath: r.image_path,
           authorName: r.author?.full_name ?? null,
           authorAvatar: r.author?.avatar_url ?? null,
+          authorId: r.author?.id ?? null,
           createdAt: r.created_at,
         }))
       );

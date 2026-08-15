@@ -41,7 +41,7 @@ export default function WeeklyProgress() {
 
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">
+      <h2 className="section-label">
         Weekly Progress
       </h2>
       {loading ? (

@@ -169,7 +169,7 @@ export default function AdminRanksPage() {
             {standings.map(({ student, rank }, idx) => (
               <div key={student.id} className="flex items-center gap-3 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3.5 py-2.5">
                 <span className="w-6 text-center text-xs font-bold text-muted">{rank ? idx + 1 : "-"}</span>
-                <UserAvatar name={student.full_name} src={student.avatar_url} size="md" />
+                <UserAvatar name={student.full_name} src={student.avatar_url} size="md" profileId={student.id} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-navy">{student.full_name}</p>
                   <p className="truncate text-[11px] text-muted">

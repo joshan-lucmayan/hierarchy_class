@@ -178,7 +178,7 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({ quizzes, addQuiz, attempts, addAttempt, bonusPoints, loading, error }),
-    [quizzes, attempts, bonusPoints, loading, error]
+    [quizzes, addQuiz, attempts, addAttempt, bonusPoints, loading, error]
   );
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;

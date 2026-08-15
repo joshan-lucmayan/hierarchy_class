@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemePicker } from "@/components/ThemePicker";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { APP_VERSION } from "@/lib/version";
@@ -33,13 +33,8 @@ export default function SettingsPage() {
     <div className="space-y-10">
       <section className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Appearance</h2>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-navy">Dark mode</p>
-            <p className="mt-1 text-xs text-muted">Switch between light and dark theme.</p>
-          </div>
-          <ThemeToggle />
-        </div>
+        <p className="text-xs text-muted">Choose the theme you want to use the app in.</p>
+        <ThemePicker />
       </section>
 
       <section className="space-y-4 border-t border-base pt-8">

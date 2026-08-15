@@ -117,7 +117,7 @@ derived/CRUD helpers, and subscribes to a realtime channel:
 | `classroomHierarchyStore` | programs, sections, courses, course_enrollments, grade_entries | `classroom-grades` |
 | `chatStore` | conversations, chat_messages, chat_blocks | `chat-inbox`, `chat-blocks-mine` |
 | `notificationsStore` | notifications | `notifications-mine` |
-| `habitStore` | habit_entries | `habit-entries` |
+| `habitStore` | habits, habit_entries, habit_pauses | `habits-<id>` |
 | `schoolFeedStore` | posts, post_tags | - |
 | `storiesStore` | stories | - |
 | `bannerStore` | banners + storage `banners` | - |

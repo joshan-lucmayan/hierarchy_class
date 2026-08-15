@@ -7,6 +7,7 @@ import { useFriendsStore } from "@/lib/friendsStore";
 import { useProgramByStudent } from "@/lib/useAcademicIdentity";
 import { useRankStore } from "@/lib/rankStore";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import type { ProfileRow } from "@/types/supabase";
 
 export default function SearchPage() {
@@ -36,11 +37,7 @@ function StudentCard({
       onClick={() => onOpenProfile(student)}
       className="flex w-full items-center gap-4 py-4 text-left transition hover:opacity-80"
     >
-      <img
-        src={student.avatar_url || "/avatars/default-avatar.webp"}
-        alt={student.full_name}
-        className="h-12 w-12 shrink-0 rounded-full object-cover"
-      />
+      <UserAvatar name={student.full_name} src={student.avatar_url} size="lg" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-navy">{student.full_name}</p>
         <p className="text-xs text-muted">
@@ -71,11 +68,7 @@ function StaffCard({
 }) {
   return (
     <button type="button" onClick={() => onOpenProfile(person)} className="flex w-full items-center gap-3 py-4 text-left transition hover:opacity-80">
-      <img
-        src={person.avatar_url || "/avatars/default-avatar.webp"}
-        alt={person.full_name}
-        className="h-12 w-12 shrink-0 rounded-full object-cover"
-      />
+      <UserAvatar name={person.full_name} src={person.avatar_url} size="lg" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-navy">{person.full_name}</p>
         <p className="text-xs font-semibold uppercase tracking-wide text-gold">{roleLabel}</p>

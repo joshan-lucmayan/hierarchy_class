@@ -8,6 +8,7 @@ import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { useSchoolFeed, type SchoolPost } from "@/lib/schoolFeedStore";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { PostEditor } from "@/components/admin/PostEditor";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { createClient } from "@/lib/supabase/client";
 
 function formatDisplayDate(now: Date) {
@@ -147,10 +148,10 @@ export default function AdminHomePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-navy">
+          <h1 className="font-display text-3xl font-bold text-navy">
             {getGreeting(now.getHours())}{profile ? `, ${profile.full_name}` : ""}
           </h1>
-          <h2 className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-navy">
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
             Today · {todayDayName(now)}, {formatDisplayDate(now)}
           </h2>
         </div>
@@ -186,7 +187,7 @@ export default function AdminHomePage() {
               </svg>
             </span>
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">School posts</h2>
+              <h2 className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-navy">School posts</h2>
               <p className="mt-0.5 text-xs text-muted">Social feed items shown on student and teacher home screens.</p>
             </div>
           </div>
@@ -215,7 +216,7 @@ export default function AdminHomePage() {
               </svg>
             </span>
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Announcements</h2>
+              <h2 className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-navy">Announcements</h2>
               <p className="mt-0.5 text-xs text-muted">Important text-only notices that can notify the chosen audience.</p>
             </div>
           </div>
@@ -239,7 +240,7 @@ export default function AdminHomePage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <CornerFrame className="space-y-4 rounded-[10px] border border-base bg-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Pending grade submissions</h2>
+            <h2 className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-navy">Pending grade submissions</h2>
             <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
               {pendingGrades.length} open
             </span>
@@ -252,10 +253,11 @@ export default function AdminHomePage() {
                 <div key={submission.id} className="rounded-[10px] border border-base p-4">
                   {/* Who submitted, for which course, when */}
                   <div className="flex items-start gap-3">
-                    <img
-                      src={submission.teacherAvatar || "/avatars/default-avatar.webp"}
-                      alt={submission.teacherName}
-                      className="h-11 w-11 shrink-0 rounded-full border-2 border-gold/40 object-cover"
+                    <UserAvatar
+                      name={submission.teacherName}
+                      src={submission.teacherAvatar}
+                      size="md"
+                      className="!border-2 !border-gold/40"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-navy">
@@ -320,7 +322,7 @@ export default function AdminHomePage() {
         <div className="space-y-6">
           <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Teacher tasks awaiting action</h2>
+              <h2 className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-navy">Teacher tasks awaiting action</h2>
               <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
                 {pendingTasks.length} pending
               </span>
@@ -341,7 +343,7 @@ export default function AdminHomePage() {
 
           <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Account requests</h2>
+              <h2 className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-navy">Account requests</h2>
               <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold text-muted">
                 {pendingRequests.length} open
               </span>
@@ -384,7 +386,7 @@ export default function AdminHomePage() {
       </div>
 
       <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Recent system activity</h2>
+        <h2 className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-navy">Recent system activity</h2>
         <div className="mt-4 space-y-2">
           {gradeEntries.length === 0 && tasks.length === 0 ? (
             <p className="text-sm text-muted">No activity recorded yet.</p>

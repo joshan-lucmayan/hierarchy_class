@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { LogoLockup } from "@/components/auth/LogoLockup";
+import { LandingBackground } from "@/components/landing/Background";
+import { AuthCard } from "@/components/auth/AuthCard";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -47,17 +48,15 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
-      <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-8">
-        <div className="flex flex-col items-center gap-8">
-          <LogoLockup />
-          <div className="w-full border-t border-base" />
-
+    <main className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--bg)] px-4 py-12">
+      <LandingBackground />
+      <div className="relative z-[2] flex w-full justify-center">
+      <AuthCard>
           {status === "done" ? (
-            <div className="flex flex-col items-center gap-4 text-center">
+            <div className="animate-pop-in flex flex-col items-center gap-4 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5" />
+                  <path className="draw-check" d="M20 6L9 17l-5-5" />
                 </svg>
               </span>
               <h1 className="text-lg font-bold text-navy">Password updated</h1>
@@ -83,8 +82,8 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
                       disabled={status === "saving"}
-                      className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-colors disabled:bg-surface-50
-                        ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+                      className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-surface-50
+                        ${errors.password ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
                     />
                     <button
                       type="button"
@@ -105,8 +104,8 @@ export default function ResetPasswordPage() {
                     onChange={(e) => setConfirm(e.target.value)}
                     placeholder="Repeat your new password"
                     disabled={status === "saving"}
-                    className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-surface-50
-                      ${errors.confirm ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+                    className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-surface-50
+                      ${errors.confirm ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
                   />
                   {errors.confirm && <p className="text-xs text-red-500">{errors.confirm}</p>}
                 </div>
@@ -130,7 +129,7 @@ export default function ResetPasswordPage() {
               </form>
             </>
           )}
-        </div>
+      </AuthCard>
       </div>
     </main>
   );

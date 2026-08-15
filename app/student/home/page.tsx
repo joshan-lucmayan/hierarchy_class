@@ -3,6 +3,7 @@
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
 import { useRankStore } from "@/lib/rankStore";
+import { useShop } from "@/lib/shopStore";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { FeedPost } from "@/components/feed/FeedPost";
@@ -16,6 +17,7 @@ import WeakestSubjectCard from "@/components/dashboard/WeakestSubjectCard";
 export default function StudentHomePage() {
   const { profile, loading, error } = useMyProfile();
   const { rankOf } = useRankStore();
+  const { equippedProfileCard } = useShop();
   const { posts, loading: feedLoading, error: feedError } = useSchoolFeed();
 
   const myRank = profile ? rankOf(profile.id) : null;
@@ -31,9 +33,7 @@ export default function StudentHomePage() {
 
       <StoriesRail />
 
-      <h1 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.11em] text-faint">
-        Latest School Feed
-      </h1>
+      <h1 className="section-label mb-3">Latest School Feed</h1>
 
       <div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
         <section className="space-y-4">
@@ -54,8 +54,17 @@ export default function StudentHomePage() {
 
         <aside className="space-y-4">
           {/* Profile / rank card */}
-          <div className="rounded-[10px] border border-base bg-surface p-5">
-            <div className="flex flex-col items-center text-center">
+          <div className="relative overflow-hidden rounded-[10px] border border-base bg-surface p-5">
+            {equippedProfileCard?.image_url && (
+              <>
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${equippedProfileCard.image_url})` }}
+                />
+                <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--surface)_var(--art-tint),transparent)]" />
+              </>
+            )}
+            <div className="relative flex flex-col items-center text-center">
               {loading ? (
                 <p className="text-sm text-muted">Loading...</p>
               ) : error ? (
@@ -67,8 +76,9 @@ export default function StudentHomePage() {
                     src={profile?.avatar_url}
                     size="xl"
                     className="border-2 border-surface"
+                    profileId={profile?.id}
                   />
-                  <p className="mt-3 text-[17px] font-bold text-navy">
+                  <p className="font-display mt-3 text-[19px] font-bold text-navy">
                     {profile?.full_name ?? "Student"}
                   </p>
                   <p className="mt-0.5 text-[12.5px] text-muted">

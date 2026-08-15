@@ -1,21 +1,37 @@
 import { CrownMark } from "@/components/ui/CrownMark";
 
 /**
- * Auth-page brand lockup - the crown sits large (96px tall) and centered
- * above the app name, used on the login/signup/forgot/reset cards. The
- * surrounding layout centers it horizontally.
+ * Auth-page brand lockup - the crown sits at 38px with a soft pulse and two
+ * twinkling sparkles, the wordmark uses the Cinzel display face with a slow
+ * light shimmer, and the tagline sits below in mono. Used on the landing auth
+ * card and the login/signup/forgot/reset cards.
  */
 export function LogoLockup() {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <CrownMark height={96} />
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative flex items-center justify-center" style={{ animation: "crownPulse 3.6s ease-in-out infinite" }}>
+        <span
+          className="pointer-events-none absolute -top-2 -right-9 select-none text-[12px] text-[var(--gold)]"
+          style={{ animation: "twinkle 3s ease-in-out 0.8s infinite", textShadow: "0 0 10px rgba(158,167,179,0.7)" }}
+          aria-hidden
+        >
+          ✦
+        </span>
+        <span
+          className="pointer-events-none absolute -bottom-2 -left-10 select-none text-[9px] text-[var(--gold)]"
+          style={{ animation: "twinkle 3.6s ease-in-out 1.6s infinite", textShadow: "0 0 10px rgba(158,167,179,0.7)" }}
+          aria-hidden
+        >
+          ✦
+        </span>
+        <CrownMark height={38} />
+      </div>
 
       <div className="flex flex-col items-center gap-1.5">
-        <h1 className="text-2xl font-bold uppercase tracking-[0.15em] text-navy">
+        <h1 className="wordmark-shimmer font-display text-[18px] font-semibold uppercase tracking-[0.12em]">
           Hierarchy Class
         </h1>
-        <div className="h-[2px] w-10 bg-gold" />
-        <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-muted">
+        <p className="font-mono-ui text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--gold)]">
           Climb the ranks
         </p>
       </div>

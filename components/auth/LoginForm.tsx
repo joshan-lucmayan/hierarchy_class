@@ -111,15 +111,23 @@ export function LoginForm() {
         </div>
       )}
       {errors.form && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+        <div className="animate-shake rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
           {errors.form}
         </div>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="group flex flex-col gap-1.5">
         <FieldLabel
           icon={
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-[var(--gold)]"
+            >
               <path d="M4 4h16v16H4z" opacity="0" />
               <path d="M22 6l-10 7L2 6" />
               <path d="M2 6h20v12H2z" />
@@ -135,16 +143,24 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-            ${errors.email ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+            ${errors.email ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
-        {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+        {errors.email && <p className="animate-shake text-xs text-red-500">{errors.email}</p>}
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="group flex flex-col gap-1.5">
         <FieldLabel
           icon={
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-[var(--gold)]"
+            >
               <rect x="5" y="11" width="14" height="10" rx="1.5" />
               <path d="M8 11V7a4 4 0 018 0v4" />
             </svg>
@@ -160,8 +176,8 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             disabled={isLoading}
-            className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-              ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+              ${errors.password ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           <button
             type="button"
@@ -182,7 +198,7 @@ export function LoginForm() {
             )}
           </button>
         </div>
-        {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+        {errors.password && <p className="animate-shake text-xs text-red-500">{errors.password}</p>}
       </div>
 
       <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
@@ -205,6 +221,10 @@ export function LoginForm() {
             </svg>
           )}
         </span>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+        />
       </button>
 
       <a href="/forgot-password" className="text-center text-sm text-muted hover:underline">

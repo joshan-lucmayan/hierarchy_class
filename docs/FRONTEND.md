@@ -9,8 +9,8 @@ Next.js 14 (App Router) + React 18 + TypeScript + Tailwind. Pages live in
 
 | Area | Pages |
 |---|---|
-| Public | `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/` (redirect) |
-| Student | `/student/home`, `/student/search`, `/student/messages`, `/student/learning-materials`, `/student/library`, `/student/quiz`, `/student/leaderboard`, `/student/profile`, `/student/profile/[id]`, `/student/habits`, `/student/settings` |
+| Public | `/` (marketing landing), `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/terms`, `/privacy` |
+| Student | `/student/home`, `/student/search`, `/student/messages`, `/student/learning-materials`, `/student/library`, `/student/quiz`, `/student/leaderboard`, `/student/shop`, `/student/profile`, `/student/profile/[id]`, `/student/habits`, `/student/settings` |
 | Teacher | `/teacher/home`, `/teacher/classroom`, `/teacher/students`, `/teacher/quiz`, `/teacher/learning-materials`, `/teacher/library-management`, `/teacher/messages`, `/teacher/settings` |
 | Admin | `/admin/home`, `/admin/users`, `/admin/programs`, `/admin/students`, `/admin/teachers`, `/admin/reports`, `/admin/ranks`, `/admin/messages`, `/admin/settings` |
 
@@ -33,10 +33,11 @@ is no mock data.
 | `SchoolFeedProvider` | Feed/announcements |
 | `StoriesProvider` | MyDay stories |
 | `MaterialsProvider` | Course materials |
-| `HabitProvider` | Weekly habit tracking |
+| `HabitProvider` | Habits, entries, pause windows + CRUD/log actions (student-scoped RLS, realtime) |
 | `FriendsProvider` | Friends |
 | `BannerProvider` | Header banner |
-| `FlorinProvider` | Read-only currency balance |
+| `FlorinProvider` | Read-only currency balance (exposes `refetch` so the shop can re-sync after a purchase) |
+| `ShopProvider` | Florin shop catalog, ownership, equipped loadout, purchase/equip RPC calls, avatar-border color map |
 | `LibraryProvider` | Catalog + borrow flow |
 | `QuizProvider` | Quiz engine |
 | `TeacherTasksProvider` | Teacher tasks |
@@ -52,9 +53,21 @@ is no mock data.
 ## 3. Design system
 
 - **Tokens** in `app/globals.css` (`--bg`, `--surface`, `--border`, `--muted`,
-  `--text`, `--gold`, ...). Light theme on `:root`, dark theme on `.dark`
-  (default), toggled by `ThemeToggle` and persisted in `localStorage` under
-  `hc-theme`.
+  `--text`, `--gold`, ...). **Midnight** on `.dark` (default), **Rose** on
+  `.pink`, picked by `ThemePicker` (settings, every role) and persisted in
+  `localStorage` under `hc-theme`. The legacy light theme (`:root`) is no
+  longer offered in the picker.
+- **Fonts** loaded once in `app/layout.tsx` (Google Fonts): **Inter** (body),
+  **Cinzel** (display - `font-display`), **IBM Plex Mono** (labels -
+  `font-mono-ui`). `body` uses the Inter stack, so the in-app pages and the
+  public landing/auth pages share the same type.
+- **Inside/outside blend** - the role dashboards use the same typography as
+  the public pages: every section eyebrow is a mono uppercase label
+  (`.section-label` in `app/globals.css`, e.g. LATEST SCHOOL FEED, WEAKEST
+  SUBJECT, SUBJECT STATS, HABIT TRACKER, WEEKLY PROGRESS, the teacher
+  workspace card headers, and the admin home section headers), the big
+  greetings ("Good morning, ...") and the student profile name render in
+  Cinzel, and the sidebar brand is the crown mark (`CrownMark`).
 - **Tailwind** with the token set in `tailwind.config.ts`; a few utility
   classes (`text-navy`, `bg-tile`, `border-base`, ...) are defined in
   `globals.css` so they follow the theme variables.
@@ -62,7 +75,8 @@ is no mock data.
 - **Accent**: Great Falls (`--gold`) - used for ranks, fills, primary accents.
 - **Shared UI** in `components/ui/`: `RankBadge` (fed by the rank engine:
   rank letter hero + bar / EX score + track), `StatBar`, `StatRadarChart`,
-  `EnrolledBadge`, `UserAvatar`, `CornerFrame`, `CrownMark` (logo), `CoinIcon`.
+  `EnrolledBadge`, `UserAvatar` (+ theme-adaptive `DefaultAvatar`), `CornerFrame`,
+  `CrownMark` (logo), `CoinIcon`.
 
 ### 3.1 UI plan and rationale
 
@@ -92,7 +106,7 @@ Layout:
 Why this design?
 
 - **Tokens over hex.** Every color routes through CSS variables, so the
-  light/dark theme and any future rebrand happen in one file
+  Midnight/Rose theme and any future rebrand happen in one file
   (`app/globals.css`), not across hundreds of pages.
 - **Shared primitives.** `CornerFrame`, `RankBadge`, `UserAvatar`,
   `EnrolledBadge` are used by student, teacher, and admin pages alike - fix
@@ -135,7 +149,36 @@ Tailwind utility classes that map to them.
 | `--on-accent` | `#141214` | Dark text that always sits on the accent |
 | `--shadow` | `0 0 0 1px var(--border)` | The only "shadow" - a hairline |
 
-#### Light theme (`:root`)
+#### Rose theme (girls, `.pink`)
+
+Built from the five requested colors: **Mountain Mist #98979C**, **Cavern
+Pink #D9BBBD**, **Oyster Pink #EAD0D1**, **Fair Pink #F6E8E7**, **Athens
+Gray #EEEEF0**. Primary text deepens Mountain Mist (mixed toward `#141214`)
+so small text stays readable on the pastel surfaces.
+
+| Token | Value | Used for |
+|---|---|---|
+| `--bg` | `#eeeeF0` (Athens Gray) | Page background |
+| `--kettle` | `#ead0d1` (Oyster Pink) | Sidebar background |
+| `--surface` | `#f6e8e7` (Fair Pink) | Cards / panels |
+| `--surface-strong` | `#fbf3f2` | Hover / active panels |
+| `--tile` | `#f0e3e2` | Inputs, chips, icon tiles, pills |
+| `--border` | `#d9bbbd` (Cavern Pink) | Card hairline |
+| `--line` | `#cba9ab` | Progress tracks, stronger lines |
+| `--text` | `mix(#98979c 55%, #141214)` | Primary text (Mountain Mist deepened) |
+| `--muted` | `#98979c` (Mountain Mist) | Secondary text |
+| `--faint` | `mix(#98979c 52%, #f6e8e7)` | Labels / captions |
+| `--gold` | `#98979c` | **Accent** (Mountain Mist) |
+| `--sealion` | `#98979c` | Fills, active borders |
+| `--asphalt` | `#d9bbbd` | Avatar placeholders, spark bars |
+| `--warn` | `#b0605a` | Salmon warning text |
+| `--warn-fill` | `#b47a74` | Sparkline low bars |
+| `--low-fill` | `#c4a2a4` | Lowest stat fill |
+| `--btn` | `#d9bbbd` (Cavern Pink) | Primary button fill |
+| `--on-accent` | `#4a4245` | Dark rose text on the pink accent |
+| `--shadow` | `0 0 0 1px var(--border)` | The only "shadow" |
+
+#### Legacy light theme (`:root`, no longer offered in the picker)
 
 | Token | Value | Used for |
 |---|---|---|
@@ -166,6 +209,47 @@ Tailwind utility classes that map to them.
   else.
 - New features that read/write data follow the store pattern (provider +
   Supabase + Realtime) and get a numbered migration in `database/migrations/`.
+
+### 3.3 Public web (landing + auth)
+
+The public surface is a **dark cinematic marketing page** (separate from the
+flat token dashboard look, but built on the same tokens and fonts):
+
+- **Landing (`/`)** - a server component that redirects logged-in users to
+  their role home, otherwise renders `components/landing/Landing.tsx`:
+  a fixed atmospheric background (`components/landing/Background.tsx` -
+  crown watermark, floating **king/queen chess silhouettes**, flowing
+  ribbons, film grain, vignette; dark-mode only via `.landing-bg`), a glass
+  navbar with the crown mark, and a hero whose tagline **"Procrastination
+  is just an illusion."** fills the viewport with a per-letter cascade
+  entrance, a shimmer sweep on the accent words, twinkling sparkles, and a
+  pulsing halo ring around the crown. The paragraph underneath leads with
+  the product mission ("make school feel like a game worth playing" -
+  engagement, anti-procrastination, academic growth) and the CTAs point to
+  the auth card. The page moves end to end: a scroll
+  progress bar, scrollspy navbar, a count-up stats band (8 ranks / 5 habits /
+  3 roles / 100% realtime), staggered card pops and hover glows on the
+  roles/features cards, a three-step **How it works** section with an
+  animated connector line, a rank ladder (D -> EX) whose tiles light up one
+  by one on scroll, hover-reactive tech badges, the auth card, and a footer
+  with GitHub, Terms, Privacy, and the version (from `lib/version.ts`).
+- **Auth card** - `components/auth/AuthCard.tsx`: a slowly rotating conic
+  hairline border around a token surface card, with a mount entrance,
+  gentle float bob, ambient glow, hover lift, and a live/secure/version
+  footer line. `components/auth/AuthTabs.tsx` embeds the **real**
+  `LoginForm` / `SignupForm` behind a sliding-pill tab switcher - no mock
+  auth. `LogoLockup` shows the 38px crown + shimmering Cinzel wordmark.
+  Fields glow gold on focus (border + ring + icon via `group-focus-within`),
+  the submit button sweeps a shine across on hover, errors shake in, the
+  school dropdown staggers in, and success states pop in with a drawn
+  checkmark. `/login`, `/signup`, `/forgot-password`, `/reset-password` all
+  reuse the same card + background, so the outside and the login pages
+  blend.
+- **Legal** - detailed `docs`-backed prose pages at `/terms` and `/privacy`
+  (`components/landing/LegalLayout.tsx`); the signup form requires checking
+  the Terms & Privacy agreement before it submits.
+- **Attribution** - the footer links to the maintainer's GitHub
+  (`github.com/joshan-lucmayan`).
 
 ---
 
@@ -211,11 +295,71 @@ Tailwind utility classes that map to them.
    the nav shows an unread dot (`MessagesBadge`) until all threads are read.
 4. **Grades** - teacher submits (pending) -> admin approves/rejects -> approved
    grades flow to student stats and the leaderboard in realtime.
-5. **Habits** - five habits, weekly 10x target; clicking a row toggles
-   today's entry (real DB writes + optimistic update).
-6. **Theming** - light/dark toggle in every role's settings page; version
-   shown there too (from `lib/version.ts`).
-7. **Academic info (admin)** - Admin -> Students -> Academic info picks
+5. **Habits** - a full personal habit tracker (`/student/habits`): five
+   default habits per student (Study 5x/week Mon-Fri, Exercise 4x/week,
+   Reading 30 min/day, Sleep 8 h/day, Focus 60 min/day) plus custom habits
+   with a goal type (completion / count / duration / quantity), a target,
+   daily vs weekly frequency, and Mon-Sun scheduled days. The dashboard shows
+   the current week, weekly completion %, completed/remaining targets, best
+   habit, a Today list, a Mon-Sun week grid, per-habit details (target,
+   schedule, this week, historical completion rate, current + best streak),
+   pause/resume/archive, and delete (hard delete cascades through entries and
+   pause windows), plus a history calendar (This week / 30 / 90 days / All).
+   Archived habits land in an **Archived** section on the same page where they
+   can be restored (history preserved) or deleted forever. Streaks follow the habit's scheduled days (a missed scheduled day
+   breaks; unscheduled days and pause windows never do). Weekly targets sum
+   across the week; daily targets require each scheduled day to hit the
+   target. Stats are computed from real `habit_entries` rows by the pure
+   `lib/habitLogic.ts` module (unit-tested). Entries upsert on
+   `(student_id, habit_id, entry_date)` - duplicates are impossible at the
+   DB level. Habits never touch the rank engine or grades.
+
+   Reliability details (1.4.25): the habits page derives the detail modal's
+   habit live from the store, so after **Edit** the modal immediately shows
+   the new name/target, after **Pause** the Today section hides and the
+   Resume button appears, and after **Archive/Delete** the modal closes
+   instead of lingering on stale state. `pauseHabit` closes any already-open
+   pause window before opening a new one (a double-tap can never create
+   duplicate open windows, which used to make Resume fail), `archiveHabit`
+   selects the row and moves it into the archived list instantly, the home
+   widget's check buttons show busy + error feedback, and the provider keeps
+   `loading` until the profile resolves so the page never flashes an empty
+   state. User guide: `docs/HABITS.md`.
+6. **Theming** - a `ThemePicker` (Midnight / Rose) replaces the old
+   dark/light toggle. It lives on every role's settings page; the choice is
+   stored in `localStorage` (`hc-theme`) and applied by the layout script
+   before first paint, so the whole app switches without a flash. The
+   **default avatar** (`components/ui/DefaultAvatar.tsx`) is an inline SVG
+   that adapts to the theme through CSS variables: gray silhouette in
+   Midnight, Cavern Pink silhouette in Rose - so girls without a profile
+   photo still get a feminine placeholder. Version shown in settings too
+   (from `lib/version.ts`).
+7. **Florin shop & wardrobe** - `/student/shop` is the store (buy only),
+   `/student/profile` holds the **Wardrobe** (`components/profile/Wardrobe.tsx`)
+   where owned items get equipped. Three decoration types: **page
+   backgrounds** (render behind every student page via `PageBackdrop` - the
+   backdrop is static and only renders when a background is equipped; with
+   nothing equipped the page keeps its flat token background, which is the
+   default for every new student), **profile card backgrounds** (render behind the
+   student's rank/name card on home, their own profile, the viewed profile
+   `/student/profile/[id]`, and the in-place `ProfileModal`), and **avatar
+   borders** (colored rings on `UserAvatar` wherever a `profileId` is
+   passed - feed, chat, search, leaderboard, profiles, rosters). Buying and
+   equipping run through SECURITY DEFINER RPCs (`purchase_shop_item`,
+   `equip_shop_item`, `unequip_shop_item`) so a student can never mint coins
+   or equip items they don't own. `ShopProvider` keeps a school-wide loadout
+   map (`decorColorOf`, `profileCardOf`) so each user's decorations follow
+   them across the app. The shop page has no balance of its own - the Florin
+   pill in the header (next to the notification bell) shows the balance and
+   opens the **Buy Florin** top-up modal (`FlorinPurchaseModal`, not wired to
+   payments yet); the profile pencil (on the avatar) opens the photo/name
+   editor.
+8. **Academic info (admin)** - Admin -> Students -> Academic info picks
    education level -> program -> year/level (or **None** to clear); saving
    auto-enrolls the student in that year's courses via `autoEnrollInSection`
    and the roster/identity updates everywhere through realtime.
+9. **Public landing & auth** - visitors at `/` get the marketing page;
+   logged-in users are bounced to their role home. Sign in/up happens in the
+   same animated card on the landing, `/login`, or `/signup` - all share
+   `AuthCard` + `AuthTabs` + the real Supabase forms. Forgot/reset follow the
+   same shell.

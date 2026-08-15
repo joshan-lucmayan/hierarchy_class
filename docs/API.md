@@ -86,6 +86,14 @@ and validate the caller (participant, same school, role) before acting.
 | `effective_enrollment_status(...)` | Enrolled/expired/revoked at read time |
 | `refresh_expired_enrollments()` | Bulk expiry pass (optional hardening) |
 
+### Florin shop (migration 050)
+
+| RPC | What it does |
+|---|---|
+| `purchase_shop_item(p_item_id)` | SECURITY DEFINER buy: caller must be a student, item active, not already owned, balance >= price; then deducts `florin_balances`, inserts a negative `florin_transaction`, and grants `shop_ownership` in one call. Returns the new balance |
+| `equip_shop_item(p_item_id, p_slot)` | Equips an OWNED item into `background`, `avatar_border`, or `profile_card` (validates ownership + type match, upserts `student_shop_loadout`) |
+| `unequip_shop_item(p_slot)` | Clears a slot back to the default |
+
 ---
 
 ## 3. Realtime channels
@@ -100,7 +108,8 @@ The browser subscribes with `supabase.channel(...)` and
 | `notifications-mine` | notifications INSERT `recipient_id=eq.me` | NotificationsProvider - unread bell |
 | `classroom-grades` | grade_entries all events | ClassroomHierarchyProvider - live averages |
 | `rank-state-<id>` | student_rank_state all events | RankProvider - live rank cards/leaderboard; **unique channel per instance** so multiple mounts never collide |
-| `habit-entries` | habit_entries INSERT (own) | HabitProvider - live weekly counts |
+| `shop-ownership-<id>` | shop_ownership all events | ShopProvider - keeps owned/equipped state live across open tabs (migration 050 publishes these tables) |
+| `habits-<id>` | habits + habit_entries + habit_pauses, own rows | HabitProvider - live habits, entries, and pause windows across tabs (migration 053 publishes all three) |
 
 Design rule: **one channel per provider, created once per mount, removed on
 cleanup** - never re-created on list growth, and never a fixed name for hooks

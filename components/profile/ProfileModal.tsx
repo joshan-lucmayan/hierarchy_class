@@ -7,6 +7,7 @@ import { useAcademicIdentity } from "@/lib/useAcademicIdentity";
 import { useRankStore } from "@/lib/rankStore";
 import { useSchoolEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useShop } from "@/lib/shopStore";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { RankBadge } from "@/components/ui/RankBadge";
@@ -18,6 +19,8 @@ import type { ProfileRow } from "@/types/supabase";
  * lives at /student/profile/[id] for deep links.
  */
 export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose: () => void }) {
+  const { profileCardOf } = useShop();
+  const cardBg = profileCardOf(person.id);
   const router = useRouter();
   const { profile: me } = useMyProfile();
   const { rankOf } = useRankStore();
@@ -57,8 +60,14 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
         className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[10px] border border-base bg-surface"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Flat social cover strip - decorative only, token-based. */}
-        <div className="relative h-20 bg-asphalt/50">
+        {/* Cover strip: the person's equipped profile-card background when
+            they own one, otherwise the flat decorative token strip. */}
+        <div
+          className="relative h-20 bg-cover bg-center"
+          style={cardBg ? { backgroundImage: `url(${cardBg})` } : undefined}
+        >
+          {!cardBg && <div className="absolute inset-0 bg-asphalt/50" />}
+          {cardBg && <div className="cover-tint absolute inset-0" />}
           <div className="absolute right-5 top-4 h-7 w-7 rounded-lg border border-line bg-tile/40" />
           <div className="absolute bottom-3 left-8 h-3 w-14 rounded-full border border-line bg-tile/30" />
         </div>
@@ -70,6 +79,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
               src={person.avatar_url}
               size="2xl"
               className="border-2 border-surface"
+              profileId={person.id}
             />
             {/* Name + Message button on the SAME line - the action aligns with the name. */}
             <div className="mt-3 flex w-full items-center justify-center gap-3">

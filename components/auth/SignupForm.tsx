@@ -20,6 +20,7 @@ type SignupFieldErrors = {
   password?: string;
   school?: string;
   role?: string;
+  terms?: string;
   form?: string;
 };
 
@@ -33,6 +34,7 @@ export function SignupForm() {
   const [school, setSchool] = useState<School | null>(null);
   const [role, setRole] = useState("student");
   const [isLibrarian, setIsLibrarian] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [errors, setErrors] = useState<SignupFieldErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -46,6 +48,7 @@ export function SignupForm() {
     if (!password) next.password = "Enter your password.";
     if (!school) next.school = "Please select your school.";
     if (!role) next.role = "Choose a role.";
+    if (!acceptedTerms) next.terms = "You must accept the Terms and Conditions to continue.";
 
     return next;
   }
@@ -117,13 +120,13 @@ export function SignupForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-5">
       {errors.form ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+        <div className="animate-shake rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
           {errors.form}
         </div>
       ) : null}
 
       {statusMessage ? (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-muted">
+        <div className="animate-pop-in rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-muted">
           {statusMessage}
         </div>
       ) : null}
@@ -141,8 +144,8 @@ export function SignupForm() {
             placeholder="Jane"
             disabled={isLoading}
             autoComplete="given-name"
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-              ${errors.firstName ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+              ${errors.firstName ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
         </div>
@@ -158,8 +161,8 @@ export function SignupForm() {
             placeholder="Doe"
             disabled={isLoading}
             autoComplete="family-name"
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-              ${errors.lastName ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+              ${errors.lastName ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
         </div>
@@ -176,8 +179,8 @@ export function SignupForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-            ${errors.email ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+            ${errors.email ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
         {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
       </div>
@@ -193,8 +196,8 @@ export function SignupForm() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Create a strong password"
           disabled={isLoading}
-          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-            ${errors.password ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+          className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+            ${errors.password ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
         {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
       </div>
@@ -208,8 +211,8 @@ export function SignupForm() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
             disabled={isLoading}
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-colors disabled:bg-tile disabled:text-faint
-              ${errors.role ? "border-red-400" : "border-base focus:border-navy focus:ring-1 focus:ring-gold"}`}
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+              ${errors.role ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           >
             {ROLES.map((option) => (
               <option key={option.value} value={option.value}>
@@ -244,6 +247,27 @@ export function SignupForm() {
         </label>
       )}
 
+      <label className="flex items-start gap-2.5 rounded-lg border border-base px-3.5 py-3 text-sm text-[var(--text)]">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="mt-0.5"
+        />
+        <span>
+          I agree to the{" "}
+          <a href="/terms" className="font-semibold text-[var(--gold)] underline underline-offset-2">
+            Terms and Conditions
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="font-semibold text-[var(--gold)] underline underline-offset-2">
+            Privacy Policy
+          </a>
+          .
+        </span>
+      </label>
+      {errors.terms && <p className="-mt-2 text-xs text-red-500">{errors.terms}</p>}
+
       <button
         type="submit"
         disabled={isLoading}
@@ -255,6 +279,10 @@ export function SignupForm() {
         <span className="relative flex items-center gap-2 justify-center">
           {isLoading ? "Creating account" : "Create account"}
         </span>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+        />
       </button>
 
       <p className="text-center text-xs text-muted">

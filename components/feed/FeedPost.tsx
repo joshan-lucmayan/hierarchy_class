@@ -20,7 +20,7 @@ export function FeedPost({ post }: { post: SchoolPost }) {
       <div className="p-5">
         {/* Author row */}
         <div className="flex items-center gap-3">
-          <UserAvatar name={post.authorName ?? "Admin"} src={post.authorAvatar} size="md" />
+          <UserAvatar name={post.authorName ?? "Admin"} src={post.authorAvatar} size="md" profileId={post.authorId} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-semibold text-navy">
               {post.authorName ?? "Administrator"}

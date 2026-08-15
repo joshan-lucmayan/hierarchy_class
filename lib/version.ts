@@ -1,4 +1,4 @@
 /**
  * Single source of truth for the app version.
  */
-export const APP_VERSION = "1.2.24";
+export const APP_VERSION = "1.4.25";

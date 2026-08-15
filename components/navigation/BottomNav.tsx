@@ -18,7 +18,7 @@ export function BottomNav() {
         {STUDENT_NAV_ITEMS.map((item) => {
           const active = item.href ? pathname?.startsWith(item.href) : false;
           return (
-            <Link key={item.href} href={item.href ?? "#"} className="flex flex-col items-center gap-1 px-2 py-1.5">
+            <Link key={item.href} href={item.href ?? "#"} className="flex flex-col items-center gap-1 px-1.5 py-1.5">
               <span className="relative">
                 {item.icon(!!active)}
                 {item.href?.includes("/messages") && <MessagesBadge />}

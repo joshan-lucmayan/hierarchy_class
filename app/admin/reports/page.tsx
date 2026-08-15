@@ -5,6 +5,7 @@ import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { useRankStore } from "@/lib/rankStore";
 import type { Rank } from "@/lib/rankEngine";
 
@@ -214,11 +215,7 @@ export default function AdminReportsPage() {
                   topPerformers.map((s, i) => (
                     <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-base px-3 py-2">
                       <p className="w-5 text-center text-xs font-bold text-muted">{i + 1}</p>
-                      <img
-                        src={s.profile.avatar_url || "/avatars/default-avatar.webp"}
-                        alt={s.profile.full_name}
-                        className="h-8 w-8 shrink-0 rounded-full object-cover"
-                      />
+                      <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" />
                       <p className="flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
                       <p className="text-sm font-bold text-gold">{s.avg}</p>
                     </div>
@@ -236,11 +233,7 @@ export default function AdminReportsPage() {
                 ) : (
                   needsAttention.map((s) => (
                     <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-red-300 bg-red-500/5 px-3 py-2">
-                      <img
-                        src={s.profile.avatar_url || "/avatars/default-avatar.webp"}
-                        alt={s.profile.full_name}
-                        className="h-8 w-8 shrink-0 rounded-full object-cover"
-                      />
+                      <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" />
                       <p className="flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
                       <p className="text-sm font-bold text-red-600">{s.avg}</p>
                     </div>
@@ -259,11 +252,7 @@ export default function AdminReportsPage() {
                 teacherActivity.map(({ teacher, count, lastDate }) => (
                   <div key={teacher.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={teacher.avatar_url || "/avatars/default-avatar.webp"}
-                        alt={teacher.full_name}
-                        className="h-8 w-8 shrink-0 rounded-full object-cover"
-                      />
+                      <UserAvatar name={teacher.full_name} src={teacher.avatar_url} size="sm" />
                       <p className="text-sm text-navy">{teacher.full_name}</p>
                     </div>
                     <div className="text-right">

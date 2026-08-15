@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { TeacherBottomNav } from "@/components/navigation/TeacherBottomNav";
 import { AdminBottomNav } from "@/components/navigation/AdminBottomNav";
+import { PageBackdrop } from "@/components/dashboard/PageBackdrop";
 
 type Role = "student" | "teacher" | "admin";
 
@@ -24,14 +25,17 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <div className="relative min-h-screen text-[var(--text)]">
+      {role === "student" && <PageBackdrop />}
       <SideNav role={role} brandHref={brandHref} />
       <div
         style={{ ["--sidebar-gap" as string]: "100px" }}
-        className="mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-24 xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-6"
+        className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-24 xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-6"
       >
         <SiteHeader href={brandHref} showFlorin={role === "student"} />
-        <main className="flex-1 p-6 pb-24 xl:p-8 xl:pb-8">
+        <main
+          className={`flex-1 p-6 pb-24 xl:p-8 xl:pb-8 ${role === "student" ? "glass-cards" : ""}`}
+        >
           {children}
         </main>
       </div>

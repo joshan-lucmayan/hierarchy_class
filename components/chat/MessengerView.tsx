@@ -201,7 +201,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   onClick={() => handleStartConversation(person)}
                   className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)]"
                 >
-                  <UserAvatar name={person.full_name} src={person.avatar_url} size="md" />
+                  <UserAvatar name={person.full_name} src={person.avatar_url} size="md" profileId={person.id} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-navy">{person.full_name}</p>
                     <p className="truncate text-[11px] text-muted">
@@ -233,7 +233,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   activeId === c.id ? "bg-[var(--surface-strong)]" : "hover:bg-[var(--surface-strong)]"
                 }`}
               >
-                <UserAvatar name={c.name} src={c.avatarUrl} size="lg" />
+                <UserAvatar name={c.name} src={c.avatarUrl} size="lg" profileId={c.otherId} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-semibold text-navy">{c.name}</p>
@@ -259,7 +259,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
         {active ? (
           <>
             <div className="flex items-center gap-3 border-b border-base p-4">
-              <UserAvatar name={active.name} src={active.avatarUrl} size="lg" />
+              <UserAvatar name={active.name} src={active.avatarUrl} size="lg" profileId={active.otherId} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-navy">{active.name}</p>
                 {active.otherId && (

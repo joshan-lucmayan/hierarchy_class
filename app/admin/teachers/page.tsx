@@ -6,6 +6,7 @@ import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ActionButton } from "@/components/ui/ActionButton";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import type { ProfileRow } from "@/types/supabase";
 
 export default function AdminTeachersPage() {
@@ -104,11 +105,7 @@ export default function AdminTeachersPage() {
                           : "border-base bg-surface hover:border-gold"
                       }`}
                     >
-                      <img
-                        src={teacher.avatar_url || "/avatars/default-avatar.webp"}
-                        alt={teacher.full_name}
-                        className="h-10 w-10 shrink-0 rounded-full object-cover"
-                      />
+                      <UserAvatar name={teacher.full_name} src={teacher.avatar_url} size="md" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-navy">{teacher.full_name}</p>
                         <p className="truncate text-xs text-muted">
@@ -133,10 +130,11 @@ export default function AdminTeachersPage() {
             ) : (
               <>
                 <div className="flex items-center gap-4">
-                  <img
-                    src={selectedTeacher.avatar_url || "/avatars/default-avatar.webp"}
-                    alt={selectedTeacher.full_name}
-                    className="h-16 w-16 rounded-full border-2 border-gold object-cover"
+                  <UserAvatar
+                    name={selectedTeacher.full_name}
+                    src={selectedTeacher.avatar_url}
+                    size="xl"
+                    className="!border-2 !border-gold"
                   />
                   <div>
                     <p className="text-lg font-semibold text-navy">{selectedTeacher.full_name}</p>

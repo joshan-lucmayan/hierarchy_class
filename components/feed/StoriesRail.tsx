@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useStories, Story } from "@/lib/storiesStore";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { StoryViewerModal } from "@/components/feed/StoryViewerModal";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function StoriesRail() {
   const { profile } = useMyProfile();
@@ -126,12 +127,7 @@ export function StoriesRail() {
               >
                 <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-strong)] p-[2px]">
                   <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-gold bg-navy">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={story.authorAvatar || "/avatars/default-avatar.webp"}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    <UserAvatar name={story.authorName} src={story.authorAvatar} size="xl" className="!border-0" />
                   </span>
                 </span>
                 <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">

@@ -45,8 +45,13 @@ migration index. Migrations live in `database/migrations/` - see
 
 | Table | Purpose |
 |---|---|
-| `habit_entries` | Daily habit completion (study/exercise/reading/sleep/focus), one row per student per habit per date |
+| `habits` | Student-defined habits (name, category, goal type + target, daily/weekly frequency, scheduled days Mon-first, status active/paused/archived). Five defaults seeded per student by migration 053: Study 5x/week (Mon-Fri), Exercise 4x/week, Reading 30 min/day, Sleep 8 h/day, Focus 60 min/day |
+| `habit_entries` | Daily habit records: one row per (student, habit, date) enforced by a UNIQUE constraint; `value` holds the amount logged (1 for a check-off, minutes/pages for duration/quantity goals) |
+| `habit_pauses` | Pause windows per habit (started_at, ended_at NULL while paused). Paused days are skipped by streak math - a pause never breaks a streak and never generates missed days |
 | `florin_balances` | Read-only currency balance (no client minting) |
+| `shop_items` | Florin shop catalog - three types: `background` (page backdrop), `avatar_border` (avatar ring), `profile_card` (viewed-profile card background). Seeded by migrations 050-052 |
+| `shop_ownership` | Which items each student owns (unique per student + item) |
+| `student_shop_loadout` | What each student currently has equipped (page background + avatar border + profile card), school-readable so decorations show on other users' avatars and cards |
 | `library_books`, `library_borrow_requests`, `library_borrow_log` | Library catalog + borrow flow |
 | `quizzes`, `quiz_questions`, `quiz_attempts` | Quiz engine |
 | `learning_materials` | Course materials with storage file paths |
@@ -183,6 +188,10 @@ All files live in `database/migrations/`.
 | 044 | Semester gate: `guard_grade_submission_requires_semester` BEFORE INSERT trigger on `grade_entries` blocks ANY grade submission when the school has no active semester (teachers must ask the admin to declare it first) |
 | 049 | **PER-ENTRY ISOLATED FILL (permanent, supersedes 047):** the period-cumulative category running average and the composite blend across categories (S) are removed. Each grade entry computes its own fill independently from its own score and category weight share - `entryPct = earned/possible*100`, `Adjusted = 100*(min(entryPct,100)/100)^k`, `fillChange = ((Adjusted-50)/50)*(100/n)*weightShare` where `weightShare = w[cat]/sum(ALL configured weights)`. Applied in `preview_rank_update`, `revert_grade_rank_feed` (both branches), and the replay; the EX >= 50 check uses the UNCAPPED adjusted of the single entry (`Adjusted_uncapped = 100*(entryPct/100)^k`). 046's period-baseline clear fix is kept; existing states replayed with the new math |
 | 048 | Publish app tables to `supabase_realtime`: `profiles`, `grade_entries`, `student_rank_state`, `rank_period_entries`, `rank_history_log`, `habit_entries`, `chat_blocks`, `chat_messages`, `notifications` were subscribed to via postgres_changes but never in the publication, so no realtime event ever reached the browser (rank bars, habits, messages, notifications all silently required a full reload). Idempotent add |
+| 050 | Florin shop: `shop_items` (catalog, seeded), `shop_ownership` (unique per student + item), `student_shop_loadout` (equipped background + border, school-readable for decorations) + RLS + `purchase_shop_item` / `equip_shop_item` / `unequip_shop_item` SECURITY DEFINER RPCs (no client-side Florin writes) + publish shop tables to realtime |
+| 051 | Third shop type: `profile_card` (viewed-profile card background). Extends the `shop_items.type` CHECK, adds `student_shop_loadout.profile_card_item_id`, extends `equip_shop_item`/`unequip_shop_item` for the new slot, seeds 4 SVG card backgrounds |
+| 052 | Girls' theme shop: renames the `Golden Hour` background to `Samurai Sword` and seeds the two pink page backgrounds (Pink Butterfly, Pink Cat) for the Rose theme |
+| 053 | Full habit tracker: new `habits` table (goal type/target, daily vs weekly frequency, Mon-first `scheduled_days`, status) + `habit_pauses` pause windows, both RLS-protected (own-row students, school-wide admins) and published to realtime. Re-keys `habit_entries` onto `habits.id` (backfills legacy `habit_type` rows, drops the column) and moves the uniqueness constraint to `(student_id, habit_id, entry_date)`. Seeds the five default habits for every student |
 | 047 | ~~Restore composite bar fill~~ **SUPERSEDED by 049** - 045's weight-dominant experiment was briefly reverted, then permanently replaced by per-entry isolation (049) |
 | 046 | Period baseline: `student_rank_state` gains `period_start_rank/bar/ex_score/peak` (captured when the grading period is adopted); `revert_grade_rank_feed` now recomputes order-independently from the baseline + all remaining current-period entries, so bulk-clearing all grades (admin → clear course data) collapses the state to the baseline (D/0 for a fresh student) instead of leaving a stale bar residue; old-period deletions keep the anchor + replay path |
 

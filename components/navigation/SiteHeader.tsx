@@ -1,17 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { BrandMark } from "@/components/navigation/BrandMark";
 import { NotificationBell } from "@/components/navigation/NotificationBell";
 import { useFlorin } from "@/lib/florinStore";
 import { useSchools } from "@/lib/useSchools";
-import { FlorinPurchaseModal } from "@/components/student/FlorinPurchaseModal";
 import { CoinIcon } from "@/components/ui/CoinIcon";
+import { FlorinPurchaseModal } from "@/components/student/FlorinPurchaseModal";
 
 export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: boolean }) {
   const { balance } = useFlorin();
   const { schools } = useSchools();
-  const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [buyOpen, setBuyOpen] = useState(false);
 
   const schoolName = schools[0]?.name;
 
@@ -28,7 +29,8 @@ export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: b
         {showFlorin && (
           <button
             type="button"
-            onClick={() => setPurchaseOpen(true)}
+            onClick={() => setBuyOpen(true)}
+            title="Buy Florin"
             className="flex items-center gap-2 rounded-md border border-line bg-tile px-2.5 py-1.5 text-[13px] font-semibold text-navy transition hover:border-sealion"
           >
             <CoinIcon size={18} />
@@ -39,7 +41,7 @@ export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: b
         <NotificationBell />
       </div>
 
-      {purchaseOpen && <FlorinPurchaseModal onClose={() => setPurchaseOpen(false)} />}
+      {buyOpen && <FlorinPurchaseModal onClose={() => setBuyOpen(false)} />}
     </header>
   );
 }

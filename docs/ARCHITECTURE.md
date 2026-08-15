@@ -1,6 +1,6 @@
 # Hierarchy Class - Architecture
 
-**Version 1.2.24.** A gamified academic-tracking platform ("Climb the ranks")
+**Version 1.4.25.** A gamified academic-tracking platform ("Climb the ranks")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).
@@ -15,7 +15,7 @@ database-backed; there is no mock-data layer left.
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router), React 18, TypeScript (strict) |
-| Styling | Tailwind CSS, CSS variables (light/dark theme) |
+| Styling | Tailwind CSS, CSS variables (Midnight / Rose themes) |
 | Backend | Supabase: Postgres, Auth, Realtime, Storage, RLS |
 | DB access | `@supabase/ssr` (browser + server clients), typed by `types/supabase.ts` |
 | Deployment | Vercel-ready; env vars in `.env.local` |
@@ -54,6 +54,8 @@ hierarchy_class/
 │   ├── chat/                MessengerView (shared by all three roles)
 │   ├── feed/                FeedPost, StoriesRail, StoryViewerModal
 │   ├── dashboard/           SubjectStats, HabitTracker, WeeklyProgress
+│   ├── habits/              HabitFormModal, HabitDetailModal, HabitHistoryView,
+│   │                        HabitIcon, habitFormat
 │   ├── profile/             ProfileModal (in-place profile preview)
 │   ├── search/              QuickSearchBar
 │   ├── admin/               PostEditor
@@ -62,7 +64,8 @@ hierarchy_class/
 │   ├── leaderboard/         LeaderboardRow
 │   ├── student/             FlorinPurchaseModal
 │   ├── ui/                  RankBadge, StatBar, StatRadarChart, EnrolledBadge,
-│   │                        CornerFrame, UserAvatar, CrownMark, CoinIcon
+│   │                        CornerFrame, UserAvatar, DefaultAvatar,
+│   │                        CrownMark, CoinIcon
 │   └── FeedbackForm.tsx     Shared feedback/report form
 │
 ├── lib/                     SHARED LOGIC - data layer + helpers
@@ -77,12 +80,12 @@ hierarchy_class/
 │   └── weekUtils.ts         Date/week helpers
 │
 ├── database/                DATABASE - everything Postgres
-│   ├── migrations/          Numbered SQL migrations 001 -> 033 (see DATABASE.md)
+│   ├── migrations/          Numbered SQL migrations 001 -> 053 (see DATABASE.md)
 │   └── README.md            How to apply migrations
 │
 ├── types/                   TypeScript types (supabase.ts, school.ts, ...)
 ├── scripts/                 Seed scripts (seed-schools.sql, seed.ts, ...)
-├── public/                  Static assets (favicons, default avatar)
+├── public/                  Static assets (favicons, hc_bg shop/backdrop images)
 └── docs/                    DOCUMENTATION (this folder)
 ```
 
@@ -118,8 +121,9 @@ Postgres
 - **middleware.ts** refreshes the Supabase session cookie on every request and
   enforces the role prefix: `/student`, `/teacher`, `/admin` require a logged-in
   user whose `user_metadata.role` matches; wrong role -> bounce to their own
-  home; logged out -> `/login?next=...`. `/login`/`/signup` redirect signed-in
-  users to their home.
+  home; logged out -> `/login`. `/login`/`/signup` redirect signed-in users to
+  their home. Logging **out** lands on the public home page (`/`), which shows
+  the landing site for visitors.
 - **Fake-auth fallback**: when `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` are absent,
   middleware blocks nothing and the client stores render empty/error states -
   intentional for UI-only work, a deployment hazard if env vars are forgotten.
@@ -142,7 +146,7 @@ where it matters. All are Supabase-backed - **there is no mock data**.
 | `SchoolFeedProvider` | school_feed_posts | Audience-aware feed; admin create/edit/delete + optional image |
 | `StoriesProvider` | stories, story_views, `myday` bucket | 24h expiry, uploads, view tracking |
 | `MaterialsProvider` | learning_materials, `materials` bucket | Signed URLs; teacher uploads |
-| `HabitProvider` | habit_entries | Weekly habit tracking (student home) |
+| `HabitProvider` | habits, habit_entries, habit_pauses | Habit definitions, daily records, pause windows (student home + tracker) |
 | `FriendsProvider` | friends | Same-school enforced by RLS |
 | `BannerProvider` | banner_config, `banners` bucket | Admin-managed header image |
 | `FlorinProvider` | florin_balances | Read-only balance; no client-side minting |
@@ -251,4 +255,4 @@ both the enrolled-on and expiry dates configurable.
   Settings pages) and mirrors `package.json`. Keep both in sync when bumping.
 
 Docs: [README](./README.md) · [DATABASE](./DATABASE.md) · [API](./API.md) ·
-[SECURITY](./SECURITY.md) · [FRONTEND](./FRONTEND.md)
+[SECURITY](./SECURITY.md) · [FRONTEND](./FRONTEND.md) · [DEPLOYMENT](./DEPLOYMENT.md)

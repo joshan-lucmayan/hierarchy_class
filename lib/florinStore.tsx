@@ -17,6 +17,7 @@ interface FlorinContextValue {
   loading: boolean;
   error: string | null;
   addFlorin: (amount: number, reason?: string) => Promise<void>;
+  refetch: () => void;
 }
 
 const FlorinContext = createContext<FlorinContextValue | null>(null);
@@ -112,7 +113,7 @@ export function FlorinProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <FlorinContext.Provider value={{ balance, transactions, loading, error, addFlorin }}>
+    <FlorinContext.Provider value={{ balance, transactions, loading, error, addFlorin, refetch }}>
       {children}
     </FlorinContext.Provider>
   );

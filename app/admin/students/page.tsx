@@ -7,6 +7,7 @@ import { useRankStore } from "@/lib/rankStore";
 import { useAdminEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ActionButton } from "@/components/ui/ActionButton";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 import { createClient } from "@/lib/supabase/client";
 import type { ProfileRow } from "@/types/supabase";
 
@@ -236,11 +237,7 @@ export default function AdminStudentsPage() {
                           : "border-base bg-surface hover:border-gold"
                       }`}
                     >
-                      <img
-                        src={student.avatar_url || "/avatars/default-avatar.webp"}
-                        alt={student.full_name}
-                        className="h-10 w-10 shrink-0 rounded-full object-cover"
-                      />
+                      <UserAvatar name={student.full_name} src={student.avatar_url} size="md" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-navy">{student.full_name}</p>
                         <p className="truncate text-xs text-muted">
@@ -260,10 +257,11 @@ export default function AdminStudentsPage() {
             ) : (
               <>
                 <div className="flex items-center gap-4">
-                  <img
-                    src={selectedStudent.avatar_url || "/avatars/default-avatar.webp"}
-                    alt={selectedStudent.full_name}
-                    className="h-16 w-16 rounded-full border-2 border-gold object-cover"
+                  <UserAvatar
+                    name={selectedStudent.full_name}
+                    src={selectedStudent.avatar_url}
+                    size="xl"
+                    className="!border-2 !border-gold"
                   />
                   <div>
                     <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>

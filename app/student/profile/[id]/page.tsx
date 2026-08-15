@@ -8,6 +8,7 @@ import { useAcademicIdentity } from "@/lib/useAcademicIdentity";
 import { useRankStore } from "@/lib/rankStore";
 import { useSchoolEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useShop } from "@/lib/shopStore";
 import { useSchools } from "@/lib/useSchools";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -34,6 +35,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   const { friendIds, addFriend, removeFriend } = useFriendsStore();
   const identity = useAcademicIdentity(profileId);
   const { statuses } = useSchoolEnrollments();
+  const { profileCardOf } = useShop();
 
   const [person, setPerson] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +117,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
       } as any)
     : "unknown";
   const personId = person.id;
+  const cardBg = profileCardOf(personId);
 
   async function toggleFriend() {
     if (isFriend) removeFriend(personId);
@@ -125,8 +128,14 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
     <div className="flex min-h-[70vh] items-center justify-center">
       <div className="w-full max-w-2xl space-y-6">
       <CornerFrame className="overflow-hidden rounded-[10px] border border-base bg-surface">
-        {/* Flat social cover strip - decorative only, token-based. */}
-        <div className="relative h-24 bg-asphalt/50">
+        {/* Cover strip: the person's equipped profile-card background when
+            they own one, otherwise the flat decorative token strip. */}
+        <div
+          className="relative h-24 bg-cover bg-center"
+          style={cardBg ? { backgroundImage: `url(${cardBg})` } : undefined}
+        >
+          {!cardBg && <div className="absolute inset-0 bg-asphalt/50" />}
+          {cardBg && <div className="cover-tint absolute inset-0" />}
           <div className="absolute right-6 top-5 h-8 w-8 rounded-lg border border-line bg-tile/40" />
           <div className="absolute bottom-4 left-10 h-4 w-16 rounded-full border border-line bg-tile/30" />
         </div>
@@ -138,6 +147,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
               src={person.avatar_url}
               size="2xl"
               className="border-2 border-surface"
+              profileId={person.id}
             />
             <div className="mt-3 flex w-full items-center justify-center gap-3">
               <div className="min-w-0">

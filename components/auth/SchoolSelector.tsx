@@ -78,7 +78,10 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
         </button>
 
         {isOpen && (
-          <div className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-[10px] border border-base bg-surface">
+          <div
+            className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-[10px] border border-base bg-surface"
+            style={{ animation: "fadeUp 0.25s ease both" }}
+          >
             <div className="border-b border-base p-2">
               <input
                 autoFocus
@@ -86,7 +89,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search schools..."
-                className="w-full rounded-md border border-base px-3 py-2 text-sm outline-none focus:border-navy"
+                className="w-full rounded-md border border-base px-3 py-2 text-sm outline-none transition-all focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"
               />
             </div>
 
@@ -94,10 +97,13 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
               {filtered.length === 0 && (
                 <li className="px-3.5 py-3 text-sm text-faint">No schools found</li>
               )}
-              {filtered.map((school) => {
+              {filtered.map((school, i) => {
                 const isSelected = value?.id === school.id;
                 return (
-                  <li key={school.id}>
+                  <li
+                    key={school.id}
+                    style={{ animation: "fadeUp 0.25s ease both", animationDelay: `${i * 0.03}s` }}
+                  >
                     <button
                       type="button"
                       onClick={() => handleSelect(school)}

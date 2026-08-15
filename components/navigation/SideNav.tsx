@@ -21,6 +21,7 @@ const ITEMS_BY_ROLE: Record<Role, typeof STUDENT_NAV_ITEMS> = {
 function useSidebarUser(role: Role) {
   const { profile } = useMyProfile();
 
+  const id = profile?.id ?? null;
   const name = profile?.full_name ?? "";
   const avatarUrl = profile?.avatar_url;
   const isLibrarian = profile?.is_librarian ?? false;
@@ -35,7 +36,7 @@ function useSidebarUser(role: Role) {
     roleLabel = [profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ");
   }
 
-  return { name, avatarUrl, roleLabel, isLibrarian };
+  return { id, name, avatarUrl, roleLabel, isLibrarian };
 }
 
 /**
@@ -56,7 +57,9 @@ export function SideNav({ role, brandHref }: { role: Role; brandHref: string }) 
     setIsLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    // Land on the public home page (the landing site), not the login form -
+    // the landing page redirects signed-in users to their role home.
+    window.location.href = "/";
   }
 
   return (
@@ -106,7 +109,7 @@ export function SideNav({ role, brandHref }: { role: Role; brandHref: string }) 
             title={user.name || "Profile"}
             aria-label={user.name || "Profile"}
           >
-            <UserAvatar name={user.name} src={user.avatarUrl} size="sm" />
+            <UserAvatar name={user.name} src={user.avatarUrl} size="sm" profileId={user.id} />
           </Link>
 
           <button

@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
             {filtered.map((person) => (
               <div key={person.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                 <div className="flex items-center gap-3">
-                  <UserAvatar name={person.full_name} src={person.avatar_url} size="md" />
+                  <UserAvatar name={person.full_name} src={person.avatar_url} size="md" profileId={person.id} />
                   <div>
                     <p className="text-sm font-semibold text-navy">{person.full_name}</p>
                     <p className="text-xs text-muted">

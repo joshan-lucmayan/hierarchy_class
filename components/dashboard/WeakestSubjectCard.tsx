@@ -49,7 +49,7 @@ export default function WeakestSubjectCard() {
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">
+        <h2 className="section-label">
           Weakest Subject
         </h2>
         <span className="inline-flex items-center gap-1.5 rounded border border-[rgba(201,143,143,0.3)] bg-[rgba(201,143,143,0.08)] px-2 py-0.5 text-[10.5px] text-warn">

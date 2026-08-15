@@ -62,7 +62,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-gold">{title}</p>
+          <p className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-gold">{title}</p>
           <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
         </div>
         <div className="mt-4">{children}</div>
@@ -176,16 +176,14 @@ export default function TeacherHomePage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-navy">
+      <h1 className="font-display text-3xl font-bold text-navy">
         {getGreeting(now.getHours())}{profileLoading ? "" : profile ? `, ${profile.full_name}` : ""}
       </h1>
 
       <div className="grid items-start gap-5 xl:grid-cols-[1.6fr_1fr]">
         {/* Left column: latest school feed (same as student home). */}
         <section className="space-y-4">
-          <h1 className="text-[11px] font-semibold uppercase tracking-[0.11em] text-faint">
-            Latest School Feed
-          </h1>
+          <h1 className="section-label">Latest School Feed</h1>
           {feedLoading ? (
             <p className="text-sm text-muted">Loading announcements...</p>
           ) : feedError ? (
@@ -205,7 +203,7 @@ export default function TeacherHomePage() {
         <aside className="space-y-4">
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Assigned by admin</p>
+            <p className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-gold">Assigned by admin</p>
             {assignedTasks.filter((t) => t.status === "pending").length > 0 && (
               <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-semibold text-gold">
                 {assignedTasks.filter((t) => t.status === "pending").length} pending
@@ -328,7 +326,7 @@ export default function TeacherHomePage() {
 
           <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Pinned notes</p>
+              <p className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-gold">Pinned notes</p>
               <AddButton label="Add a note" onClick={() => setActiveModal("note")} />
             </div>
             <div className="mt-4 space-y-2">
@@ -343,7 +341,7 @@ export default function TeacherHomePage() {
 
           <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Today&apos;s schedule</p>
+              <p className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-gold">Today&apos;s schedule</p>
               <AddButton label="Add to schedule" onClick={() => setActiveModal("schedule")} />
             </div>
             <div className="mt-4 space-y-2">
@@ -359,7 +357,7 @@ export default function TeacherHomePage() {
 
           <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Today&apos;s lesson plan</p>
+              <p className="font-mono-ui text-[11px] font-medium uppercase tracking-[0.2em] text-gold">Today&apos;s lesson plan</p>
               <AddButton label="Add lesson plan" onClick={() => setActiveModal("lesson")} />
             </div>
             <div className="mt-4 space-y-2">
@@ -463,7 +461,7 @@ export default function TeacherHomePage() {
             {scheduleItems.map((item) => (
               <div key={item.id} className="flex items-start justify-between gap-2 rounded-[10px] border border-base p-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gold">{item.day}</p>
+                  <p className="font-mono-ui text-[10px] font-medium uppercase tracking-[0.2em] text-gold">{item.day}</p>
                   <p className="text-sm font-semibold text-navy">{item.subject}</p>
                   <p className="text-xs text-muted">{formatTimeLabel(item.startTime)} - {formatTimeLabel(item.endTime)}</p>
                 </div>

@@ -5,6 +5,7 @@ import { ChatProvider } from "@/lib/chatStore";
 import { LibraryProvider } from "@/lib/libraryStore";
 import { BannerProvider } from "@/lib/bannerStore";
 import { FlorinProvider } from "@/lib/florinStore";
+import { ShopProvider } from "@/lib/shopStore";
 import { HabitProvider } from "@/lib/habitStore";
 import { TeacherWorkspaceProvider } from "@/lib/teacherWorkspaceStore";
 import { TeacherTasksProvider } from "@/lib/teacherTasksStore";
@@ -39,13 +40,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               (function() {
                 try {
                   var saved = window.localStorage.getItem("hc-theme");
-                  var theme = saved === "light" || saved === "dark" ? saved : "dark";
+                  var theme = saved === "dark" || saved === "pink" ? saved : "dark";
                   document.documentElement.classList.toggle("dark", theme === "dark");
+                  document.documentElement.classList.toggle("pink", theme === "pink");
                   if (!saved) window.localStorage.setItem("hc-theme", "dark");
                 } catch (e) {}
               })();
             `,
           }}
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+          rel="stylesheet"
         />
       </head>
       <body>
@@ -58,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <LibraryProvider>
                       <BannerProvider>
                         <FlorinProvider>
+                          <ShopProvider>
                           <HabitProvider>
                             <TeacherWorkspaceProvider>
                             <ClassroomHierarchyProvider>
@@ -69,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             </ClassroomHierarchyProvider>
                           </TeacherWorkspaceProvider>
                           </HabitProvider>
+                          </ShopProvider>
                         </FlorinProvider>
                       </BannerProvider>
                     </LibraryProvider>

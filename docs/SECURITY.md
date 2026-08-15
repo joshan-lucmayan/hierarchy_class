@@ -12,7 +12,7 @@ else is UX and defense in depth.
   `profiles` row on signup (migration 003).
 - **Session**: `@supabase/ssr` cookies. `middleware.ts` refreshes the session
   cookie on every request and redirects appropriately:
-  - Logged out -> `/login?next=...`
+  - Logged out -> `/login`
   - Wrong role for the prefix (`/student`, `/teacher`, `/admin`) -> bounce to
     their own home
   - Signed-in user on `/login`/`/signup` -> their home
@@ -60,7 +60,7 @@ raw grade rows.
   buckets are private with owner/school policies.
 - **No client-side Florin minting** - balance write policies were removed
   until a verified payment flow exists.
-- **Theme/UX is not a security boundary** - the light/dark theme and
+- **Theme/UX is not a security boundary** - the Midnight/Rose theme and
   cosmetic states never gate data.
 
 ## 5. Known deployment caveats

@@ -29,7 +29,7 @@ export function LeaderboardRow({
       }`}
     >
       <span className="w-5 text-center text-sm font-bold text-muted">{rank}</span>
-      <UserAvatar name={student.name} src={student.avatarUrl} size="md" />
+      <UserAvatar name={student.name} src={student.avatarUrl} size="md" profileId={student.id} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-navy">{student.name}</p>
         <p className="truncate text-[11px] text-muted">

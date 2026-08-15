@@ -6,11 +6,13 @@ import { RankBadge } from "@/components/ui/RankBadge";
 import { StatBar } from "@/components/ui/StatBar";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { Wardrobe } from "@/components/profile/Wardrobe";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useMyEnrollment } from "@/lib/useEnrollment";
 import { useRankStore } from "@/lib/rankStore";
+import { useShop } from "@/lib/shopStore";
 import { createClient } from "@/lib/supabase/client";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -20,6 +22,7 @@ export default function StudentProfilePage() {
   const { getEntriesByProfile, getStudentAverageByProfile, courses, programs, sections, students: enrollments } = useClassroomHierarchy();
   const { effective: enrollment, loading: enrollmentLoading } = useMyEnrollment();
   const { rankOf } = useRankStore();
+  const { equippedProfileCard } = useShop();
 
   const [bio, setBio] = useState("");
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -154,7 +157,17 @@ export default function StudentProfilePage() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
-      <CornerFrame className="space-y-6 rounded-[10px] border border-base bg-surface p-5">
+      <CornerFrame className="relative space-y-6 overflow-hidden rounded-[10px] border border-base bg-surface p-5">
+        {equippedProfileCard?.image_url && (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${equippedProfileCard.image_url})` }}
+            />
+            <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--surface)_var(--art-tint),transparent)]" />
+          </>
+        )}
+        <div className="relative space-y-6">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="group relative">
             <UserAvatar
@@ -162,25 +175,26 @@ export default function StudentProfilePage() {
               src={profile.avatar_url}
               size="2xl"
               className="border-2 border-surface"
+              profileId={profile.id}
             />
+            {/* Instagram-style pencil sits ON the avatar: opens the photo/name editor. */}
+            <button
+              type="button"
+              onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
+              aria-label="Edit profile"
+              title="Edit profile"
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold hover:text-navy"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </button>
           </div>
           <div>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <h1 className="text-3xl font-bold text-navy">{profile.full_name}</h1>
               {!enrollmentLoading && <EnrolledBadge status={enrollment} size="sm" />}
-              {/* Instagram-style pencil: profile photo/name editing lives in the modal. */}
-              <button
-                type="button"
-                onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
-                aria-label="Edit profile"
-                title="Edit profile"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-base bg-surface text-muted transition hover:border-gold hover:text-navy"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
-              </button>
             </div>
             <p className="mt-2 text-sm text-muted">
               {[profile.educational_level, profile.program ?? (academicInfo?.programs ?? []).map((p) => p.name).join(" · "), profile.level_label]
@@ -244,10 +258,12 @@ export default function StudentProfilePage() {
             </div>
           )}
         </CornerFrame>
-
+        </div>
       </CornerFrame>
 
       <div className="space-y-6">
+        <Wardrobe />
+
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Stat overview</h2>
           <StatRadarChart stats={{ academic: academicExcellence, physical: 0, charisma: 0 }} />
@@ -398,9 +414,9 @@ export default function StudentProfilePage() {
                   href={`/student/profile/${friend.id}`}
                   className="flex shrink-0 flex-col items-center gap-1.5 transition active:scale-95"
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-strong)] p-[2px]">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-tile p-[2px]">
                     <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface">
-                      <UserAvatar name={friend.fullName} src={friend.avatarUrl} size="xl" />
+                      <UserAvatar name={friend.fullName} src={friend.avatarUrl} size="xl" profileId={friend.id} />
                     </div>
                   </div>
                   <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">

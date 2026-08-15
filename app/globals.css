@@ -26,6 +26,11 @@
   --on-accent: #141214; /* dark text that always sits on the light accent */
   /* Flat cards: a plain 1px hairline border instead of a heavy drop shadow. */
   --shadow: 0 0 0 1px var(--border);
+  /* Readability tint over the decorative artwork (PageBackdrop + equipped
+     cards). Themes override these: dark keeps a heavy wash, light lets the
+     art show through more. */
+  --backdrop-tint: 76%;
+  --art-tint: 52%;
 }
 
 .dark {
@@ -50,6 +55,38 @@
   --btn: #525b69; /* primary button fill - lifted above the page so buttons read clearly */
   --on-accent: #141214; /* dark text that always sits on the light accent */
   --shadow: 0 0 0 1px var(--border);
+}
+
+/* Rose theme - the soft pink palette for girls. Picks its own five colors:
+   Mountain Mist, Cavern Pink, Oyster Pink, Fair Pink, Athens Gray. Primary
+   text deepens Mountain Mist slightly so small text stays readable on the
+   pastel surfaces. */
+.pink {
+  color-scheme: light;
+  --bg: #eeeeF0; /* Athens Gray - page background */
+  --kettle: #ead0d1; /* Oyster Pink - sidebar */
+  --surface: #f6e8e7; /* Fair Pink - cards / panels */
+  --surface-strong: #f3e6e5; /* paler Fair Pink - hover / active (kept clearly pink, never near-white) */
+  --tile: #f0e3e2; /* inputs, chips, icon tiles, pills */
+  --border: #d9bbbd; /* Cavern Pink - card hairline */
+  --line: #cba9ab; /* stronger Cavern Pink - tracks */
+  --text: color-mix(in srgb, #98979c 50%, #141214); /* Mountain Mist deepened for contrast */
+  --muted: color-mix(in srgb, #98979c 62%, #141214); /* secondary text - darker than captions, so it reads */
+  --faint: color-mix(in srgb, #98979c 75%, #141214); /* captions / labels - readable but softest */
+  --gold: #98979c; /* Mountain Mist accent */
+  --sealion: #98979c; /* fills, active border */
+  --asphalt: #d9bbbd; /* avatar placeholders, spark bars */
+  --warn: #b0605a; /* salmon warning text */
+  --warn-fill: #b47a74; /* spark low bars */
+  --low-fill: #c4a2a4; /* lowest stat fill */
+  --nav: #98979c;
+  --btn: color-mix(in srgb, #d9bbbd 45%, #141214); /* deeper rose - the app's primary buttons carry white text, so the fill must stay dark enough to read */
+  --on-accent: #4a4245; /* dark rose text on the pink accent */
+  --shadow: 0 0 0 1px var(--border);
+  /* Lighter wash so the backdrop art stays visible, stronger card tint so
+     the dark card artwork reads as soft rose instead of staying dark. */
+  --backdrop-tint: 55%;
+  --art-tint: 66%;
 }
 
 html {
@@ -241,4 +278,289 @@ body {
 
 .animate-label-glow {
   animation: labelGlow 2.2s ease-in-out infinite;
+}
+
+/* ---------- Typography ---------- */
+:root {
+  --font-sans: "Inter", -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cinzel", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-ui {
+  font-family: var(--font-mono);
+}
+
+/* ---------- Landing page ---------- */
+@keyframes heroBreath {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.34; }
+  50% { transform: translate(-50%, -50%) scale(1.04); opacity: 0.46; }
+}
+
+@keyframes flowMove {
+  to { stroke-dashoffset: -1400; }
+}
+
+@keyframes chessFloat {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); opacity: 0.5; }
+  50% { transform: translateY(-16px) rotate(var(--r, 0deg)); opacity: 0.85; }
+}
+
+@keyframes crownPulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(158, 167, 179, 0.28)); }
+  50% { filter: drop-shadow(0 0 22px rgba(158, 167, 179, 0.55)); }
+}
+
+@keyframes wordIn {
+  0% { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes riseIn {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 7px); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.landing-reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Animated conic border for the auth card */
+@property --hc-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.hc-card-wrap {
+  position: relative;
+  padding: 1px;
+  border-radius: 18px;
+  animation: hcCardSpin 6s linear infinite, floatBob 7s ease-in-out infinite;
+}
+
+.hc-card-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--hc-angle),
+    transparent 0deg,
+    rgba(194, 199, 207, 0) 290deg,
+    rgba(158, 167, 179, 0.75) 335deg,
+    rgba(194, 199, 207, 0.9) 345deg,
+    rgba(158, 167, 179, 0.75) 355deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes hcCardSpin {
+  to { --hc-angle: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* The cinematic atmospheric backgrounds (landing + in-app PageBackdrop) only
+   render in dark mode; light mode keeps the clean flat token background. */
+.landing-bg,
+.page-bg {
+  display: none;
+}
+
+.dark .landing-bg,
+.dark .page-bg,
+.pink .page-bg {
+  display: block;
+}
+
+/* Pink-only wash over equipped profile-card art on the small cover strips
+   (dark keeps showing the artwork raw, as before the Rose theme existed). */
+.cover-tint {
+  background: transparent;
+}
+
+.pink .cover-tint {
+  background: color-mix(in srgb, #f6e8e7 55%, transparent);
+}
+
+/* Translucent cards over the PageBackdrop: the surface token at ~72% opacity
+   plus a light backdrop blur so text stays readable above the image. Only in
+   dark mode, where the backdrop is visible. */
+.dark .glass-cards .bg-surface,
+.pink .glass-cards .bg-surface {
+  background-color: color-mix(in srgb, var(--surface) 72%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.dark .glass-cards .bg-tile,
+.pink .glass-cards .bg-tile {
+  background-color: color-mix(in srgb, var(--tile) 78%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* Hero tagline: per-letter entrance, shimmer on the accent words, sparkles */
+@keyframes letterIn {
+  0% { opacity: 0; transform: translateY(0.6em) rotate(3deg); filter: blur(10px); }
+  100% { opacity: 1; transform: translateY(0) rotate(0deg); filter: blur(0); }
+}
+
+.text-shimmer {
+  background: linear-gradient(90deg, var(--gold) 0%, #eef1f5 45%, var(--gold) 90%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes shimmerText {
+  0% { background-position: 0% center; }
+  100% { background-position: 220% center; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  50% { opacity: 0.9; transform: scale(1) rotate(90deg); }
+}
+
+/* ---------- Auth page motion ---------- */
+@keyframes cardIn {
+  0% { opacity: 0; transform: scale(0.94) translateY(16px); filter: blur(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes orbDrift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(34px, -26px) scale(1.12); }
+  100% { transform: translate(-20px, 20px) scale(0.94); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; box-shadow: 0 0 6px rgba(52, 211, 153, 0.7); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes drawCheck {
+  from { stroke-dashoffset: 30; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes inputGlow {
+  0% { box-shadow: 0 0 0 0 rgba(158, 167, 179, 0); }
+  100% { box-shadow: 0 0 0 3px rgba(158, 167, 179, 0.18); }
+}
+
+.animate-card-in { animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-shake { animation: shake 0.4s ease; }
+.animate-pop-in { animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.animate-draw-check { stroke-dasharray: 30; animation: drawCheck 0.55s ease 0.25s both; }
+.animate-pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+
+.draw-check {
+  stroke-dasharray: 30;
+  animation: drawCheck 0.55s ease 0.25s both;
+}
+
+.wordmark-shimmer {
+  background: linear-gradient(90deg, #eceef1 0%, #9ea7b3 40%, #ffffff 50%, #9ea7b3 60%, #eceef1 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmerText 6s linear infinite;
+}
+
+/* Landing: card pop + drawn line reveals */
+.reveal-pop {
+  opacity: 0;
+  transform: translateY(18px) scale(0.94);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-pop.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+.draw-line {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.draw-line.in-view {
+  transform: scaleX(1);
+}
+
+/* Inside-app section eyebrows - same mono label style as the landing page,
+   so the dashboard type blends with the public pages. */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
 }

@@ -104,7 +104,7 @@ export default function TeacherStudentsPage() {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <UserAvatar name={student.full_name} src={student.avatar_url} size="md" />
+                    <UserAvatar name={student.full_name} src={student.avatar_url} size="md" profileId={student.id} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate font-semibold text-navy">{student.full_name}</p>
@@ -131,7 +131,7 @@ export default function TeacherStudentsPage() {
           ) : (
             <div className="mt-4 rounded-[10px] border border-base bg-[var(--surface-strong)] p-6">
               <div className="flex items-center gap-4">
-                <UserAvatar name={selectedStudent.full_name} src={selectedStudent.avatar_url} size="xl" />
+                <UserAvatar name={selectedStudent.full_name} src={selectedStudent.avatar_url} size="xl" profileId={selectedStudent.id} />
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>
