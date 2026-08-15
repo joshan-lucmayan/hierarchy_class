@@ -1,4 +1,4 @@
--- 032: Education Level → Program → Year/Level → Course.
+-- 032: Education Level -> Program -> Year/Level -> Course.
 --
 -- `programs` gains a self-referencing `parent_id` so a top-level row is an
 -- EDUCATION LEVEL (e.g. "College") and rows with a parent are the PROGRAMS

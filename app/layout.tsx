@@ -14,6 +14,7 @@ import { NotificationsProvider } from "@/lib/notificationsStore";
 import { StoriesProvider } from "@/lib/storiesStore";
 import { SchoolFeedProvider } from "@/lib/schoolFeedStore";
 import { MaterialsProvider } from "@/lib/materialsStore";
+import { RankProvider } from "@/lib/rankStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
@@ -61,7 +62,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             <TeacherWorkspaceProvider>
                             <ClassroomHierarchyProvider>
                               <TeacherTasksProvider>
-                                <FriendsProvider>{children}</FriendsProvider>
+                                <RankProvider>
+                                  <FriendsProvider>{children}</FriendsProvider>
+                                </RankProvider>
                               </TeacherTasksProvider>
                             </ClassroomHierarchyProvider>
                           </TeacherWorkspaceProvider>

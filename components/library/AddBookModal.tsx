@@ -256,7 +256,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
           <form onSubmit={handleSubmit} className="mt-5 space-y-3">
             {scanState === "not-found" && (
               <p className="rounded-[10px] bg-gold/10 px-3 py-2 text-xs text-navy">
-                Couldn&apos;t find that ISBN online — fill in the details below manually.
+                Couldn&apos;t find that ISBN online - fill in the details below manually.
               </p>
             )}
             {scanState === "found" && (

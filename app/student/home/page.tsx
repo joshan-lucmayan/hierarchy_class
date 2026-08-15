@@ -1,8 +1,8 @@
 "use client";
 
 import { useMyProfile } from "@/lib/useMyProfile";
-import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
+import { useRankStore } from "@/lib/rankStore";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { FeedPost } from "@/components/feed/FeedPost";
@@ -15,14 +15,13 @@ import WeakestSubjectCard from "@/components/dashboard/WeakestSubjectCard";
 
 export default function StudentHomePage() {
   const { profile, loading, error } = useMyProfile();
-  const { getStudentAverageByProfile, getStudentRankByProfile } = useClassroomHierarchy();
+  const { rankOf } = useRankStore();
   const { posts, loading: feedLoading, error: feedError } = useSchoolFeed();
 
-  const avg = profile ? getStudentAverageByProfile(profile.id) : null;
-  const rank = profile ? getStudentRankByProfile(profile.id) : null;
-
-  const academicExcellence = avg ?? 0;
-  const displayRank = rank ?? "D";
+  const myRank = profile ? rankOf(profile.id) : null;
+  const displayRank = myRank?.current_rank ?? "D";
+  const rankBar = myRank && myRank.current_rank !== "EX" ? myRank.current_bar : null;
+  const rankExScore = myRank?.current_rank === "EX" ? myRank.ex_score : null;
 
   return (
     <div className="space-y-6">
@@ -80,7 +79,8 @@ export default function StudentHomePage() {
                     <RankBadge
                       rank={displayRank}
                       size="lg"
-                      score={academicExcellence > 0 ? academicExcellence : null}
+                      bar={rankBar}
+                      exScore={rankExScore}
                     />
                   </div>
                 </>

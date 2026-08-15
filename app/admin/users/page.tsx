@@ -5,7 +5,7 @@ import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useRankStore } from "@/lib/rankStore";
 
 // The school directory shows students and teachers only - admin accounts
 // are never listed here.
@@ -19,7 +19,7 @@ const ROLE_TABS: { value: RoleFilter; label: string }[] = [
 
 export default function AdminUsersPage() {
   const { profiles, loading, error, refetch } = useSchoolProfiles({ excludeSelf: true });
-  const { getStudentRankByProfile } = useClassroomHierarchy();
+  const { rankOf } = useRankStore();
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
   const [query, setQuery] = useState("");
 
@@ -122,7 +122,7 @@ export default function AdminUsersPage() {
                     {person.role}
                   </span>
                   {person.role === "student" && (
-                    <RankBadge rank={getStudentRankByProfile(person.id) ?? "D"} size="sm" />
+                    <RankBadge rank={rankOf(person.id)?.current_rank ?? "D"} size="sm" />
                   )}
                 </div>
               </div>

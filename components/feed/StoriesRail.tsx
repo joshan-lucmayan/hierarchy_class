@@ -76,7 +76,7 @@ export function StoriesRail() {
           </button>
           <div className="min-w-0">
             <p className="text-[13px] text-muted">Add story</p>
-            <p className="mt-0.5 text-[11px] text-faint">No stories yet — share your day.</p>
+            <p className="mt-0.5 text-[11px] text-faint">No stories yet - share your day.</p>
           </div>
           <input
             ref={fileInputRef}

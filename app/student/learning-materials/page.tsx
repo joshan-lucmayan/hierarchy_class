@@ -91,7 +91,7 @@ export default function LearningMaterialsPage() {
                   rel="noopener noreferrer"
                   className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
                 >
-                  Open resource →
+                  Open resource -&gt;
                 </a>
               ) : (
                 <p className="mt-4 text-xs text-muted">No file attached to this resource yet.</p>

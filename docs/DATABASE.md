@@ -1,8 +1,8 @@
-# Hierarchy Class — Database
+# Hierarchy Class - Database
 
 This document covers the PostgreSQL schema behind the app: the main tables,
 how row-level security (RLS) is structured, storage buckets, and the complete
-migration index. Migrations live in `database/migrations/` — see
+migration index. Migrations live in `database/migrations/` - see
 [`database/README.md`](../database/README.md) for how to apply them.
 
 ---
@@ -25,7 +25,8 @@ migration index. Migrations live in `database/migrations/` — see
 | `sections` | Year/grade level inside a program (e.g. Year 1, Grade 12) |
 | `courses` | Individual subjects, assigned to a teacher, in a section |
 | `course_enrollments` | Student ↔ course membership |
-| `grade_entries` | The core grade row: student, course, type (Exam/Quiz/Activity/Assignment), score, `approval_status` ('pending'/'approved'/'rejected'), submitted_by |
+| `grade_entries` | The core grade row: student, course, type (a category LABEL - any label the teacher configured for the course), score + `max_score` (“out of”), `approval_status` ('pending'/'approved'/'rejected'), submitted_by |
+| `course_rank_categories` | Per-course category rows (course_id, category_key, label, weight %) - teachers add/remove/edit them freely; replaced the fixed four (Quiz/Exam/Activity/Participation) in migration 040 |
 | `teacher_tasks` | Tasks assigned to teachers (e.g. "submit grades") |
 
 ### Social & communication
@@ -65,17 +66,17 @@ managed from the admin pages and are read-only for everyone else.
 **Row-level security is the gate for everything.** No policy, no data. The
 pattern is consistent across tables:
 
-1. **School scoping** — every school-scoped table joins back to `profiles` or
+1. **School scoping** - every school-scoped table joins back to `profiles` or
    uses `auth.jwt()` metadata to confirm the row belongs to the caller's
    `school_id`.
-2. **Role scoping** — students, teachers, and admins see different slices:
+2. **Role scoping** - students, teachers, and admins see different slices:
    - Students: only their own rows (grades, habits, enrollment) or
      school-wide rows that are safe to share (roster, feed, leaderboard
      aggregates).
    - Teachers: rows for courses they teach; school-wide roster and
      enrollment status (read-only).
    - Admins: everything in their school.
-3. **Ownership scoping** — personal data (profile, notifications, chat
+3. **Ownership scoping** - personal data (profile, notifications, chat
    per-side state, habits) is gated by `profile_id = my profile`.
 
 ### Grade privacy (the strictest case)
@@ -84,7 +85,7 @@ pattern is consistent across tables:
 - Teachers read rows for courses they teach.
 - Admins read the whole school.
 - The leaderboard is an **aggregate-only** `SECURITY DEFINER` function
-  (`get_school_leaderboard`) — raw grade rows are never exposed.
+  (`get_school_leaderboard`) - raw grade rows are never exposed.
 
 ### Protected columns
 
@@ -106,7 +107,7 @@ All buckets are **private**; access is enforced by storage RLS policies.
 | `banners` | Admin banner images | Admin only |
 
 Paths follow `{school_id}/{profile_id}/{uuid}.{ext}` (no bucket prefix inside
-the object name — storage policies parse the folder as
+the object name - storage policies parse the folder as
 `{school}/{profile}/...`).
 
 ---
@@ -147,7 +148,7 @@ All files live in `database/migrations/`.
 | 004 | School-wide `profiles` SELECT policy |
 | 005 | Fix `auth.jwt()` RLS syntax |
 | 006 | Programs, sections, courses, enrollments, grade_entries, teacher_tasks + RLS |
-| 007–009 | Library description, add-book (cover/isbn), teacher-task delete policy |
+| 007-009 | Library description, add-book (cover/isbn), teacher-task delete policy |
 | 010 | Profile avatar column + storage |
 | 011 | JSONB array defaults |
 | 012 | Quizzes link to courses |
@@ -167,8 +168,24 @@ All files live in `database/migrations/`.
 | 029 | Habit tracker: `habit_entries` table + RLS (school-scoped through profiles) |
 | 030 | Teacher workspace: `teacher_notes`, `teacher_schedule`, `teacher_lesson_plans` + RLS |
 | 031 | Messaging delete fix: `delete_conversation` clears the shared last-message preview once both sides have deleted |
-| 032 | Education Level Management: `programs.parent_id` self-reference so levels → programs → year/levels nest; idempotent orphan reparenting |
-| 033 | `profiles.program` column — the program saved from Academic info (level · program · year) |
+| 032 | Education Level Management: `programs.parent_id` self-reference so levels -> programs -> year/levels nest; idempotent orphan reparenting |
+| 033 | `profiles.program` column - the program saved from Academic info (level · program · year) |
+| 034 | Non-linear rank engine: `rank_config` (weights/k/ex_step/tiers/season reset map), `student_rank_state` (rank/bar/EX score/peak/highest), `rank_period_entries` (per-grade feed rows with stored weights/before-state), `season_history_log`, `rank_history_log` (event audit) + school-scoped RLS + SECURITY DEFINER RPCs (`preview_rank_update`, `confirm_and_apply_score_entry`, `process_score_entry`, `reset_period_category_totals`, `end_season`, `get_season_history`, `get_dual_rank_display`, `get_rank_config`, `update_rank_config`) |
+| 035 | Admin rank ops: `end_season_for_school` (reseed every ranked student - admin only) + `get_school_season_history` (all season logs for a school) |
+| 036 | Auto-feed: `grade_entries.rank_fed_at` + `feed_approved_grade_to_rank` trigger - approving a grade automatically runs `process_score_entry` (Exam->exam, Quiz->quiz, Activity/Assignment->activity, Participation->participation, score/max_score) into the current period; exactly-once per grade |
+| 039 | `Participation` added as a valid `grade_entries.type` (CHECK widened); feed maps it to the rank `participation` category |
+| 037 | Revert: `rank_period_entries.source_grade_id` + before-state columns (rank/bar/ex/peak at apply time); `revert_grade_rank_feed(p_grade_id)` deletes the feed, restores the before-state, and REPLAYS all later entries through the engine math; rejection or deletion of an approved grade now undoes its rank effect (`feed_reverted` event) and re-approval feeds again |
+| 038 | Teacher-grade flow: `grade_entries.max_score` (“out of” scores), `course_rank_weights` (per-course category percentages, teacher-saved, sum 100), `school_semesters` (admin-declared active semester = the feed's grading period); `preview/confirm/process_score_entry` take optional `p_weights`; feed uses score/max_score + course weights + active-semester period |
+| 040 | Dynamic categories: `course_rank_categories` replaces `course_rank_weights` (dropped); `grade_entries.type` CHECK dropped (type now stores a category label); `save_course_rank_weights` takes an ARRAY of {key,label,weight} and replaces the whole set (add/remove/edit in one call, must sum 100); `get_course_rank_weights` returns the array or the school default four; the feed maps label -> key via the course's rows (legacy built-in fallback) and stores per-entry weights; `revert_grade_rank_feed` replay rewritten category-agnostic so reverts never break for custom categories |
+| 041 | Students seed at **D** (not C): `student_rank_state` defaults for current/peak/highest -> 'D'; preview's synthetic state + revert replay anchor default to D; existing rows replayed from a D/0 seed through their period entries so live data matches the new "start at the bottom, fill to 100%, then promote" rule |
+| 042 | Season-end reset keys off the FINAL rank (S mid-season ending at A resets to D); the PEAK stays in `season_history_log.peak_rank`, drives `highest_rank_ever`/`ex_achieved`, but no longer decides the reset |
+| 043 | Auto-adopt grading period: `confirm_and_apply_score_entry` adopts the caller's period instead of raising "Period mismatch" (rank/bar carry over, the new period's entries form the next feed); backfills all approved-but-unfed grades |
+| 044 | Semester gate: `guard_grade_submission_requires_semester` BEFORE INSERT trigger on `grade_entries` blocks ANY grade submission when the school has no active semester (teachers must ask the admin to declare it first) |
+| 049 | **PER-ENTRY ISOLATED FILL (permanent, supersedes 047):** the period-cumulative category running average and the composite blend across categories (S) are removed. Each grade entry computes its own fill independently from its own score and category weight share - `entryPct = earned/possible*100`, `Adjusted = 100*(min(entryPct,100)/100)^k`, `fillChange = ((Adjusted-50)/50)*(100/n)*weightShare` where `weightShare = w[cat]/sum(ALL configured weights)`. Applied in `preview_rank_update`, `revert_grade_rank_feed` (both branches), and the replay; the EX >= 50 check uses the UNCAPPED adjusted of the single entry (`Adjusted_uncapped = 100*(entryPct/100)^k`). 046's period-baseline clear fix is kept; existing states replayed with the new math |
+| 048 | Publish app tables to `supabase_realtime`: `profiles`, `grade_entries`, `student_rank_state`, `rank_period_entries`, `rank_history_log`, `habit_entries`, `chat_blocks`, `chat_messages`, `notifications` were subscribed to via postgres_changes but never in the publication, so no realtime event ever reached the browser (rank bars, habits, messages, notifications all silently required a full reload). Idempotent add |
+| 047 | ~~Restore composite bar fill~~ **SUPERSEDED by 049** - 045's weight-dominant experiment was briefly reverted, then permanently replaced by per-entry isolation (049) |
+| 046 | Period baseline: `student_rank_state` gains `period_start_rank/bar/ex_score/peak` (captured when the grading period is adopted); `revert_grade_rank_feed` now recomputes order-independently from the baseline + all remaining current-period entries, so bulk-clearing all grades (admin → clear course data) collapses the state to the baseline (D/0 for a fresh student) instead of leaving a stale bar residue; old-period deletions keep the anchor + replay path |
 
-> Numbers 026–028 were created and removed during the rank-system rollback;
-> the sequence is intentionally 025 → 029.
+
+> Numbers 026-028 were created and removed during the rank-system rollback;
+> the sequence is intentionally 025 -> 029.

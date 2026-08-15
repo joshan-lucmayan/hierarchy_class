@@ -1,4 +1,4 @@
--- 025 — Messaging thread rewrite, leaderboard fix, notification clearing, and
+-- 025 - Messaging thread rewrite, leaderboard fix, notification clearing, and
 --       the educational-level identity field.
 --
 -- A) MESSAGING

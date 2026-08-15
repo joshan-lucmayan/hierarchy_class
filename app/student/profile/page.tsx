@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatBar } from "@/components/ui/StatBar";
@@ -10,13 +10,16 @@ import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useMyEnrollment } from "@/lib/useEnrollment";
+import { useRankStore } from "@/lib/rankStore";
+import { createClient } from "@/lib/supabase/client";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export default function StudentProfilePage() {
   const { profile, loading, updateProfile, uploadAvatar, removeAvatar } = useMyProfile();
-  const { getEntriesByProfile, getStudentAverageByProfile, getStudentRankByProfile, courses, programs, sections, students: enrollments } = useClassroomHierarchy();
+  const { getEntriesByProfile, getStudentAverageByProfile, courses, programs, sections, students: enrollments } = useClassroomHierarchy();
   const { effective: enrollment, loading: enrollmentLoading } = useMyEnrollment();
+  const { rankOf } = useRankStore();
 
   const [bio, setBio] = useState("");
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -84,8 +87,28 @@ export default function StudentProfilePage() {
   const { friends, loading: friendsLoading, error: friendsError } = useFriendsStore();
 
   const academicExcellence = profile ? getStudentAverageByProfile(profile.id) ?? 0 : 0;
-  const overallRank = profile ? getStudentRankByProfile(profile.id) ?? "D" : "D";
+  const myRank = profile ? rankOf(profile.id) : null;
+  const overallRank = myRank?.current_rank ?? "D";
+  const rankBar = myRank && myRank.current_rank !== "EX" ? myRank.current_bar : null;
+  const rankExScore = myRank?.current_rank === "EX" ? myRank.ex_score : null;
   const hobbiesList = hobbies.split(",").map((h) => h.trim()).filter(Boolean);
+
+  // Season history (Section 10) - peak rank per season, for the season card.
+  const [seasonHistory, setSeasonHistory] = useState<any[] | null>(null);
+  useEffect(() => {
+    if (!profile) return;
+    let cancelled = false;
+    const supabase = createClient();
+    (supabase as any)
+      .rpc("get_season_history", { p_student_id: profile.id })
+      .then(({ data, error: rpcError }: any) => {
+        if (cancelled) return;
+        if (!rpcError) setSeasonHistory((data ?? []) as any[]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile]);
 
   const academicInfo = useMemo(() => {
     if (!profile) return null;
@@ -186,9 +209,41 @@ export default function StudentProfilePage() {
         </div>
 
         <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-5 text-center">
-          {/* Rank is the hero; the excellence score renders smaller underneath. */}
-          <RankBadge rank={overallRank} size="lg" score={academicExcellence > 0 ? academicExcellence : null} />
+          {/* Rank is the hero; the bar/excellence value renders smaller underneath. */}
+          <RankBadge rank={overallRank} size="lg" bar={rankBar} exScore={rankExScore} />
         </div>
+
+        {/* Season history - the rank card a caller asked for: "Grade 12 ICT - First Semester 2026-2027: S++". */}
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
+          <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Season history</h2>
+          {seasonHistory === null ? (
+            <p className="text-sm text-muted">Loading seasons...</p>
+          ) : seasonHistory.length === 0 ? (
+            <p className="text-sm text-muted">No seasons recorded yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {seasonHistory.map((s: any) => (
+                <div key={s.season_id} className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-navy">
+                        {[s.school_year, s.semester_label].filter(Boolean).join(" · ")}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-muted">
+                        {[s.grade_level, s.strand_or_track, s.section].filter(Boolean).join(" · ") || "-"}
+                      </p>
+                    </div>
+                    <RankBadge rank={s.peak_rank} size="sm" />
+                  </div>
+                  <p className="mt-2 text-[11px] text-muted">
+                    Reset to <span className="font-semibold text-navy">{s.reset_to_rank}</span> for the next season
+                    {s.ex_achieved ? " · EX achieved" : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CornerFrame>
 
       </CornerFrame>
 

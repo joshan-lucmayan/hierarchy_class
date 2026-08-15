@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useFriendsStore } from "@/lib/friendsStore";
-import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 import { useAcademicIdentity } from "@/lib/useAcademicIdentity";
+import { useRankStore } from "@/lib/rankStore";
 import { useSchoolEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
@@ -20,7 +20,7 @@ import type { ProfileRow } from "@/types/supabase";
 export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose: () => void }) {
   const router = useRouter();
   const { profile: me } = useMyProfile();
-  const { averageOf } = useLeaderboard();
+  const { rankOf } = useRankStore();
   const { getCoursesByTeacher } = useClassroomHierarchy();
   const identity = useAcademicIdentity(person.id);
   const { statuses } = useSchoolEnrollments();
@@ -30,8 +30,10 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
   const isFriend = friendIds.includes(person.id);
   const isSelf = me?.id === person.id;
   const coursesTaught = isStudent ? [] : getCoursesByTeacher(person.id);
-  const avg = averageOf(person.id) ?? 0;
-  const rank = rankFromAverage(avg > 0 ? avg : null);
+  const viewedRank = isStudent ? rankOf(person.id) : null;
+  const rank = viewedRank?.current_rank ?? "D";
+  const rankBar = viewedRank && viewedRank.current_rank !== "EX" ? viewedRank.current_bar : null;
+  const rankExScore = viewedRank?.current_rank === "EX" ? viewedRank.ex_score : null;
   const identityLine = [person.educational_level, person.program ?? identity.programNames.join(" · "), person.level_label]
     .filter(Boolean)
     .join(" · ");
@@ -94,7 +96,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
 
             {isStudent && !isSelf && (
               <div className="mt-3">
-                <RankBadge rank={rank} size="sm" score={avg > 0 ? avg : null} />
+                <RankBadge rank={rank} size="sm" bar={rankBar} exScore={rankExScore} />
               </div>
             )}
 

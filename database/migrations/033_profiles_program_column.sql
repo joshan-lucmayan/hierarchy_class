@@ -1,4 +1,4 @@
--- 033: profiles.program — store the student's PROGRAM (nested under an
+-- 033: profiles.program - store the student's PROGRAM (nested under an
 -- education level) in the Academic info, alongside educational_level
 -- (the top-level education level) and level_label (the grade/year section).
 --

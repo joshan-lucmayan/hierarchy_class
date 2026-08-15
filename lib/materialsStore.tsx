@@ -141,7 +141,7 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
         }
         const ext = resolveFileExtension(input.file) ?? "pdf";
         // Path is relative to the "materials" bucket and MUST NOT include the
-        // bucket name as a prefix — storage RLS reads the school id from
+        // bucket name as a prefix - storage RLS reads the school id from
         // foldername(name)[1], so the first folder has to be the school UUID.
         const path = `${profile.school_id}/${profile.id}/${randomId()}.${ext}`;
         const supabase = createClient();
@@ -152,7 +152,7 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
           setError("Couldn't upload the file.");
           return {
             ok: false,
-            error: `Couldn't upload the file: ${uploadError.message}. ${uploadError.status === 403 ? "Storage permission issue — check the materials bucket policies." : ""}`,
+            error: `Couldn't upload the file: ${uploadError.message}. ${uploadError.status === 403 ? "Storage permission issue - check the materials bucket policies." : ""}`,
           };
         }
         url = path;
@@ -175,7 +175,7 @@ export function MaterialsProvider({ children }: { children: React.ReactNode }) {
         setError("Couldn't save the material.");
         return {
           ok: false,
-          error: `Couldn't save the material: ${insertError.message}. ${insertError.code === "42501" ? "The database rejected the insert — check the learning_materials RLS policies." : ""}`,
+          error: `Couldn't save the material: ${insertError.message}. ${insertError.code === "42501" ? "The database rejected the insert - check the learning_materials RLS policies." : ""}`,
         };
       }
 

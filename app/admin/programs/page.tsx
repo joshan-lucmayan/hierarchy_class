@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useRankStore } from "@/lib/rankStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ActionButton, PlusIcon, MinusIcon, CheckIcon, BackIcon } from "@/components/ui/ActionButton";
@@ -31,8 +32,9 @@ export default function AdminProgramsPage() {
     getSectionsByProgram, addSection, updateSection, deleteSection,
     getCoursesBySection, addCourse, updateCourse, deleteCourse,
     getStudentsByCourse, deleteStudent,
-    getStudentAverage, getStudentRank,
+    getStudentAverage,
   } = useClassroomHierarchy();
+  const { rankOf } = useRankStore();
 
   const [step, setStep] = useState<Step>("levels");
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
@@ -483,7 +485,7 @@ export default function AdminProgramsPage() {
                       {s.profileId && (
                         <p className="text-xs text-muted">
                           {getStudentAverage(s.profileId) !== null ? `Average ${getStudentAverage(s.profileId)}` : "No grades yet"}
-                          {getStudentRank(s.profileId) ? ` · Rank ${getStudentRank(s.profileId)}` : ""}
+                          {rankOf(s.profileId) ? ` · Rank ${rankOf(s.profileId)?.current_rank ?? "D"}` : ""}
                         </p>
                       )}
                     </div>

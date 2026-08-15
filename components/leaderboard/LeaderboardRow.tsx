@@ -1,6 +1,6 @@
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import type { TierRank } from "@/lib/classroomHierarchyStore";
+import type { Rank } from "@/lib/rankEngine";
 
 interface LeaderboardRowStudent {
   id: string;
@@ -9,8 +9,8 @@ interface LeaderboardRowStudent {
   program: string;
   levelLabel: string;
   educationalLevel: string;
-  score: number | null;
-  overallRank: TierRank;
+  /** Current rank (D..EX), or null when the student has no rank state yet. */
+  rank: Rank | null;
 }
 
 export function LeaderboardRow({
@@ -36,7 +36,11 @@ export function LeaderboardRow({
           {[student.educationalLevel, student.levelLabel, student.program].filter(Boolean).join(" · ")}
         </p>
       </div>
-      <RankBadge rank={student.overallRank} size="md" />
+      {student.rank ? (
+        <RankBadge rank={student.rank} size="md" />
+      ) : (
+        <span className="shrink-0 text-[11px] text-muted">No rank yet</span>
+      )}
     </div>
   );
 }

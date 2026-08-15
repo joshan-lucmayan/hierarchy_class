@@ -8,11 +8,14 @@ import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import type { ProfileRow } from "@/types/supabase";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { RankBadge } from "@/components/ui/RankBadge";
+import { useRankStore } from "@/lib/rankStore";
 
 export default function TeacherStudentsPage() {
   const { profiles: students, loading: studentsLoading, error: studentsError } = useSchoolProfiles({ role: "student" });
   const { getStudentAverageByProfile, sections, courses, programs, students: enrollments } =
     useClassroomHierarchy();
+  const { rankOf } = useRankStore();
   const { statuses: enrollmentStatuses, loading: enrollLoading } = useSchoolEnrollments();
 
   const [query, setQuery] = useState("");
@@ -103,8 +106,9 @@ export default function TeacherStudentsPage() {
                   <div className="flex items-start gap-3">
                     <UserAvatar name={student.full_name} src={student.avatar_url} size="md" />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate font-semibold text-navy">{student.full_name}</p>
+                        <RankBadge rank={rankOf(student.id)?.current_rank ?? "D"} size="sm" />
                         {!enrollLoading && <EnrolledBadge status={effectiveOf(student.id)} size="sm" />}
                       </div>
                       <p className="mt-0.5 truncate text-xs text-muted">
@@ -143,8 +147,26 @@ export default function TeacherStudentsPage() {
 
                 </div>
               </div>
-              <div className="mt-5 space-y-3 text-sm text-muted">
-                <p><span className="font-semibold text-navy">Academic excellence:</span> {getStudentAverageByProfile(selectedStudent.id) ?? 0}/100</p>
+              <div className="mt-5 space-y-4 text-sm text-muted">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Rank progress</p>
+                  <div className="mt-2">
+                    <RankBadge
+                      rank={rankOf(selectedStudent.id)?.current_rank ?? "D"}
+                      size="md"
+                      bar={(() => {
+                        const r = rankOf(selectedStudent.id);
+                        return r && r.current_rank !== "EX" ? r.current_bar : null;
+                      })()}
+                      exScore={rankOf(selectedStudent.id)?.current_rank === "EX" ? rankOf(selectedStudent.id)?.ex_score : null}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-muted">
+                    {getStudentAverageByProfile(selectedStudent.id) !== null
+                      ? `Average ${getStudentAverageByProfile(selectedStudent.id)} / 100 across approved grades`
+                      : "No approved grades yet"}
+                  </p>
+                </div>
                 <p><span className="font-semibold text-navy">Favorite subject:</span> {selectedStudent.favorite_subject ?? "Not set"}</p>
                 <p><span className="font-semibold text-navy">Tags:</span> {selectedStudent.tags.length > 0 ? selectedStudent.tags.join(", ") : "None yet"}</p>
               </div>

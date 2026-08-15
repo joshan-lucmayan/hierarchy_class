@@ -5,10 +5,13 @@ import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { useRankStore } from "@/lib/rankStore";
+import type { Rank } from "@/lib/rankEngine";
 
 export default function AdminReportsPage() {
-  const { programs, sections, courses, gradeEntries, getStudentAverageByProfile, getStudentRankByProfile } =
+  const { programs, sections, courses, gradeEntries, getStudentAverageByProfile } =
     useClassroomHierarchy();
+  const { rankOf } = useRankStore();
   const { profiles: students, loading: studentsLoading } = useSchoolProfiles({ role: "student" });
   const { profiles: teachers, loading: teachersLoading } = useSchoolProfiles({ role: "teacher" });
 
@@ -17,9 +20,11 @@ export default function AdminReportsPage() {
       students.map((s) => ({
         profile: s,
         avg: getStudentAverageByProfile(s.id),
-        rank: getStudentRankByProfile(s.id) ?? "D",
+        // Only students with an actual rank row count; unranked stay null and
+        // are skipped by the distribution so they aren't mislabeled "D".
+        rank: rankOf(s.id)?.current_rank ?? null,
       })),
-    [students, getStudentAverageByProfile, getStudentRankByProfile]
+    [students, getStudentAverageByProfile, rankOf]
   );
 
   const schoolAverage = useMemo(() => {
@@ -31,9 +36,9 @@ export default function AdminReportsPage() {
   const gradedStudentCount = studentStats.filter((s) => s.avg !== null).length;
 
   const rankDistribution = useMemo(() => {
-    const dist: Record<string, number> = { "S++": 0, S: 0, A: 0, B: 0, C: 0, D: 0 };
+    const dist: Record<Rank, number> = { EX: 0, "S++": 0, "S+": 0, S: 0, A: 0, B: 0, C: 0, D: 0 };
     studentStats.forEach((s) => {
-      dist[s.rank] += 1;
+      if (s.rank) dist[s.rank] += 1;
     });
     return dist;
   }, [studentStats]);
@@ -142,7 +147,7 @@ export default function AdminReportsPage() {
               <div className="mt-4 space-y-2">
                 {Object.entries(rankDistribution).map(([rank, count]) => (
                   <div key={rank} className="flex items-center gap-3">
-                    <RankBadge rank={rank as any} size="sm" />
+                    <RankBadge rank={rank as Rank} size="sm" />
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--surface-strong)]">
                       <div
                         className="h-full bg-gold"

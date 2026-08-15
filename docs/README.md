@@ -1,4 +1,4 @@
-# Hierarchy Class — Documentation
+# Hierarchy Class - Documentation
 
 Everything you need to understand, run, and extend the Hierarchy Class
 platform. The docs are organized by concern so you can jump straight to what
@@ -12,8 +12,9 @@ you're working on.
 | [API.md](./API.md) | HTTP/API surface: Next.js routes, Supabase RPCs, and realtime channels |
 | [SECURITY.md](./SECURITY.md) | Auth flow, middleware, RLS policies, and defense-in-depth |
 | [FRONTEND.md](./FRONTEND.md) | Pages, components, data stores/hooks, theming, and key user flows |
+| [RANK_SYSTEM.md](./RANK_SYSTEM.md) | The rank system explained for users: ranks, the per-entry math, seasons/reset, and the live data path |
 
 Also see:
 
-- [`../database/README.md`](../database/README.md) — how to apply migrations
-- [`../README.md`](../README.md) — project overview (what it is and who it's for)
+- [`../database/README.md`](../database/README.md) - how to apply migrations
+- [`../README.md`](../README.md) - project overview (what it is and who it's for)

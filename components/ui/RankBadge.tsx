@@ -1,23 +1,29 @@
 "use client";
 
-import type { TierRank } from "@/types/student";
+import type { Rank } from "@/lib/rankEngine";
 
 /**
- * Rank badge per the 07 right-column spec.
+ * Rank badge per the 07 right-column spec, fed by the non-linear rank engine
+ * (lib/rankEngine.ts + lib/rankStore.tsx).
  *
- * The RANK LETTER is the hero - rendered large and bold - while the
- * academic-excellence score (when provided) sits beneath it at a deliberately
- * smaller size with a thin progress track and the uppercase caption. No
- * shield, star, chevron, or crest graphics - purely typographic + one bar.
+ * The RANK LETTER is the hero - rendered large and bold - while the rank bar
+ * (or the open-ended EX score) sits beneath it at a deliberately smaller size
+ * with a thin progress track and an uppercase caption. No shield, star,
+ * chevron, or crest graphics - purely typographic + one bar.
  *
- * When `score` (0-100 academic excellence) is provided the score line, track
- * and caption render; list/row contexts (search, leaderboard, teacher roster,
- * admin panels) get a compact "{rank} Rank" pill only.
+ * - Non-EX ranks: `bar` is the 0-100 progress toward the next rank; it renders
+ *   as "N / 100" with a matching track fill.
+ * - EX: `exScore` is the open-ended dominance score (uncapped); it replaces the
+ *   bar entirely ("no /100", no track).
+ * - List/row contexts (search, leaderboard, teacher roster, admin panels) pass
+ *   no bar/exScore and get a compact "{rank} Rank" pill only.
  */
 interface RankBadgeProps {
-  rank: TierRank;
-  /** 0-100 academic excellence score - renders the score line, track, caption. */
-  score?: number | null;
+  rank: Rank;
+  /** 0-100 bar progress toward the next rank. Meaningless for EX. */
+  bar?: number | null;
+  /** Open-ended EX score - replaces the bar when rank === "EX". */
+  exScore?: number | null;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -40,10 +46,13 @@ const PILL_SIZES = {
   lg: "px-3.5 py-[7px] text-[15.5px] gap-2",
 } as const;
 
-export function RankBadge({ rank, score, size = "md", className = "" }: RankBadgeProps) {
-  const showScore = typeof score === "number" && score > 0;
+export function RankBadge({ rank, bar, exScore, size = "md", className = "" }: RankBadgeProps) {
+  const isEx = rank === "EX";
+  const hasBar = typeof bar === "number";
+  const hasExScore = isEx && typeof exScore === "number";
+  const showDetail = hasBar || hasExScore;
 
-  if (!showScore) {
+  if (!showDetail) {
     return (
       <span className={`inline-flex items-center rounded-md border border-line bg-tile ${PILL_SIZES[size]}`}>
         <span className={`shrink-0 rounded-full bg-gold ${DOT_SIZES[size]}`} />
@@ -52,9 +61,12 @@ export function RankBadge({ rank, score, size = "md", className = "" }: RankBadg
     );
   }
 
+  const displayValue = isEx ? Math.round(exScore ?? 0) : Math.round(bar ?? 0);
+  const trackWidth = isEx ? 100 : Math.min(Math.max(bar ?? 0, 0), 100);
+
   return (
     <div className={`flex flex-col items-center text-center ${className}`}>
-      {/* Rank letter is the hero; score is secondary. */}
+      {/* Rank letter is the hero; the score is secondary. */}
       <span className="flex items-center gap-2.5">
         <span className={`shrink-0 rounded-full bg-gold ${DOT_SIZES[size]}`} />
         <span className={`font-extrabold leading-none tracking-[0.02em] text-navy ${RANK_LETTER_SIZES[size]}`}>
@@ -64,17 +76,18 @@ export function RankBadge({ rank, score, size = "md", className = "" }: RankBadg
       </span>
 
       <div className="mt-2.5 flex items-baseline gap-1">
-        <span className="text-sm font-bold leading-none text-navy">{score}</span>
-        <span className="text-[11px] font-normal text-faint">/100</span>
+        <span className="text-sm font-bold leading-none text-navy">{displayValue}</span>
+        {!isEx && <span className="text-[11px] font-normal text-faint">/100</span>}
       </div>
+      {/* EX has no 0-100 bar - the score is open-ended, so the track shows full. */}
       <div className="mt-2 h-1 w-full max-w-[120px] overflow-hidden rounded-sm bg-line">
         <div
           className="h-full rounded-full bg-gold"
-          style={{ width: `${Math.min(score, 100)}%` }}
+          style={{ width: `${trackWidth}%` }}
         />
       </div>
       <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.5px] text-muted">
-        Academic excellence
+        {isEx ? "Excellence" : "Academic excellence"}
       </p>
     </div>
   );

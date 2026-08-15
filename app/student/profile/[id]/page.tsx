@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useFriendsStore } from "@/lib/friendsStore";
-import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 import { useAcademicIdentity } from "@/lib/useAcademicIdentity";
+import { useRankStore } from "@/lib/rankStore";
 import { useSchoolEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchools } from "@/lib/useSchools";
@@ -28,8 +28,8 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   const profileId = params.id;
   const router = useRouter();
   const { profile: me, loading: meLoading } = useMyProfile();
-  const { averageOf } = useLeaderboard();
-  const { getCoursesByTeacher } = useClassroomHierarchy();
+  const { rankOf } = useRankStore();
+  const { getCoursesByTeacher, getStudentAverageByProfile } = useClassroomHierarchy();
   const { schools } = useSchools();
   const { friendIds, addFriend, removeFriend } = useFriendsStore();
   const identity = useAcademicIdentity(profileId);
@@ -100,8 +100,11 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   const isStudent = person.role === "student";
   const isFriend = friendIds.includes(person.id);
   const coursesTaught = isStudent ? [] : getCoursesByTeacher(person.id);
-  const avg = averageOf(person.id) ?? 0;
-  const rank = rankFromAverage(avg > 0 ? avg : null);
+  const avg = getStudentAverageByProfile(person.id) ?? 0;
+  const viewedRank = isStudent ? rankOf(person.id) : null;
+  const rank = viewedRank?.current_rank ?? "D";
+  const rankBar = viewedRank && viewedRank.current_rank !== "EX" ? viewedRank.current_bar : null;
+  const rankExScore = viewedRank?.current_rank === "EX" ? viewedRank.ex_score : null;
   const identityLine = [person.educational_level, person.program ?? identity.programNames.join(" · "), person.level_label]
     .filter(Boolean)
     .join(" · ");
@@ -158,7 +161,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
 
             {isStudent && (
               <div className="mt-4">
-                <RankBadge rank={rank} size="lg" score={avg > 0 ? avg : null} />
+                <RankBadge rank={rank} size="lg" bar={rankBar} exScore={rankExScore} />
               </div>
             )}
 

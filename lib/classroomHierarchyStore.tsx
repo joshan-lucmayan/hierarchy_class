@@ -5,8 +5,22 @@ import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { notifyAdmins } from "@/lib/notify";
 
-export type TierRank = "S++" | "S" | "A" | "B" | "C" | "D";
-export type GradeType = "Exam" | "Quiz" | "Activity" | "Assignment";
+export type GradeType = string;
+
+export interface CourseCategory {
+  key: string;
+  label: string;
+  weight: number;
+}
+
+export interface ActiveSemester {
+  id: string;
+  school_year: string;
+  semester_label: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
 
 export interface Program {
   id: string;
@@ -49,40 +63,11 @@ export interface GradeEntry {
   submittedByAvatar: string | null;
   type: GradeType;
   score: number;
+  maxScore: number;
   date: string;
   createdAt: string;
   label?: string;
   approvalStatus: "pending" | "approved" | "rejected";
-}
-
-/**
- * Hierarchy Class ranking formula (deterministic, transparent, hard to game).
- *
- *   Approved subject grades -> Academic Excellence -> Rank/Tier
- *
- * Academic Excellence = rounded average of ALL approved grade entries across
- * the student's courses (0-100). Only rows with approval_status = 'approved'
- * contribute; pending and rejected submissions never touch stats, ranks, or
- * the leaderboard.
- *
- *   >= 97  -> S++
- *   90-96  -> S
- *   80-89  -> A
- *   70-79  -> B
- *   60-69  -> C
- *   < 60   -> D
- *
- * The same thresholds are used by the get_school_leaderboard RPC, the
- * client-side averages below, and rankFromAverage() in lib/useLeaderboard.ts
- * so every surface agrees on the same numbers.
- */
-function computeRank(avg: number): TierRank {
-  if (avg >= 97) return "S++";
-  if (avg >= 90) return "S";
-  if (avg >= 80) return "A";
-  if (avg >= 70) return "B";
-  if (avg >= 60) return "C";
-  return "D";
 }
 
 interface ClassroomHierarchyContextType {
@@ -91,6 +76,8 @@ interface ClassroomHierarchyContextType {
   courses: Course[];
   students: Student[];
   gradeEntries: GradeEntry[];
+  /** The school's active semester, or null when the admin hasn't started one yet. */
+  activeSemester: ActiveSemester | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -114,7 +101,7 @@ interface ClassroomHierarchyContextType {
   /** Remove a student's course data: enrollments + grades, for one course or all. */
   clearStudentCourseData: (profileId: string, courseId?: string) => Promise<{ removedCourses: number; removedGrades: number }>;
 
-  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => Promise<boolean>;
+  submitGrades: (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => Promise<{ ok: boolean; error: string | null }>;
   deleteGradeEntry: (id: string) => Promise<void>;
   setGradeApproval: (id: string, status: "approved" | "rejected") => Promise<void>;
 
@@ -124,14 +111,15 @@ interface ClassroomHierarchyContextType {
   getStudentsByCourse: (courseId: string) => Student[];
   getStudentRecordsByProfile: (profileId: string) => Student[];
   getStudentAverageByProfile: (profileId: string) => number | null;
-  getStudentRankByProfile: (profileId: string) => TierRank | null;
   getCourseAveragesByProfile: (profileId: string) => { courseId: string; avg: number }[];
   getEntriesByProfile: (profileId: string) => GradeEntry[];
   getEntriesByStudent: (studentId: string) => GradeEntry[];
   getEntriesByCourse: (courseId: string) => GradeEntry[];
   getStudentAverage: (studentId: string) => number | null;
-  getStudentRank: (studentId: string) => TierRank | null;
-  getCourseLeaderboard: (courseId: string) => { student: Student; avg: number; rank: TierRank }[];
+  getCourseWeightedAverage: (courseId: string, studentId: string) => number | null;
+  getCourseLeaderboard: (courseId: string) => { student: Student; avg: number }[];
+  getCourseRankWeights: (courseId: string) => CourseCategory[] | null;
+  saveCourseRankWeights: (courseId: string, categories: CourseCategory[]) => Promise<boolean>;
 }
 
 const ClassroomHierarchyContext = createContext<ClassroomHierarchyContextType | null>(null);
@@ -144,6 +132,8 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
   const [courses, setCourses] = useState<Course[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [gradeEntries, setGradeEntries] = useState<GradeEntry[]>([]);
+  const [courseRankWeights, setCourseRankWeights] = useState<Record<string, CourseCategory[]>>({});
+  const [activeSemester, setActiveSemester] = useState<ActiveSemester | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchTick, setRefetchTick] = useState(0);
@@ -163,6 +153,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     }
     if (!profile) return;
 
+    const schoolId = profile.school_id;
     let cancelled = false;
     const supabase = createClient();
 
@@ -175,21 +166,27 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         { data: coursesData, error: coursesErr },
         { data: enrollData, error: enrollErr },
         { data: gradesData, error: gradesErr },
+        { data: weightsData, error: weightsErr },
+        { data: semesterData, error: semesterErr },
       ] = (await Promise.all([
         supabase.from("programs").select("*").order("created_at"),
         supabase.from("sections").select("*").order("created_at"),
         supabase.from("courses").select("*, teacher:profiles!teacher_id(full_name, avatar_url)").order("created_at"),
         supabase.from("course_enrollments").select("*, student:profiles!student_id(full_name)").order("created_at"),
         supabase.from("grade_entries").select("*, submitted:profiles!submitted_by(full_name, avatar_url)").order("entry_date", { ascending: false }),
+        supabase.from("course_rank_categories").select("*"),
+        (supabase as any).rpc("get_active_semester", { p_school_id: schoolId }),
       ])) as any[];
 
       if (cancelled) return;
 
-      if (programsErr || sectionsErr || coursesErr || enrollErr || gradesErr) {
+      if (programsErr || sectionsErr || coursesErr || enrollErr || gradesErr || weightsErr || semesterErr) {
         setError("Couldn't load classroom data. Please refresh and try again.");
         setLoading(false);
         return;
       }
+
+      setActiveSemester((semesterData ?? null) as ActiveSemester | null);
 
       setPrograms(
         ((programsData ?? []) as any[]).map((p) => ({
@@ -221,6 +218,14 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           profileId: e.student_id,
         }))
       );
+      // One array of categories per course, keyed by course_id.
+      const catsByCourse = new Map<string, CourseCategory[]>();
+      ((weightsData ?? []) as any[]).forEach((w: any) => {
+        const list = catsByCourse.get(w.course_id) ?? [];
+        list.push({ key: w.category_key, label: w.label, weight: w.weight });
+        catsByCourse.set(w.course_id, list);
+      });
+      setCourseRankWeights(Object.fromEntries(catsByCourse));
       setGradeEntries(
         ((gradesData ?? []) as any[]).map((g: any) => ({
           id: g.id,
@@ -231,6 +236,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           submittedByAvatar: g.submitted?.avatar_url ?? null,
           type: g.type,
           score: g.score,
+          maxScore: g.max_score ?? 100,
           date: g.entry_date,
           createdAt: g.created_at,
           label: g.label ?? undefined,
@@ -414,8 +420,40 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
     [refetch]
   );
 
+  const getCourseRankWeights = useCallback(
+    (courseId: string): CourseCategory[] | null => courseRankWeights[courseId] ?? null,
+    [courseRankWeights]
+  );
+
+  const saveCourseRankWeights = useCallback(
+    async (courseId: string, categories: CourseCategory[]) => {
+      if (!profile) return false;
+      const supabase = createClient();
+      const { error } = await (supabase as any).rpc("save_course_rank_weights", {
+        p_course_id: courseId,
+        p_categories: categories,
+      });
+      if (!error) {
+        // Keep the optimistic copy, but also refetch so the realtime-backed
+        // list agrees with the server's stored rows.
+        setCourseRankWeights((prev) => ({ ...prev, [courseId]: categories }));
+        refetch();
+      }
+      return !error;
+    },
+    [profile, refetch]
+  );
+
   const submitGrades = useCallback(async (entries: Omit<GradeEntry, "id" | "submittedBy" | "submittedByName" | "submittedByAvatar" | "createdAt" | "approvalStatus">[]) => {
-    if (!profile) return false;
+    if (!profile) return { ok: false, error: "Not signed in." };
+    // Security gate: no active semester -> the DB trigger rejects the insert.
+    // Fail fast here with a friendly message instead of a raw DB error.
+    if (!activeSemester) {
+      return {
+        ok: false,
+        error: "No active semester yet - ask your admin to start the semester before submitting grades.",
+      };
+    }
     const supabase = createClient();
     // The teacher UI hands out course_enrollment ids, but grade_entries.student_id
     // is a FK to profiles(id). Translate before writing or the insert fails with
@@ -431,12 +469,18 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
           type: e.type,
           label: e.label ?? null,
           score: e.score,
+          max_score: e.maxScore,
           entry_date: e.date,
           approval_status: "pending",
         };
       }) as any
     );
-    if (!insertError && entries.length > 0) {
+    if (insertError) {
+      refetch();
+      // Surface the real reason (e.g. the DB semester guard) to the teacher.
+      return { ok: false, error: insertError.message ?? "Couldn't submit grades." };
+    }
+    if (entries.length > 0) {
       // Let admins know there's a submission waiting for review.
       const course = courses.find((c) => c.id === entries[0].courseId);
       await notifyAdmins(
@@ -447,8 +491,8 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
       );
     }
     refetch();
-    return !insertError;
-  }, [profile, courses, students, refetch]);
+    return { ok: true, error: null };
+  }, [profile, activeSemester, courses, students, refetch]);
 
   const deleteGradeEntry = useCallback(async (id: string) => {
     const supabase = createClient();
@@ -501,42 +545,90 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         (e) => e.studentId === profileId && e.approvalStatus === "approved"
       );
       if (entries.length === 0) return null;
-      const sum = entries.reduce((acc, e) => acc + e.score, 0);
-      return Math.round((sum / entries.length) * 10) / 10;
+      const total = entries.reduce((acc, e) => acc + e.score / Math.max(1, e.maxScore), 0);
+      return Math.round((total / entries.length) * 1000) / 10;
     },
     [gradeEntries]
   );
-  const getStudentRankByProfile = useCallback(
-    (profileId: string): TierRank | null => {
+  // Weighted course average (the shared core): category pct = Σearned/Σmax per
+  // category key, weighted mean over ACTIVE categories only, using the course's
+  // configured weights (or the school default four when the course has none).
+  // Mirrors the rank engine's composite so the teacher's percent config is what
+  // every surface shows. grade_entries.type stores the category LABEL, so
+  // entries are bucketed via the course's label -> key map (with a legacy
+  // fallback for types entered before categories became dynamic).
+  const weightedAverageForProfile = useCallback(
+    (profileId: string, courseId: string): number | null => {
+      const categories = courseRankWeights[courseId];
       const entries = gradeEntries.filter(
-        (e) => e.studentId === profileId && e.approvalStatus === "approved"
+        (e) => e.studentId === profileId && e.courseId === courseId && e.approvalStatus === "approved"
       );
       if (entries.length === 0) return null;
-      const sum = entries.reduce((acc, e) => acc + e.score, 0);
-      return computeRank(Math.round((sum / entries.length) * 10) / 10);
+
+      const labelToKey: Record<string, string> = {};
+      (categories ?? []).forEach((c) => {
+        labelToKey[c.label] = c.key;
+      });
+      const legacyMap: Record<string, string> = {
+        Quiz: "quiz", Exam: "exam", Activity: "activity",
+        Assignment: "activity", Participation: "participation",
+      };
+
+      const pctByKey = new Map<string, { earned: number; possible: number }>();
+      for (const e of entries) {
+        const key = labelToKey[e.type] ?? legacyMap[e.type];
+        if (!key) continue;
+        const agg = pctByKey.get(key) ?? { earned: 0, possible: 0 };
+        agg.earned += e.score;
+        agg.possible += Math.max(1, e.maxScore);
+        pctByKey.set(key, agg);
+      }
+      if (pctByKey.size === 0) return null;
+
+      const weightByKey: Record<string, number> = {};
+      if (categories && categories.length > 0) {
+        categories.forEach((c) => { weightByKey[c.key] = c.weight; });
+      } else {
+        // School default percents (same as get_course_rank_weights' fallback).
+        weightByKey.quiz = 20; weightByKey.exam = 40;
+        weightByKey.activity = 25; weightByKey.participation = 15;
+      }
+
+      let weighted = 0;
+      let wTotal = 0;
+      for (const [key, agg] of pctByKey) {
+        const w = weightByKey[key];
+        if (w === undefined) continue; // active category with no configured weight
+        weighted += w * ((agg.earned / agg.possible) * 100);
+        wTotal += w;
+      }
+      if (wTotal === 0) return null;
+      return Math.round((weighted / wTotal) * 10) / 10;
     },
-    [gradeEntries]
+    [gradeEntries, courseRankWeights]
   );
-  // One average per course the student has APPROVED grades in. This is the
-  // single source of truth for per-subject averages - the student home's
-  // "Weakest Subject" card and the dashboard "Subject Stats" both consume it,
-  // so the two can never disagree about which subject is the weakest.
+
+  // One WEIGHTED average per course the student has APPROVED grades in (the
+  // course's category weight config is honored, not a plain equal-weighted
+  // average). This is the single source of truth for per-subject averages - the
+  // student home's "Weakest Subject" card and the dashboard "Subject Stats"
+  // both consume it, so the two can never disagree about which subject is the
+  // weakest, and both respect the teacher's weight percentages.
   const getCourseAveragesByProfile = useCallback(
     (profileId: string): { courseId: string; avg: number }[] => {
-      const byCourse = new Map<string, number[]>();
-      gradeEntries.forEach((e) => {
-        if (e.studentId === profileId && e.approvalStatus === "approved") {
-          const scores = byCourse.get(e.courseId) ?? [];
-          scores.push(e.score);
-          byCourse.set(e.courseId, scores);
-        }
-      });
-      return Array.from(byCourse.entries()).map(([courseId, scores]) => ({
-        courseId,
-        avg: Math.round((scores.reduce((acc, s) => acc + s, 0) / scores.length) * 10) / 10,
-      }));
+      const courseIds = new Set(
+        gradeEntries
+          .filter((e) => e.studentId === profileId && e.approvalStatus === "approved")
+          .map((e) => e.courseId)
+      );
+      const out: { courseId: string; avg: number }[] = [];
+      for (const courseId of courseIds) {
+        const avg = weightedAverageForProfile(profileId, courseId);
+        if (avg !== null) out.push({ courseId, avg });
+      }
+      return out;
     },
-    [gradeEntries]
+    [gradeEntries, weightedAverageForProfile]
   );
   const getEntriesByStudent = useCallback(
     (studentId: string) => {
@@ -555,30 +647,28 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
       const profileId = enrollmentProfileId(studentId);
       const entries = gradeEntries.filter((e) => e.studentId === profileId && e.approvalStatus === "approved");
       if (entries.length === 0) return null;
-      const sum = entries.reduce((acc, e) => acc + e.score, 0);
-      return Math.round((sum / entries.length) * 10) / 10;
+      const total = entries.reduce((acc, e) => acc + e.score / Math.max(1, e.maxScore), 0);
+      return Math.round((total / entries.length) * 1000) / 10;
     },
     [gradeEntries, enrollmentProfileId]
   );
-  const getStudentRank = useCallback(
-    (studentId: string): TierRank | null => {
-      const avg = getStudentAverage(studentId);
-      if (avg === null) return null;
-      return computeRank(avg);
-    },
-    [getStudentAverage]
+  const getCourseWeightedAverage = useCallback(
+    (courseId: string, studentId: string): number | null =>
+      weightedAverageForProfile(enrollmentProfileId(studentId), courseId),
+    [weightedAverageForProfile, enrollmentProfileId]
   );
+
   const getCourseLeaderboard = useCallback(
     (courseId: string) => {
       const courseStudents = students.filter((s) => s.courseId === courseId);
       return courseStudents
         .map((s) => {
-          const avg = getStudentAverage(s.id) ?? 0;
-          return { student: s, avg, rank: computeRank(avg) };
+          const avg = getCourseWeightedAverage(courseId, s.id) ?? getStudentAverage(s.id) ?? 0;
+          return { student: s, avg };
         })
         .sort((a, b) => b.avg - a.avg);
     },
-    [students, getStudentAverage]
+    [students, getStudentAverage, getCourseWeightedAverage]
   );
 
   return (
@@ -589,6 +679,7 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         courses,
         students,
         gradeEntries,
+        activeSemester,
         loading,
         error,
         refetch,
@@ -608,20 +699,21 @@ export function ClassroomHierarchyProvider({ children }: { children: ReactNode }
         submitGrades,
         deleteGradeEntry,
         setGradeApproval,
+        getCourseRankWeights,
+        saveCourseRankWeights,
         getSectionsByProgram,
         getCoursesBySection,
         getCoursesByTeacher,
         getStudentsByCourse,
         getStudentRecordsByProfile,
         getStudentAverageByProfile,
-        getStudentRankByProfile,
         getCourseAveragesByProfile,
         getEntriesByProfile,
         getEntriesByStudent,
         getEntriesByCourse,
         getStudentAverage,
-        getStudentRank,
         getCourseLeaderboard,
+        getCourseWeightedAverage,
       }}
     >
       {children}

@@ -80,8 +80,8 @@ export default function AdminHomePage() {
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalError, setApprovalError] = useState<string | null>(null);
 
-  const sectionName = (sectionId: string) => sections.find((s) => s.id === sectionId)?.name ?? "—";
-  const programName = (programId: string) => programs.find((p) => p.id === programId)?.name ?? "—";
+  const sectionName = (sectionId: string) => sections.find((s) => s.id === sectionId)?.name ?? "-";
+  const programName = (programId: string) => programs.find((p) => p.id === programId)?.name ?? "-";
 
   // Real pending grade submissions: entries waiting for approval, grouped by
   // course + submitter + grade batch (type/date), enriched with the real

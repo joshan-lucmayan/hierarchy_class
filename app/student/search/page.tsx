@@ -4,8 +4,8 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useFriendsStore } from "@/lib/friendsStore";
-import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 import { useProgramByStudent } from "@/lib/useAcademicIdentity";
+import { useRankStore } from "@/lib/rankStore";
 import { RankBadge } from "@/components/ui/RankBadge";
 import type { ProfileRow } from "@/types/supabase";
 
@@ -26,9 +26,9 @@ function StudentCard({
   isFriend: boolean;
   onOpenProfile: (student: ProfileRow) => void;
 }) {
-  const { averageOf } = useLeaderboard();
+  const { rankOf } = useRankStore();
   const programByStudent = useProgramByStudent();
-  const rank = rankFromAverage(averageOf(student.id));
+  const rank = rankOf(student.id)?.current_rank ?? "D";
 
   return (
     <button

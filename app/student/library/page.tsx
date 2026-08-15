@@ -213,7 +213,7 @@ export default function LibraryPage() {
                     </div>
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
-                    View →
+                    View -&gt;
                   </span>
                 </button>
               ))
@@ -245,7 +245,7 @@ export default function LibraryPage() {
                     </div>
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
-                    View →
+                    View -&gt;
                   </span>
                 </button>
               ))

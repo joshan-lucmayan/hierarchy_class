@@ -165,7 +165,6 @@ export const TEACHER_NAV_ITEMS: NavItem[] = [
       </svg>
     ),
   },
-  // Visibility of this item is gated by the real logged-in teacher's
   // is_librarian flag in SideNav.tsx, not here (this array is static).
   {
     href: "/teacher/library-management",
@@ -256,6 +255,16 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
     icon: (active) => (
       <svg {...iconProps(active)}>
         <path d="M8 21V9M14 21V3M20 21v-6M4 21h16" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin/ranks",
+    label: "Ranks",
+    icon: (active) => (
+      <svg {...iconProps(active)}>
+        <path d="M4 19V5M4 19h16" />
+        <path d="M8 15l3-3 2 2 5-6" />
       </svg>
     ),
   },

@@ -4,8 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useFriendsStore } from "@/lib/friendsStore";
-import { useLeaderboard, rankFromAverage } from "@/lib/useLeaderboard";
 import { useProgramByStudent } from "@/lib/useAcademicIdentity";
+import { useRankStore } from "@/lib/rankStore";
 import type { ProfileRow } from "@/types/supabase";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -21,7 +21,7 @@ export function QuickSearchBar() {
   const { profiles: students } = useSchoolProfiles({ role: "student", excludeSelf: true });
   const { profiles: teachers } = useSchoolProfiles({ role: "teacher", excludeSelf: true });
   const { friendIds } = useFriendsStore();
-  const { averageOf } = useLeaderboard();
+  const { rankOf } = useRankStore();
   const programByStudent = useProgramByStudent();
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -173,7 +173,7 @@ export function QuickSearchBar() {
                           .filter(Boolean)
                           .join(" · ") || "Student"
                       }
-                      trailing={<RankBadge rank={rankFromAverage(averageOf(student.id))} size="sm" />}
+                      trailing={<RankBadge rank={rankOf(student.id)?.current_rank ?? "D"} size="sm" />}
                     />
                   ))}
                 </>

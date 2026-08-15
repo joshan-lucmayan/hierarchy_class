@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
+import { useRankStore } from "@/lib/rankStore";
 import { useAdminEnrollments, effectiveFrom } from "@/lib/useEnrollment";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { ActionButton } from "@/components/ui/ActionButton";
@@ -16,12 +17,12 @@ export default function AdminStudentsPage() {
     sections,
     programs,
     getStudentAverageByProfile,
-    getStudentRankByProfile,
     getEntriesByProfile,
     getStudentRecordsByProfile,
     autoEnrollInSection,
     clearStudentCourseData,
   } = useClassroomHierarchy();
+  const { rankOf } = useRankStore();
   const { statuses, loading: enrollLoading, setEnrollment, revokeEnrollment } = useAdminEnrollments();
 
   const [query, setQuery] = useState("");
@@ -277,7 +278,7 @@ export default function AdminStudentsPage() {
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-center">
                     <p className="text-2xl font-extrabold text-navy">
-                      {getStudentRankByProfile(selectedStudent.id) ?? "D"}
+                      {rankOf(selectedStudent.id)?.current_rank ?? "D"}
                     </p>
                     <p className="mt-1 text-xs uppercase tracking-wide text-muted">Current rank</p>
                   </div>
