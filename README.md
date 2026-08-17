@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastination, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.7.32`
+**Current version:** `1.7.66`
 
 ---
 
@@ -19,7 +19,7 @@ Students can personalize their profile (bio, hobbies, tags, favorite subject, pr
 | Role | What they do |
 |---|---|
 | **Student** | View their live rank & progress, school feed, leaderboard, materials, library; message classmates/teachers; track weekly habits |
-| **Teacher** | Submit grades per course, manage assigned tasks, upload learning materials, run quizzes, manage the library catalog, use a personal workspace (notes, schedule, lesson plans), and a customizable Home command center |
+| **Teacher** | Submit grades per course, manage assigned tasks, upload learning materials, run quizzes, use a personal workspace (notes, schedule, lesson plans), and a customizable Home command center. **Librarian** teachers also manage the library catalog and pickup requests |
 | **Admin** | Build the program/section/course hierarchy, enroll students, assign teachers, review/approve grade submissions, monitor progress, manage the school, and a customizable Home command center |
 
 Each admin account is scoped to exactly **one school**.
@@ -43,12 +43,15 @@ Teacher and Admin Home pages are personal command centers built from widgets - e
 - **Student achievements** - post certificates (title, school year, date awarded, school) with a raw image upload (public `certificates` bucket, owner-folder RLS, 10 MB cap); the profile shows a title-only 3×3 grid that opens a detail modal and a full-screen certificate viewer. Other students see a read-only version.
 - **Student music** - post music by link (YouTube / Spotify / Apple Music / SoundCloud / Vimeo): the app resolves title, artist, and album cover server-side via keyless oEmbed / iTunes lookup (Spotify upgrades to the Web API when server-only env vars are set) and links out to the original track.
 - **Habit tracker** - default and custom habits with goal types, scheduled days, streaks, pause/resume/archive, and a history calendar. Entries are one per (habit, day) at the database level; habits never touch the rank engine or grades.
-- **Account lifecycle** - students and teachers can deactivate their own account (reversible, nothing is deleted) and reactivate it from the sign-in flow with a welcome-back notification. Permanent deletion is admin-approved: the account and personal data are removed while school-required academic records are preserved and anonymized (migration 058), and user storage objects are cleaned up via a server-only service-role client. Admins have no in-app deactivate/delete controls - account changes for administrators go through the developer.
+- **Account lifecycle** - students and teachers can deactivate their own account (reversible, nothing is deleted) and reactivate it from the sign-in flow with a welcome-back notification. School admins cannot deactivate other users. For suspicious accounts, an admin can apply a temporary **restriction** (`profiles.restricted_at`): the user can still sign in but only reaches `/auth/restricted`, where they can submit an **appeal** that the admin reviews. Permanent deletion is admin-approved: the account and personal data are removed while school-required academic records are preserved and anonymized (migration 058), and user storage objects are cleaned up via a server-only service-role client. Admins have no in-app deactivate/delete controls for their own account - account changes for administrators go through the developer.
 - **Weekly progress** chart derived from real approved grades.
 - **Library** with barcode (camera or USB scanner) ISBN lookup and a borrow flow.
 - **Quiz engine**, **learning materials** with private storage, **Florin** currency balances.
 - **Florin shop & wardrobe** - students buy decorative page backgrounds, profile card backgrounds, and avatar borders. Purchases and equipping run through SECURITY DEFINER RPCs (no client-side minting).
 - **Midnight & Rose themes** - pick either from any role's settings; applied before first paint and remembered per browser.
+- **Inverted-triangle rank emblem** - one shared rank visual across every role and surface; the letter/name sits below the triangle, and EX carries a gold "glory" glow.
+- **Feedback with attachments** - bug reports and feedback can include screenshots/files, stored privately in the `feedback` bucket and reviewed by school admins (signed links in the developer email).
+- **Actionable notifications** - message notifications link straight into the exact conversation; announcements stay informational with no fake destinations.
 
 ## Tech stack
 
@@ -91,4 +94,4 @@ Full documentation lives in [`docs/`](docs/README.md): architecture, the backend
 ## Not yet implemented
 
 - Real payments for Coin Charisma (purchases stay disabled)
-- School logos in the school picker
+- School logos inside the school picker (the signup page shows the CSA campus logo)

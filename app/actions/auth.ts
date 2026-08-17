@@ -3,6 +3,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/supabase";
+import { createServiceClient } from "@/lib/supabase/serviceClient";
+import {
+  validateSignupInput,
+  parsePublicSignupRole,
+  normalizeSignupIdentifiers,
+  isSchoolEligibleForSignup,
+  isValidEmail,
+  type SignupErrors,
+} from "@/lib/signupValidation";
+import { siteUrlBase } from "@/lib/siteUrl";
 
 // Type for cookie objects set by Supabase
 interface CookieToSet {
@@ -18,70 +28,200 @@ interface CookieToSet {
   };
 }
 
-export async function signUpWithProfile(
-  email: string,
-  password: string,
-  firstName: string,
-  lastName: string,
-  schoolId: string,
-  role: "student" | "teacher" | "admin",
-  isLibrarian: boolean = false
-) {
-  const fullName = `${firstName} ${lastName}`.trim();
+export interface SignUpInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  role: string;
+  schoolId: string;
+  studentId?: string;
+  facultyId?: string;
+  isLibrarian?: boolean;
+}
+
+export type SignUpResult =
+  | { success: true; userId: string }
+  | { success: false; error: string; fieldErrors?: SignupErrors };
+
+function siteRedirectBase(): { base: string; error: string | null } {
+  const base = siteUrlBase();
+  if (base) return { base, error: null };
+  // In production NEXT_PUBLIC_SITE_URL is required so confirmation links
+  // always point at the real deployment.
+  return { base: "", error: "Email confirmation isn't configured. Set NEXT_PUBLIC_SITE_URL." };
+}
+
+async function createSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return null;
 
-  if (!url || !anonKey) {
-    return { error: "Supabase not configured" };
+  const cookieStore = await cookies();
+  return createServerClient<Database>(url, anonKey, {
+    cookies: {
+      getAll: async () =>
+        cookieStore.getAll().map((cookie) => ({ name: cookie.name, value: cookie.value })),
+      setAll: async (cookiesToSet: CookieToSet[]) => {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookieStore.set(name, value, options);
+        });
+      },
+    },
+  });
+}
+
+/**
+ * Public signup. The role, school, and identifiers submitted by the client
+ * are NEVER trusted as-is:
+ *   - role must be exactly "student" or "teacher" (admin is rejected).
+ *   - the school must exist, be active, and be open for registration
+ *     (schools.registration_enabled) - a fake/arbitrary school UUID is
+ *     rejected even though the UI only lists eligible schools.
+ *   - student_id / faculty_id are required for the matching role and must
+ *     be unique within the school (the database unique indexes are the
+ *     final gate; the pre-check below is for clean error messages).
+ *   - the password policy is enforced server-side, not just in the UI.
+ */
+export async function signUpWithProfile(input: SignUpInput): Promise<SignUpResult> {
+  const supabase = await createSupabase();
+  if (!supabase) {
+    return { success: false, error: "Signup isn't configured yet." };
   }
 
-  try {
-    const supabase = createServerClient<Database>(url, anonKey, {
-      cookies: {
-        getAll: async () => {
-          const cookieStore = await cookies();
-          return cookieStore.getAll().map((cookie) => ({
-            name: cookie.name,
-            value: cookie.value,
-          }));
-        },
-        setAll: async (cookiesToSet: CookieToSet[]) => {
-          const cookieStore = await cookies();
-          cookiesToSet.forEach(({ name, value, options }: CookieToSet) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    });
+  // 1) Pure validation (shared with the client form).
+  const fieldErrors = validateSignupInput(input);
+  if (Object.keys(fieldErrors).length > 0) {
+    return { success: false, error: "Please fix the highlighted fields.", fieldErrors };
+  }
 
-    // Sign up user with Supabase Auth. The profile row (and florin balance,
-    // for students) is created automatically by a database trigger
-    // (see database/migrations/003_auto_create_profile.sql) that reads this same
-    // metadata - it runs at the DB level regardless of whether email
-    // confirmation is required, so there's no client-side RLS race here.
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          school_id: schoolId,
-          first_name: firstName,
-          last_name: lastName,
-          name: fullName, // kept for backwards-compatible metadata readers
-          role,
-          is_librarian: isLibrarian,
-        },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
-      },
-    });
+  const role = parsePublicSignupRole(input.role);
+  if (!role) {
+    // Defense in depth - validateSignupInput already rejects this.
+    return { success: false, error: "Only Student and Teacher accounts can be created here." };
+  }
 
-    if (signUpError || !authData.user) {
-      return { error: signUpError?.message || "Signup failed" };
+  // 2) School eligibility from the DATABASE (never trust the selector alone).
+  const { data: school, error: schoolError } = (await supabase
+    .from("schools")
+    .select("id, active, registration_enabled")
+    .eq("id", input.schoolId)
+    .maybeSingle()) as { data: { id: string; active: boolean; registration_enabled: boolean } | null; error: unknown };
+
+  if (schoolError || !isSchoolEligibleForSignup(school)) {
+    return {
+      success: false,
+      error: "This school isn't open for registration. Contact your school or the platform team.",
+      fieldErrors: { school: "School is not accepting registrations." },
+    };
+  }
+
+  // 3) Identifier normalization + duplicate pre-check (the partial unique
+  //    indexes on (school_id, student_id) / (school_id, faculty_id) are the
+  //    real enforcement; this is for a clean error message. The check runs
+  //    through the server-only client - never exposed to the browser).
+  const ids = normalizeSignupIdentifiers(input);
+  const svc = createServiceClient();
+  if (svc && ids.studentId) {
+    const { data: existingStudent } = await svc
+      .from("profiles")
+      .select("id")
+      .eq("school_id", input.schoolId)
+      .eq("student_id", ids.studentId)
+      .maybeSingle();
+    if (existingStudent) {
+      return {
+        success: false,
+        error: "This student ID is already registered at your school.",
+        fieldErrors: { studentId: "Already registered." },
+      };
     }
-
-    return { success: true, userId: authData.user.id };
-  } catch (err) {
-    console.error("Signup error:", err);
-    return { error: "An unexpected error occurred" };
   }
+  if (svc && ids.facultyId) {
+    const { data: existingFaculty } = await svc
+      .from("profiles")
+      .select("id")
+      .eq("school_id", input.schoolId)
+      .eq("faculty_id", ids.facultyId)
+      .maybeSingle();
+    if (existingFaculty) {
+      return {
+        success: false,
+        error: "This faculty ID is already registered at your school.",
+        fieldErrors: { facultyId: "Already registered." },
+      };
+    }
+  }
+
+  // 4) Confirmation redirect must point at the real deployment.
+  const { base: siteBase, error: siteError } = siteRedirectBase();
+  if (siteError) return { success: false, error: siteError };
+
+  // 5) Sign up with Supabase Auth. The profile row (and florin balance, for
+  //    students) is created by the handle_new_user() database trigger from
+  //    this metadata - the trigger re-validates the role and school, so a
+  //    forged payload is rejected even if this action were bypassed.
+  const fullName = [input.firstName.trim(), ids.middleName, input.lastName.trim()]
+    .filter(Boolean)
+    .join(" ");
+
+  const { data: authData, error: signUpError } = await supabase.auth.signUp({
+    email: input.email.trim(),
+    password: input.password,
+    options: {
+      data: {
+        school_id: input.schoolId,
+        role,
+        first_name: input.firstName.trim(),
+        middle_name: ids.middleName,
+        last_name: input.lastName.trim(),
+        name: fullName, // kept for backwards-compatible metadata readers
+        student_id: ids.studentId,
+        faculty_id: ids.facultyId,
+        is_librarian: role === "teacher" && !!input.isLibrarian,
+      },
+      emailRedirectTo: `${siteBase}/auth/callback`,
+    },
+  });
+
+  if (signUpError || !authData.user) {
+    const message = signUpError?.message || "Signup failed";
+    // The database unique indexes reject duplicate school IDs inside the
+    // trigger; surface that as a friendly field error.
+    if (/duplicate key|already registered/i.test(message)) {
+      const dupField = role === "student" ? "studentId" : "facultyId";
+      return {
+        success: false,
+        error: `This ${role === "student" ? "student" : "faculty"} ID is already registered at your school.`,
+        fieldErrors: { [dupField]: "Already registered." } as SignupErrors,
+      };
+    }
+    return { success: false, error: message };
+  }
+
+  return { success: true, userId: authData.user.id };
+}
+
+/** Resend the signup confirmation email (Supabase auth.resend). */
+export async function resendSignupConfirmation(email: string): Promise<{ ok: boolean; error?: string }> {
+  if (!isValidEmail(email)) return { ok: false, error: "Enter a valid email address." };
+
+  const supabase = await createSupabase();
+  if (!supabase) return { ok: false, error: "Email confirmation isn't configured yet." };
+
+  const { base: siteBase, error: siteError } = siteRedirectBase();
+  if (siteError) return { ok: false, error: siteError };
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.trim(),
+    options: { emailRedirectTo: `${siteBase}/auth/callback` },
+  });
+
+  // Deliberately generic: never reveal whether the account exists.
+  if (error) {
+    return { ok: false, error: "Couldn't resend the confirmation email. Check your address and try again." };
+  }
+  return { ok: true };
 }

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { School, LoginFieldErrors } from "@/types/school";
-import { useSchools } from "@/lib/useSchools";
-import { SchoolSelector } from "./SchoolSelector";
 import { createClient } from "@/lib/supabase/client";
+import { homePathForRole } from "@/lib/authz";
+import { resendSignupConfirmation } from "@/app/actions/auth";
+import type { Role } from "@/types/supabase";
 
 function FieldLabel({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -19,29 +19,30 @@ function FieldLabel({ icon, children }: { icon: React.ReactNode; children: React
 export function LoginForm() {
   const searchParams = useSearchParams();
   const justConfirmed = searchParams.get("confirmed") === "1";
-  const { schools, loading: schoolsLoading, error: schoolsError } = useSchools();
+  const confirmationFailed = searchParams.get("confirmed") === "0";
+  const unverified = searchParams.get("unverified") === "1";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [school, setSchool] = useState<School | null>(null);
-  const [errors, setErrors] = useState<LoginFieldErrors>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [phase, setPhase] = useState<"form" | "authenticating">("form");
+  const [resendEmail, setResendEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
 
-  function validate(): LoginFieldErrors {
-    const next: LoginFieldErrors = {};
+  function validate(): boolean {
+    const next: typeof errors = {};
     if (!email.trim()) next.email = "Enter your email.";
     if (!password) next.password = "Enter your password.";
-    if (!school) next.school = "Please select your school.";
-    return next;
+    setErrors(next);
+    return Object.keys(next).length === 0;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const fieldErrors = validate();
-    if (Object.keys(fieldErrors).length > 0) {
-      setErrors(fieldErrors);
-      return;
-    }
+    if (!validate()) return;
 
     setErrors({});
     setIsLoading(true);
@@ -58,49 +59,102 @@ export function LoginForm() {
         return;
       }
 
-      if (!school) {
-        setErrors({ school: "Please select your school." });
-        setIsLoading(false);
-        return;
-      }
-
       const supabase = createClient();
-      const {
-        data: authData,
-        error: signInError,
-      } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (signInError || !authData.user) {
-        setErrors({ form: "Incorrect email or password." });
+        const message = signInError?.message ?? "Incorrect email or password.";
+        if (/not confirmed|confirm/i.test(message)) {
+          setErrors({ form: "Your email isn't confirmed yet. Confirm the link we sent you, or resend it below." });
+          setResendEmail(email.trim());
+        } else {
+          setErrors({ form: "Incorrect email or password." });
+        }
         return;
       }
 
-      const metadata = authData.user.user_metadata as Record<string, unknown> | null;
-      const accountSchoolId = typeof metadata?.school_id === "string" ? metadata.school_id : undefined;
-      const role = typeof metadata?.role === "string" ? metadata.role : "student";
-
-      if (!accountSchoolId) {
-        setErrors({ form: "Your account is missing a school assignment. Contact your admin." });
+      // Email confirmation is enforced server-side (login itself refuses
+      // unconfirmed accounts; middleware re-checks on every request).
+      if (!authData.user.email_confirmed_at) {
+        setErrors({ form: "Your email isn't confirmed yet. Confirm the link we sent you, or resend it below." });
+        setResendEmail(email.trim());
         return;
       }
 
-      if (accountSchoolId !== school.id) {
-        setErrors({ form: "Choose the school where your account is registered." });
+      // Resolve the role from the profiles table (database truth) - never
+      // from user_metadata, which the user can edit themselves.
+      const { data: profile } = (await supabase
+        .from("profiles")
+        .select("role, school_id")
+        .eq("user_id", authData.user.id)
+        .maybeSingle()) as { data: { role: string; school_id: string } | null };
+
+      if (!profile) {
+        setErrors({ form: "Your account isn't set up yet. Contact your school admin." });
         return;
       }
 
-      if (!role || !["student", "teacher", "admin"].includes(role)) {
+      const role = profile.role as Role;
+      if (role !== "student" && role !== "teacher" && role !== "admin") {
         setErrors({ form: "Your account role is not valid. Contact your admin." });
         return;
       }
 
-      const landing = role === "teacher" ? "teacher" : role === "admin" ? "admin" : "student";
-      window.location.href = `/${landing}/home`;
+      // Credentials + profile resolved - show the branded loading state while
+      // the session redirects to the user's home (never a frozen form).
+      setPhase("authenticating");
+      window.location.href = homePathForRole(role);
     } catch {
       setErrors({ form: "Something went wrong. Try again." });
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function handleResend(e: React.FormEvent) {
+    e.preventDefault();
+    setResending(true);
+    setResendStatus(null);
+    const target = resendEmail.trim();
+    const result = await resendSignupConfirmation(target);
+    setResending(false);
+    setResendStatus(
+      result.ok
+        ? "A new confirmation link was sent. Check your inbox (and spam folder)."
+        : result.error ?? "Couldn't resend. Try again in a moment."
+    );
+  }
+
+  if (phase === "authenticating") {
+    return (
+      <div className="animate-pop-in flex w-full flex-col items-center gap-4 py-8 text-center">
+        <span
+          className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[var(--gold)]/40 bg-[var(--surface-strong)] text-[var(--gold)]"
+          style={{ animation: "haloPulse 2.2s ease-in-out infinite" }}
+        >
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 17l3-4 4 4 5-6 4 4 4-3" />
+            <path d="M12 2c1 2 3 4 5 4 0 2-2 4-4 4" />
+          </svg>
+        </span>
+        <div>
+          <h2 className="text-lg font-bold text-navy">Signing you in</h2>
+          <p className="mt-1 text-sm text-muted">Loading your account and rank...</p>
+        </div>
+        <div className="h-1 w-40 overflow-hidden rounded-full bg-[var(--border)]">
+          <div
+            className="h-full rounded-full bg-[var(--gold)]"
+            style={{ animation: "fillbar 1.4s ease-in-out infinite" }}
+          />
+        </div>
+        <p className="font-mono-ui text-[9px] uppercase tracking-[0.2em] text-[var(--faint)]">
+          One moment - setting up your workspace
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -110,9 +164,24 @@ export function LoginForm() {
           Email confirmed! You can now log in.
         </div>
       )}
+      {confirmationFailed && (
+        <div className="animate-shake rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
+          This confirmation link is invalid or has expired. Request a new one below.
+        </div>
+      )}
+      {unverified && (
+        <div className="animate-shake rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
+          You need to confirm your email before you can use the app. Enter your email below to resend the link.
+        </div>
+      )}
       {errors.form && (
         <div className="animate-shake rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
           {errors.form}
+        </div>
+      )}
+      {resendStatus && (
+        <div className={`rounded-lg border px-3.5 py-2.5 text-sm ${resendStatus.startsWith("A new") ? "border-gold-soft bg-gold-soft text-gold-token" : "border-warn-soft bg-warn-soft text-warn"}`}>
+          {resendStatus}
         </div>
       )}
 
@@ -130,7 +199,7 @@ export function LoginForm() {
             >
               <path d="M4 4h16v16H4z" opacity="0" />
               <path d="M22 6l-10 7L2 6" />
-              <path d="M2 6h20v12H2z" />
+              <path d="M2 6h20v20H2z" />
             </svg>
           }
         >
@@ -143,6 +212,7 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           disabled={isLoading}
+          autoComplete="email"
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
             ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
@@ -176,6 +246,7 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             disabled={isLoading}
+            autoComplete="current-password"
             className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
               ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
@@ -200,10 +271,6 @@ export function LoginForm() {
         </div>
         {errors.password && <p className="animate-shake text-xs text-warn">{errors.password}</p>}
       </div>
-
-      <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
-      {schoolsLoading && <p className="text-xs text-muted">Loading schools...</p>}
-      {schoolsError && <p className="text-xs text-warn">{schoolsError}</p>}
 
       <button
         type="submit"
@@ -230,6 +297,29 @@ export function LoginForm() {
       <a href="/forgot-password" className="text-center text-sm text-muted hover:underline">
         Forgot password?
       </a>
+
+      {resendEmail && (
+        <form onSubmit={handleResend} className="rounded-lg border border-base bg-[var(--surface-strong)] p-3.5">
+          <p className="text-xs font-semibold text-navy">Didn&apos;t get the confirmation email?</p>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="email"
+              value={resendEmail}
+              onChange={(e) => setResendEmail(e.target.value)}
+              placeholder="you@example.com"
+              disabled={resending}
+              className="min-w-0 flex-1 rounded-md border border-base px-3 py-2 text-sm outline-none focus:border-[var(--gold)] disabled:bg-tile"
+            />
+            <button
+              type="submit"
+              disabled={resending}
+              className="shrink-0 rounded-md bg-navy px-3 py-2 text-xs font-bold uppercase tracking-wider text-white disabled:opacity-60"
+            >
+              {resending ? "Sending" : "Resend"}
+            </button>
+          </div>
+        </form>
+      )}
 
       <p className="text-center text-xs text-muted">
         Need an account? <a href="/signup" className="font-semibold text-navy hover:underline">Sign up</a> or contact your school admin.

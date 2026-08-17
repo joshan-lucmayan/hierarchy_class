@@ -17,6 +17,7 @@ export default function ReactivatePage() {
   const [state, setState] = useState<"checking" | "deactivated" | "missing">("checking");
   const [busy, setBusy] = useState<null | "reactivate" | "stay">(null);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<"student" | "teacher" | "admin" | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,6 +28,8 @@ export default function ReactivatePage() {
         setState("missing");
         return;
       }
+      // Role comes from the profiles table (database truth), never from
+      // user_metadata which the user can edit themselves.
       const { data: profile } = (await supabase
         .from("profiles")
         .select("deactivated_at, role")
@@ -37,12 +40,18 @@ export default function ReactivatePage() {
         setState("missing");
         return;
       }
+      const normalized =
+        profile.role === "teacher" || profile.role === "admin" || profile.role === "student"
+          ? profile.role
+          : null;
       if (!profile.deactivated_at) {
-        // Already active - go home.
-        const role = profile.role === "teacher" ? "teacher" : profile.role === "admin" ? "admin" : "student";
-        router.replace(`/${role}/home`);
+        // Already active - go home (if we can't resolve a role, the
+        // middleware / incomplete flow will handle it).
+        if (normalized) router.replace(`/${normalized}/home`);
+        else setState("missing");
         return;
       }
+      setRole(normalized);
       setState("deactivated");
     });
     return () => {
@@ -63,8 +72,23 @@ export default function ReactivatePage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const role = user?.user_metadata?.role === "teacher" ? "teacher" : user?.user_metadata?.role === "admin" ? "admin" : "student";
-    router.replace(`/${role}/home`);
+    if (!user) {
+      setState("missing");
+      return;
+    }
+    // Role comes from the profiles table (database truth), never from
+    // user_metadata which the user can edit themselves.
+    const { data: profile } = (await supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle()) as { data: { role: string } | null };
+    const normalized =
+      profile?.role === "teacher" || profile?.role === "admin" || profile?.role === "student"
+        ? profile.role
+        : null;
+    if (normalized) router.replace(`/${normalized}/home`);
+    else setState("missing");
   }
 
   async function handleStayDeactivated() {

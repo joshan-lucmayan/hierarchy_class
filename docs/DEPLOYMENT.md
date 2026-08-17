@@ -43,6 +43,8 @@ repo):
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project settings -> API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project settings -> API (anon/public key) |
+| `NEXT_PUBLIC_SITE_URL` | The deployment origin, e.g. `https://your-production-domain` - **required** as the base for email confirmation links and password recovery redirects |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase project settings -> API (service_role key) - **server-only**; used by account deletion, the signup duplicate-identifier check, and `scripts/provision-admin.mjs` |
 
 **Deployments:**
 
@@ -58,11 +60,15 @@ Level Security, Realtime, and file/image storage.
 
 - **PostgreSQL database** - all tables (profiles, habits, grades, rank
   state, shop, messages, etc.) live here. Schema changes ship as numbered
-  migrations in `database/migrations/` and are applied to the project
-  (SQL Editor or `psql`).
+  migrations in `database/migrations/` (currently up to **060**) and are
+  applied to the project (SQL Editor or `psql`).
 - **Authentication** - Supabase Auth handles sign up / sign in / password
-  reset. The app's auth pages and middleware talk to it through the
-  Supabase client libraries.
+  reset. Email confirmation is mandatory: signup sends a confirmation link
+  (built from `NEXT_PUBLIC_SITE_URL`), unconfirmed accounts are refused at
+  login and by middleware. Role and school are resolved from the `profiles`
+  table (database truth), never from user-editable `user_metadata`. Public
+  signup accepts only students and teachers; admins are provisioned by the
+  platform owner (see `docs/ADMIN_PROVISIONING.md`).
 - **Row-Level Security (RLS)** - every table carries own-row / school-scoped
   policies so students can only touch their own data. `SECURITY DEFINER`
   RPCs (e.g. `purchase_shop_item`, `equip_shop_item`) enforce rules the

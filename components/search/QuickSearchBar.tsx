@@ -129,13 +129,18 @@ export function QuickSearchBar() {
 
   return (
     <div className="relative">
-      <div className="relative">
+      <div className="group relative">
+        {/* Search icon: sized + contrasted to read clearly on the tile input
+            (was previously too small / low-contrast to notice). The input's
+            left padding accounts for the larger icon; group-focus-within
+            keeps the icon highlight in sync with the focused input. */}
         <svg
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted transition-colors group-focus-within:text-[var(--gold)]"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="2.2"
+          aria-hidden
         >
           <circle cx="11" cy="11" r="7" />
           <path d="m21 21-4.3-4.3" />

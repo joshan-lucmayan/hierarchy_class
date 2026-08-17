@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CrownMark } from "@/components/ui/CrownMark";
+import { RankTriangle } from "@/components/ui/RankTriangle";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthTabs } from "@/components/auth/AuthTabs";
 import { LandingBackground } from "./Background";
@@ -188,10 +189,10 @@ const ROLES = [
     tag: "Students",
     title: "Climb the ladder",
     points: [
-      "Track your rank and watch your bar fill with every grade",
-      "Log study, exercise, reading, sleep, and focus habits with streaks",
+      "Track your rank and watch your bar fill with every approved grade",
+      "Set personal habit goals and build streaks across study, fitness, reading, sleep, and focus",
       "See live weekly progress, subject stats, and a campus leaderboard",
-      "Chat, post, and decorate your profile with shop items and themes",
+      "Share MyDay stories, collect achievements, and decorate your profile with shop items and themes",
     ],
   },
   {
@@ -200,8 +201,8 @@ const ROLES = [
     points: [
       "Configure category weights that control rank impact",
       "Input scores out of any total and preview the rank effect",
-      "Run quizzes, share materials, and manage the library catalog",
-      "Keep notes, schedules, and lesson plans in a personal workspace",
+      "Run quizzes, share materials, and keep notes, schedules, and lesson plans in a personal workspace",
+      "Librarian teachers manage the library catalog and pickup requests",
     ],
   },
   {
@@ -278,7 +279,7 @@ function HowItWorks() {
       <SectionHeading
         eyebrow="How it works"
         title="From grade to rank in three steps"
-        sub="One clean loop: teachers grade, admins approve, students climb. No manual score entry, no hidden math."
+        sub="One clean loop: teachers grade, admins approve, students climb. Every approved grade is weighed by its category and moves the bar on its own."
       />
       <div className="relative">
         <div className="draw-line absolute left-[16%] right-[16%] top-[26px] hidden h-px bg-gradient-to-r from-transparent via-[var(--gold)]/40 to-transparent md:block" />
@@ -310,7 +311,7 @@ function HowItWorks() {
 const FEATURES = [
   {
     title: "Non-linear rank engine",
-    body: "Every grade entry computes its own fill with its category weight. One weak quiz never drags down a perfect exam.",
+    body: "Each grade is judged on its own with its category weight - no running average blends your scores, and anything below the neutral line drains the bar.",
   },
   {
     title: "Live realtime sync",
@@ -334,7 +335,7 @@ const FEATURES = [
   },
   {
     title: "Florin shop & wardrobe",
-    body: "Buy page backgrounds, profile card art, and avatar borders, then equip them from your wardrobe - Discord style.",
+    body: "Buy page backgrounds, profile card art, and avatar borders, then equip them from your wardrobe and show them off across the campus.",
   },
   {
     title: "Midnight & Rose themes",
@@ -342,7 +343,7 @@ const FEATURES = [
   },
   {
     title: "Messaging & social profiles",
-    body: "Campus-wide chat, profiles with bio and hobbies, a school feed, MyDay stories, and an in-app library and quiz engine.",
+    body: "Campus-wide chat with notifications that open the exact conversation, profiles with bio and hobbies, a school feed, MyDay stories, and an in-app library and quiz engine.",
   },
 ];
 
@@ -382,15 +383,15 @@ function Features() {
 /* ------------------------------------------------------------------ */
 
 const RANKS = [
-  { letter: "D", token: "bg-rank-d border-rankBorder-d", text: "text-rankText-d", note: "Fresh start" },
-  { letter: "C", token: "bg-rank-c border-rankBorder-c", text: "text-rankText-c", note: "Building" },
-  { letter: "B", token: "bg-rank-b border-rankBorder-b", text: "text-rankText-b", note: "Consistent" },
-  { letter: "A", token: "bg-rank-a border-rankBorder-a", text: "text-rankText-a", note: "Strong" },
-  { letter: "S", token: "bg-rank-s border-rankBorder-s", text: "text-rankText-s", note: "Elite" },
-  { letter: "S+", token: "bg-rank-s border-rankBorder-s", text: "text-rankText-s", note: "Exceptional" },
-  { letter: "S++", token: "bg-rank-splus border-rankBorder-splus", text: "text-rankText-splus", note: "Near perfect" },
-  { letter: "EX", token: "bg-gradient-to-b from-[#c2c7cf] to-[#9ea7b3] border-[var(--gold)]", text: "text-[#141214]", note: "Flawless" },
-];
+  { letter: "D", note: "Fresh start" },
+  { letter: "C", note: "Building" },
+  { letter: "B", note: "Consistent" },
+  { letter: "A", note: "Strong" },
+  { letter: "S", note: "Elite" },
+  { letter: "S+", note: "Exceptional" },
+  { letter: "S++", note: "Near perfect" },
+  { letter: "EX", note: "Extra" },
+] as const;
 
 function RankLadder() {
   return (
@@ -398,7 +399,7 @@ function RankLadder() {
       <SectionHeading
         eyebrow="The ladder"
         title="Eight ranks, one climb"
-        sub="Every season starts fresh: S and above land in C, A and below land in D. Promotion happens when your bar fills; the EX tier belongs to flawless seasons."
+        sub="Every season starts fresh: S and above land in C, A and below land in D. Promotion happens when your bar fills; the EX tier belongs to Extra seasons."
       />
       <div className="mb-10 grid grid-cols-4 gap-3 sm:grid-cols-8">
         {RANKS.map((rank, i) => (
@@ -407,11 +408,11 @@ function RankLadder() {
             className="reveal-pop group flex flex-col items-center gap-2 rounded-[10px] border border-base bg-[rgba(48,47,51,0.32)] px-2 py-4 transition-all duration-500 hover:-translate-y-1.5 hover:border-[rgba(158,167,179,0.45)] hover:shadow-[0_16px_40px_-20px_rgba(158,167,179,0.45)]"
             style={{ transitionDelay: `${0.15 + i * 0.07}s` }}
           >
-            <span
-              className={`font-display flex h-11 w-11 items-center justify-center rounded-full border text-[15px] font-bold transition-transform duration-300 group-hover:scale-110 ${rank.token} ${rank.text}`}
-            >
-              {rank.letter}
-            </span>
+            <RankTriangle
+              rank={rank.letter}
+              size="lg"
+              className="transition-transform duration-300 group-hover:scale-110"
+            />
             <span className="text-center text-[10px] leading-tight text-[var(--faint)] transition-colors group-hover:text-[var(--muted)]">
               {rank.note}
             </span>

@@ -9,6 +9,7 @@ export interface SchoolRow {
   name: string;
   abbreviation: string;
   active: boolean;
+  registration_enabled: boolean;
   created_at: string;
 }
 
@@ -19,7 +20,12 @@ export interface ProfileRow {
   role: Role;
   full_name: string;
   first_name: string | null;
+  middle_name: string | null;
   last_name: string | null;
+  /** School-issued student identifier (unique within the school, NOT the auth user UUID). */
+  student_id: string | null;
+  /** School-issued faculty identifier (unique within the school). */
+  faculty_id: string | null;
   level_label: string | null;
   section: string | null;
   educational_level: string | null;
@@ -35,6 +41,10 @@ export interface ProfileRow {
   is_librarian: boolean;
   avatar_url: string | null;
   deactivated_at: string | null;
+  /** Set by a school admin to temporarily restrict a suspicious account.
+   *  Distinct from deactivated_at (self-service). Restricted users can only
+   *  reach /auth/restricted and may appeal. */
+  restricted_at: string | null;
   created_at: string;
 }
 
@@ -246,9 +256,11 @@ export interface TeacherTaskRow {
 // INSERT TYPES (for creating new rows)
 // ============================================================================
 
-export type SchoolInsert = Omit<SchoolRow, "id" | "created_at"> & {
+export type SchoolInsert = Omit<SchoolRow, "id" | "created_at" | "registration_enabled"> & {
   id?: string;
   created_at?: string;
+  /** Defaults to true in the database - the platform owner flips it off to close a school. */
+  registration_enabled?: boolean;
 };
 
 export type ProfileInsert = {
@@ -256,6 +268,9 @@ export type ProfileInsert = {
   school_id: string;
   role: Role;
   full_name: string;
+  middle_name?: string | null;
+  student_id?: string | null;
+  faculty_id?: string | null;
   level_label?: string | null;
   section?: string | null;
   initials?: string | null;
@@ -471,6 +486,29 @@ export interface AccountRequestRow {
   status: "pending" | "approved" | "denied";
   reviewed_by: string | null;
   reviewed_at: string | null;
+  created_at: string;
+}
+
+export interface AccountAppealRow {
+  id: string;
+  school_id: string;
+  user_id: string;
+  reason: string;
+  status: "pending" | "approved" | "denied";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  /** Joined requester identity (admin review UI). */
+  user_name?: string | null;
+}
+
+export interface FeedbackReportRow {
+  id: string;
+  school_id: string;
+  user_id: string;
+  page: string | null;
+  message: string;
+  attachment_paths: string[];
   created_at: string;
 }
 
@@ -784,6 +822,32 @@ export interface Database {
         Row: AccountRequestRow;
         Insert: AccountRequestInsert;
         Update: Partial<Omit<AccountRequestRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      account_appeals: {
+        Row: AccountAppealRow;
+        Insert: {
+          school_id: string;
+          user_id: string;
+          reason: string;
+        };
+        Update: Partial<Omit<AccountAppealRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      feedback_reports: {
+        Row: FeedbackReportRow;
+        Insert: {
+          school_id: string;
+          user_id: string;
+          page?: string | null;
+          message: string;
+          attachment_paths?: string[];
+        };
+        Update: Partial<Omit<FeedbackReportRow, "id" | "created_at">> & {
           id?: string;
           created_at?: string;
         };

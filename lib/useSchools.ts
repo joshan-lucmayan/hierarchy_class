@@ -4,14 +4,9 @@ import { useEffect, useState } from "react";
 import { School } from "@/types/school";
 import { createClient } from "@/lib/supabase/client";
 
-// The platform is currently deployed for a single institution: CSA.
-// The schools table is filtered to CSA so no other institution ever appears
-// in selectors. Fallback data mirrors the same single-school behavior so the
-// UI stays testable offline.
-const CSA_ONLY_FALLBACK: School[] = [
-  { id: "csa", name: "CSA - College of Saint Amateil", abbreviation: "CSA" },
-];
-
+// Public signup only shows schools the platform owner has registered AND
+// opened for registration (active + registration_enabled). No school is
+// hardcoded - the selector is always driven by the database.
 interface UseSchoolsResult {
   schools: School[];
   loading: boolean;
@@ -19,7 +14,7 @@ interface UseSchoolsResult {
 }
 
 export function useSchools(): UseSchoolsResult {
-  const [schools, setSchools] = useState<School[]>(CSA_ONLY_FALLBACK);
+  const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,8 +32,9 @@ export function useSchools(): UseSchoolsResult {
 
     supabase
       .from("schools")
-      .select("id, name, abbreviation")
+      .select("id, name, abbreviation, active, registration_enabled")
       .eq("active", true)
+      .eq("registration_enabled", true)
       .order("name")
       .then(({ data, error: fetchError }) => {
         if (cancelled) return;
@@ -46,13 +42,10 @@ export function useSchools(): UseSchoolsResult {
           setError("Couldn't load the school list. Please refresh and try again.");
           setSchools([]);
         } else if (!data || data.length === 0) {
-          setError("No schools are set up yet. Ask your admin to run the schools seed script.");
+          setError("No schools are open for registration yet. Check back soon.");
           setSchools([]);
         } else {
-          // CSA is the only active institution - other schools may exist in
-          // the table for future tenancy, but are never exposed.
-          const csa = (data as School[]).filter((s) => s.abbreviation === "CSA");
-          setSchools(csa.length > 0 ? csa : [(data as School[])[0]]);
+          setSchools(data as School[]);
         }
         setLoading(false);
       });

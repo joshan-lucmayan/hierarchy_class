@@ -1,22 +1,25 @@
 /**
- * Seed script for populating schools in Supabase
+ * Seed script for populating schools in Supabase.
  * Run this from your local machine after migrations are applied:
  *   npx ts-node -P tsconfig.json scripts/seed.ts
  *
  * Or execute the SQL directly in Supabase dashboard:
  *   SQL Editor > New Query > paste contents below
+ *
+ * School registration is PLATFORM-OWNER controlled: this script is the
+ * controlled mechanism for a fresh database. Existing rows are untouched
+ * (upsert on name). CSA - College of Saint Amateil is the sole registered
+ * school; registration_enabled = true means it is open for public
+ * student/teacher signup. New schools are added only by the platform owner
+ * (add a row here, then flip registration_enabled to true when ready).
  */
 
 import { createClient } from "@supabase/supabase-js";
 import type { Database, SchoolInsert } from "@/types/supabase";
 
-// The platform currently operates for a single institution: CSA.
+// The sole registered school. Add future tenants here as the platform owner.
 const SCHOOLS_SEED: SchoolInsert[] = [
-  {
-    name: "CSA - College of Saint Amateil",
-    abbreviation: "CSA",
-    active: true,
-  },
+  { name: "CSA - College of Saint Amateil", abbreviation: "CSA", active: true, registration_enabled: true },
 ];
 
 async function seed(): Promise<void> {

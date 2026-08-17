@@ -356,22 +356,59 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
               {active.messagesLoading ? (
                 <p className="text-center text-sm text-muted">Loading messages...</p>
               ) : active.messages.length === 0 ? (
-                <p className="text-center text-sm text-muted">No messages yet - say hi!</p>
+                <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                    </svg>
+                  </span>
+                  <p className="text-sm font-semibold text-navy">No messages yet</p>
+                  <p className="text-xs text-muted">Say hi to {active.name.split(" ")[0]} - the conversation starts here.</p>
+                </div>
               ) : (
-                active.messages.map((m) => (
-                  <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
-                    <span
-                      className={`max-w-[65%] whitespace-pre-wrap break-words rounded-[10px] px-4 py-2.5 text-sm ${
-                        m.mine ? "bg-gold-token text-on-accent" : "bg-[var(--surface-strong)] text-navy"
-                      }`}
-                    >
-                      {m.text}
-                    </span>
-                    <span className="mt-0.5 px-1 text-[10px] text-muted">
-                      {new Date(m.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-                    </span>
-                  </div>
-                ))
+                (() => {
+                  // Insert a day separator whenever the day changes.
+                  let lastDay: string | null = null;
+                  const rows: React.ReactNode[] = [];
+                  active.messages.forEach((m) => {
+                    const day = new Date(m.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                    if (day !== lastDay) {
+                      lastDay = day;
+                      const isToday =
+                        new Date(m.createdAt).toDateString() === new Date().toDateString();
+                      rows.push(
+                        <div key={`day-${m.id}`} className="flex items-center justify-center gap-3 py-1">
+                          <span className="h-px w-8 bg-[var(--border)]" />
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                            {isToday ? "Today" : day}
+                          </span>
+                          <span className="h-px w-8 bg-[var(--border)]" />
+                        </div>
+                      );
+                    }
+                    rows.push(
+                      <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
+                        <span
+                          className={`max-w-[72%] whitespace-pre-wrap break-words rounded-[14px] px-4 pb-1.5 pt-2.5 text-sm leading-relaxed shadow-sm ${
+                            m.mine
+                              ? "rounded-br-[4px] bg-gold-token text-on-accent"
+                              : "rounded-bl-[4px] bg-[var(--surface-strong)] text-navy"
+                          }`}
+                        >
+                          {m.text}
+                          <span
+                            className={`ml-3 inline-block translate-y-[2px] text-[9.5px] font-medium tabular-nums ${
+                              m.mine ? "text-on-accent/60" : "text-faint"
+                            }`}
+                          >
+                            {new Date(m.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  });
+                  return rows;
+                })()
               )}
             </div>
 

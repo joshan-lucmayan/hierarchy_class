@@ -184,7 +184,6 @@ export default function TeacherStudentsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate text-sm font-semibold text-navy">{student.full_name}</p>
-                        <RankBadge rank={rankOf(student.id)?.current_rank ?? "D"} size="sm" />
                         {!enrollLoading && <EnrolledBadge status={effectiveOf(student.id)} size="sm" />}
                       </div>
                       <p className="mt-0.5 truncate text-xs text-muted">
@@ -234,7 +233,8 @@ export default function TeacherStudentsPage() {
                 </div>
               </div>
 
-              {/* Stat strip */}
+              {/* Stat strip - the Tags/Favorite stat was removed per the v1.7.66
+                  cleanup; the roster stays academic + minimalist. */}
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <Stat
                   label="Average"
@@ -243,9 +243,18 @@ export default function TeacherStudentsPage() {
                   hint="Across approved grades"
                 />
                 <Stat
-                  label="Tags"
-                  value={selectedStudent.tags.length}
-                  hint={selectedStudent.favorite_subject ? `Favorite: ${selectedStudent.favorite_subject}` : "No favorite set"}
+                  label="Enrollment"
+                  value={
+                    !enrollLoading
+                      ? effectiveOf(selectedStudent.id) === "enrolled"
+                        ? "Active"
+                        : effectiveOf(selectedStudent.id) === "expired"
+                          ? "Expired"
+                          : "Revoked"
+                      : "—"
+                  }
+                  tone={!enrollLoading && effectiveOf(selectedStudent.id) === "enrolled" ? "gold" : "muted"}
+                  hint="Current status"
                 />
               </div>
 
@@ -270,17 +279,23 @@ export default function TeacherStudentsPage() {
                 </p>
               </div>
 
-              {/* Student details */}
+              {/* Student details - favorite subject + tags were removed from
+                  the teacher view per the v1.7.66 cleanup; rank progress above
+                  already covers the academic story. */}
               <div className="mt-4 space-y-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
                 <h3 className="section-label">Student details</h3>
                 <p className="mt-2 text-sm text-muted">
-                  <span className="font-semibold text-navy">Favorite subject:</span>{" "}
-                  {selectedStudent.favorite_subject ?? "Not set"}
+                  <span className="font-semibold text-navy">Level:</span>{" "}
+                  {[selectedStudent.educational_level, selectedStudent.program, selectedStudent.level_label]
+                    .filter(Boolean)
+                    .join(" · ") || "Not set"}
                 </p>
-                <p className="text-sm text-muted">
-                  <span className="font-semibold text-navy">Tags:</span>{" "}
-                  {selectedStudent.tags.length > 0 ? selectedStudent.tags.join(", ") : "None yet"}
-                </p>
+                {selectedStudent.student_id && (
+                  <p className="text-sm text-muted">
+                    <span className="font-semibold text-navy">Student ID:</span>{" "}
+                    {selectedStudent.student_id}
+                  </p>
+                )}
               </div>
             </>
           )}

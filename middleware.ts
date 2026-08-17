@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Database, Role } from "@/types/supabase";
+import { decideAuthRoute, type AuthProfile } from "@/lib/authz";
 
 interface CookieToSet {
   name: string;
@@ -14,18 +16,13 @@ interface CookieToSet {
   };
 }
 
-const ROLE_PREFIXES: Record<string, "student" | "teacher" | "admin"> = {
-  "/student": "student",
-  "/teacher": "teacher",
-  "/admin": "admin",
-};
-
 // Runs on (almost) every request. Two jobs:
 // 1. Keep the Supabase session cookie fresh (required by @supabase/ssr).
 // 2. Enforce that /student, /teacher, /admin are only reachable by a logged
-//    in user whose role matches - logged out visitors bounce to /login,
-//    wrong-role visitors bounce to their own home instead of seeing a
-//    section that isn't theirs.
+//    in user whose PROFILES row matches - role and school come from the
+//    database (profiles.role / profiles.school_id), never from
+//    auth.users.user_metadata (which the user can edit themselves).
+//    Also enforces email confirmation and the deactivated-account lifecycle.
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -39,7 +36,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(url, anonKey, {
+  const supabase = createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -59,47 +56,44 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const matchedPrefix = Object.keys(ROLE_PREFIXES).find((prefix) => pathname.startsWith(prefix));
 
-  // Deactivated accounts: server-side enforcement. A signed-in user whose
-  // profile is deactivated can only reach the minimal auth/reactivation flow
-  // (/auth/reactivate, login/signup so they can sign out, and API routes that
-  // do their own auth). Everything else bounces to the reactivation screen.
-  // This runs on the server for every request, so hiding UI alone can never
-  // bypass it.
-  if (user && !pathname.startsWith("/api/") && pathname !== "/auth/reactivate" && pathname !== "/auth/callback" && pathname !== "/forgot-password" && pathname !== "/reset-password") {
-    const { data: profile } = await supabase
+  // Resolve the caller's profile from the DATABASE (profiles.user_id), not
+  // from user_metadata. This single query also covers deactivation.
+  // (Note: supabase-js types `.maybeSingle()` as `never` here, so the result
+  // is cast - same convention as the rest of the codebase.)
+  let profile: AuthProfile | null = null;
+  if (user) {
+    const { data: profileRow } = (await supabase
       .from("profiles")
-      .select("deactivated_at")
+      .select("role, school_id, deactivated_at, restricted_at")
       .eq("user_id", user.id)
-      .maybeSingle();
-    if (profile?.deactivated_at) {
-      // Deactivated users only ever land on the minimal reactivation flow -
-      // login/signup included, so they can reactivate or sign out.
-      return NextResponse.redirect(new URL("/auth/reactivate", request.url));
+      .maybeSingle()) as {
+      data: { role: string; school_id: string; deactivated_at: string | null; restricted_at: string | null } | null;
+    };
+    if (profileRow) {
+      const role = profileRow.role as Role;
+      if (role === "student" || role === "teacher" || role === "admin") {
+        profile = {
+          role,
+          school_id: profileRow.school_id,
+          deactivated_at: profileRow.deactivated_at,
+          restricted_at: profileRow.restricted_at,
+        };
+      }
     }
   }
 
-  if (matchedPrefix && !user) {
-    const redirectUrl = new URL("/login", request.url);
-    redirectUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
+  const decision = decideAuthRoute({
+    pathname,
+    isAuthenticated: !!user,
+    emailConfirmed: !!user?.email_confirmed_at,
+    profile,
+  });
 
-  if (matchedPrefix && user) {
-    const metadataRole = user.user_metadata?.role;
-    const role = typeof metadataRole === "string" ? metadataRole : null;
-    const requiredRole = ROLE_PREFIXES[matchedPrefix];
-
-    if (role && role !== requiredRole) {
-      return NextResponse.redirect(new URL(`/${role}/home`, request.url));
-    }
-  }
-
-  if (user && (pathname === "/login" || pathname === "/signup")) {
-    const metadataRole = user.user_metadata?.role;
-    const role = typeof metadataRole === "string" ? metadataRole : "student";
-    return NextResponse.redirect(new URL(`/${role}/home`, request.url));
+  if (decision.type === "redirect") {
+    // Bounce wrong-role users to their own home (their own role's home only
+    // exists for known roles - the profile check guarantees that here).
+    return NextResponse.redirect(new URL(decision.to, request.url));
   }
 
   return response;

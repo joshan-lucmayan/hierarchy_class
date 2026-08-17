@@ -5,6 +5,7 @@ import { useMyProfile } from "@/lib/useMyProfile";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useRankStore } from "@/lib/rankStore";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { RankTriangle } from "@/components/ui/RankTriangle";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Button } from "@/components/ui/Button";
 import { Stat } from "@/components/ui/Stat";
@@ -37,15 +38,15 @@ interface SeasonLog {
  * RankDistribution use (bg-rank-* / text-rankText-* / border-rankBorder-*),
  * so the ladder reads as Hierarchy Class, not eight generic KPI tiles.
  */
-const LADDER: { letter: Rank; tile: string; text: string; note: string }[] = [
-  { letter: "D", tile: "border-rankBorder-d bg-rank-d", text: "text-rankText-d", note: "Fresh start" },
-  { letter: "C", tile: "border-rankBorder-c bg-rank-c", text: "text-rankText-c", note: "Building" },
-  { letter: "B", tile: "border-rankBorder-b bg-rank-b", text: "text-rankText-b", note: "Consistent" },
-  { letter: "A", tile: "border-rankBorder-a bg-rank-a", text: "text-rankText-a", note: "Strong" },
-  { letter: "S", tile: "border-rankBorder-s bg-rank-s", text: "text-rankText-s", note: "Elite" },
-  { letter: "S+", tile: "border-rankBorder-s bg-rank-s", text: "text-rankText-s", note: "Exceptional" },
-  { letter: "S++", tile: "border-rankBorder-splus bg-rank-splus", text: "text-rankText-splus", note: "Near perfect" },
-  { letter: "EX", tile: "border-gold-token bg-gold-token", text: "text-on-accent", note: "Flawless" },
+const LADDER: { letter: Rank; note: string }[] = [
+  { letter: "D", note: "Fresh start" },
+  { letter: "C", note: "Building" },
+  { letter: "B", note: "Consistent" },
+  { letter: "A", note: "Strong" },
+  { letter: "S", note: "Elite" },
+  { letter: "S+", note: "Exceptional" },
+  { letter: "S++", note: "Near perfect" },
+  { letter: "EX", note: "Extra" },
 ];
 
 export default function AdminRanksPage() {
@@ -191,7 +192,7 @@ export default function AdminRanksPage() {
           label="EX students"
           value={exCount}
           tone={exCount > 0 ? "gold" : "muted"}
-          hint="Flawless this season"
+          hint="Extra this season"
         />
       </div>
 
@@ -206,7 +207,7 @@ export default function AdminRanksPage() {
         <h3 className="section-label">The ladder</h3>
         <p className="mt-1.5 max-w-2xl text-xs leading-5 text-muted">
           Eight ranks, one climb. Every season starts fresh - S and above land in C, A and below land in D.
-          Promotion happens when a bar fills; EX belongs to flawless seasons.
+          Promotion happens when a bar fills; EX belongs to Extra seasons.
         </p>
         <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
           {LADDER.map((tier) => (
@@ -214,11 +215,7 @@ export default function AdminRanksPage() {
               key={tier.letter}
               className="flex flex-col items-center gap-2 rounded-[10px] border border-base bg-tile px-1 py-3"
             >
-              <span
-                className={`font-display flex h-10 w-10 items-center justify-center rounded-full border text-[14px] font-bold ${tier.tile} ${tier.text}`}
-              >
-                {tier.letter}
-              </span>
+              <RankTriangle rank={tier.letter} size="lg" />
               <span className="text-center text-[9px] font-semibold uppercase tracking-[0.14em] text-faint">
                 {tier.note}
               </span>

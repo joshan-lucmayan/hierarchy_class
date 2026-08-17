@@ -2,7 +2,7 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { Database, ProfileRow, AccountRequestRow } from "@/types/supabase";
+import type { Database, ProfileRow, AccountRequestRow, AccountAppealRow } from "@/types/supabase";
 import { createServiceClient } from "@/lib/supabase/serviceClient";
 import { storagePathFromUrl } from "@/lib/uploadUtils";
 
@@ -62,7 +62,7 @@ async function currentProfile(supabase: SessionClient) {
   // `never`, so results are cast - same convention as the rest of the codebase.
   const { data: profile } = (await supabase
     .from("profiles")
-    .select("id, school_id, role, deactivated_at")
+    .select("id, school_id, role, deactivated_at, restricted_at")
     .eq("user_id", user.id)
     .maybeSingle()) as { data: ProfileRow | null };
 
@@ -108,6 +108,251 @@ export async function reactivateAccount() {
     p_type: "system",
     p_title: "Welcome back!",
     p_body: "Your Hierarchy Class account has been reactivated. Welcome back!",
+  });
+
+  return { ok: true as const };
+}
+
+/**
+ * School admins CANNOT deactivate or reactivate other users' accounts.
+ * Deactivation is self-service only (see deactivateAccount), and permanent
+ * deletion is a separate admin-approved request (see resolveDeletionRequest).
+ * The only admin-initiated account lifecycle action is the temporary
+ * RESTRICTION of a suspicious account (adminRestrictUser) - a controlled,
+ * reversible state that keeps the user on the appeal flow.
+ */
+
+/**
+ * Temporarily restrict a suspicious account in the admin's OWN school.
+ *
+ * This is NOT deactivation: the user can still authenticate, but the
+ * middleware routes them to /auth/restricted where they see the notice and
+ * can appeal. Authorization is verified server-side (caller must be an admin
+ * of the same school; target must not be an admin), and RLS
+ * (profiles_admin_update) enforces the same school scope at the row level.
+ *
+ * Returns the target email when available so the caller can send a notice.
+ */
+type RestrictionCommonResult =
+  | { ok: true; caller: { id: string; school_id: string; role: string; full_name: string }; target: { id: string; full_name: string } }
+  | { ok: false; error: string };
+
+async function adminRestrictionCommon(profileId: string, restrict: boolean): Promise<RestrictionCommonResult> {
+  const supabase = await createSessionClient();
+  if (!supabase) return { ok: false, error: "Account management isn't configured." };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Not signed in." };
+
+  const { data: caller } = (await supabase
+    .from("profiles")
+    .select("id, school_id, role, full_name")
+    .eq("user_id", user.id)
+    .single()) as { data: ProfileRow | null };
+  if (!caller || caller.role !== "admin") {
+    return { ok: false, error: "Only a school admin can manage restrictions." };
+  }
+
+  const { data: target } = (await supabase
+    .from("profiles")
+    .select("id, user_id, school_id, role, full_name, restricted_at")
+    .eq("id", profileId)
+    .single()) as { data: ProfileRow | null };
+  if (!target) return { ok: false, error: "User not found." };
+  if (target.school_id !== caller.school_id) {
+    return { ok: false, error: "This user belongs to another school." };
+  }
+  if (target.role === "admin") {
+    return { ok: false, error: "Admin accounts are managed by the platform owner." };
+  }
+
+  // Update restricted_at through the session client - RLS (profiles_admin_update)
+  // is the final gate and re-verifies the same-school admin scope.
+  const { error } = await (supabase.from("profiles") as any)
+    .update({ restricted_at: restrict ? new Date().toISOString() : null })
+    .eq("id", target.id);
+  if (error) {
+    return { ok: false, error: "Couldn't update the account. Please try again." };
+  }
+
+  return { ok: true as const, caller, target };
+}
+
+export async function adminRestrictUser(profileId: string, reason?: string) {
+  const result = await adminRestrictionCommon(profileId, true);
+  if (!result.ok) return { ok: false, error: result.error };
+  const { target } = result;
+
+  // Fetch the target's email through the SECURITY DEFINER helper (only a
+  // same-school admin gets it) and email the restriction notice server-side.
+  // Best-effort: the restriction itself never depends on the email sending.
+  const supabase = await createSessionClient();
+  let email: string | null = null;
+  if (supabase) {
+    const { data: emailRow } = (await (supabase as any).rpc("get_profile_email", {
+      p_profile_id: target.id,
+    })) as { data: string | null };
+    email = emailRow ?? null;
+  }
+
+  if (email) {
+    const { sendEmail } = await import("@/lib/email");
+    await sendEmail({
+      to: email,
+      subject: "Your Hierarchy Class account was temporarily restricted",
+      text: [
+        `Hi ${target.full_name},`,
+        "",
+        "We're sorry - your Hierarchy Class account was temporarily restricted from accessing the app while our school administrators review your account.",
+        reason && reason.trim() ? `Reason provided: ${reason.trim()}` : "",
+        "",
+        "You can still sign in, but you will only be able to reach the restriction page. If you believe this was a mistake, you can submit an appeal there and a school administrator will review it.",
+        "",
+        "- Hierarchy Class",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    });
+  }
+
+  // The restriction itself is recorded in profiles.restricted_at; the
+  // restricted user sees the notice + appeal form on /auth/restricted.
+  return { ok: true as const, email };
+}
+
+export async function adminUnrestrictUser(profileId: string) {
+  const result = await adminRestrictionCommon(profileId, false);
+  if (!result.ok) return { ok: false, error: result.error };
+  const { target } = result;
+
+  // Tell the user their access is restored (in-app notification).
+  const supabase = await createSessionClient();
+  if (supabase) {
+    await (supabase as any).rpc("create_notification", {
+      p_recipient_id: target.id,
+      p_type: "system",
+      p_title: "Your access has been restored",
+      p_body: "A school administrator reviewed your account and restored your access to Hierarchy Class.",
+    });
+  }
+
+  return { ok: true as const };
+}
+
+/**
+ * Restricted user submits an appeal. The row is inserted through RLS
+ * (appeals_own_create requires the caller's own restricted profile) and the
+ * partial unique index enforces one open appeal per user. School admins are
+ * notified so they can review it.
+ */
+export async function submitAppeal(reason: string) {
+  const supabase = await createSessionClient();
+  if (!supabase) return { error: "Account management isn't configured." };
+
+  const trimmed = reason.trim();
+  if (!trimmed) return { error: "Explain why your account should be restored." };
+  if (trimmed.length > 2000) return { error: "Appeal is too long (2,000 character limit)." };
+
+  const { profile } = await currentProfile(supabase);
+  if (!profile) return { error: "Not signed in." };
+  if (!profile.restricted_at) return { error: "Your account isn't restricted." };
+
+  // Re-check there is no open appeal (the DB unique index is the real gate;
+  // this gives a clean message).
+  const { data: existing } = (await supabase
+    .from("account_appeals")
+    .select("id")
+    .eq("user_id", profile.id)
+    .eq("status", "pending")
+    .maybeSingle()) as { data: { id: string } | null };
+  if (existing) return { error: "You already have a pending appeal. A school administrator will review it." };
+
+  const { error: insertError } = await supabase.from("account_appeals").insert({
+    school_id: profile.school_id,
+    user_id: profile.id,
+    reason: trimmed,
+  } as any);
+  if (insertError) {
+    if (/duplicate key/i.test(insertError.message)) {
+      return { error: "You already have a pending appeal. A school administrator will review it." };
+    }
+    return { error: "Couldn't submit your appeal. Please try again." };
+  }
+
+  // Notify the school's admins (existing SECURITY DEFINER RPC, same school).
+  await (supabase as any).rpc("notify_admins", {
+    p_school_id: profile.school_id,
+    p_type: "system",
+    p_title: "Account appeal submitted",
+    p_body: `${profile.full_name ?? "A user"} appealed their account restriction and is waiting for review.`,
+  });
+
+  return { ok: true as const };
+}
+
+/**
+ * Admin reviews an appeal. Approving restores access (clears restricted_at);
+ * denying leaves the account restricted. The appeal row update runs through
+ * RLS (appeals_admin_all scopes to the admin's school), and the caller must
+ * be an admin of the appeal's school.
+ */
+export async function resolveAppeal(appealId: string, approved: boolean) {
+  const supabase = await createSessionClient();
+  if (!supabase) return { error: "Account management isn't configured." };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const { data: caller } = (await supabase
+    .from("profiles")
+    .select("id, school_id, role")
+    .eq("user_id", user.id)
+    .single()) as { data: ProfileRow | null };
+  if (!caller || caller.role !== "admin") {
+    return { error: "Only a school admin can review appeals." };
+  }
+
+  const { data: appeal } = (await supabase
+    .from("account_appeals")
+    .select("*")
+    .eq("id", appealId)
+    .single()) as { data: AccountAppealRow | null };
+  if (!appeal) return { error: "Appeal not found." };
+  if (appeal.school_id !== caller.school_id) {
+    return { error: "This appeal belongs to another school." };
+  }
+  if (appeal.status !== "pending") return { error: "This appeal was already reviewed." };
+
+  // Record the decision.
+  const { error: updateError } = await (supabase.from("account_appeals") as any)
+    .update({
+      status: approved ? "approved" : "denied",
+      reviewed_by: caller.id,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", appeal.id);
+  if (updateError) return { error: "Couldn't record the decision." };
+
+  // Approving restores access; denying keeps the account restricted.
+  if (approved) {
+    const { error: restoreError } = await (supabase.from("profiles") as any)
+      .update({ restricted_at: null })
+      .eq("id", appeal.user_id);
+    if (restoreError) return { error: "Couldn't restore the account. Please try again." };
+  }
+
+  // Tell the user the outcome.
+  await (supabase as any).rpc("create_notification", {
+    p_recipient_id: appeal.user_id,
+    p_type: "system",
+    p_title: approved ? "Your appeal was approved" : "Your appeal was not approved",
+    p_body: approved
+      ? "A school administrator restored your access to Hierarchy Class. You can sign in normally now."
+      : "A school administrator reviewed your appeal and your account remains restricted. Contact your school if you believe this is an error.",
   });
 
   return { ok: true as const };

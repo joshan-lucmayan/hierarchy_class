@@ -5,65 +5,66 @@ import { useRouter } from "next/navigation";
 import { School } from "@/types/school";
 import { useSchools } from "@/lib/useSchools";
 import { SchoolSelector } from "./SchoolSelector";
-import { signUpWithProfile } from "@/app/actions/auth";
+import { signUpWithProfile, resendSignupConfirmation } from "@/app/actions/auth";
+import {
+  validateSignupInput,
+  type PublicSignupRole,
+  type SignupErrors,
+} from "@/lib/signupValidation";
 
-const ROLES = [
-  { value: "student", label: "Student" },
-  { value: "teacher", label: "Teacher" },
-  { value: "admin", label: "Administrator" },
+const ROLE_OPTIONS: { value: PublicSignupRole; label: string; hint: string }[] = [
+  { value: "student", label: "Student", hint: "I'm enrolling at this school" },
+  { value: "teacher", label: "Teacher", hint: "I teach at this school" },
 ];
 
-type SignupFieldErrors = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  password?: string;
-  school?: string;
-  role?: string;
-  terms?: string;
-  form?: string;
-};
+type Mode = "form" | "checkEmail";
 
 export function SignupForm() {
   const router = useRouter();
   const { schools, loading: schoolsLoading, error: schoolsError } = useSchools();
+  const [mode, setMode] = useState<Mode>("form");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [school, setSchool] = useState<School | null>(null);
-  const [role, setRole] = useState("student");
+  const [role, setRole] = useState<PublicSignupRole>("student");
+  const [studentId, setStudentId] = useState("");
+  const [facultyId, setFacultyId] = useState("");
   const [isLibrarian, setIsLibrarian] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [errors, setErrors] = useState<SignupFieldErrors>({});
+  const [errors, setErrors] = useState<SignupErrors & { terms?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
 
-  function validate() {
-    const next: SignupFieldErrors = {};
-
-    if (!firstName.trim()) next.firstName = "Enter your first name.";
-    if (!lastName.trim()) next.lastName = "Enter your last name.";
-    if (!email.trim()) next.email = "Enter your email.";
-    if (!password) next.password = "Enter your password.";
-    if (!school) next.school = "Please select your school.";
-    if (!role) next.role = "Choose a role.";
+  function validate(): boolean {
+    const fieldErrors = validateSignupInput({
+      email,
+      password,
+      firstName,
+      lastName,
+      middleName,
+      role,
+      schoolId: school?.id ?? "",
+      studentId,
+      facultyId,
+      isLibrarian,
+    });
+    const next: SignupErrors & { terms?: string } = { ...fieldErrors };
     if (!acceptedTerms) next.terms = "You must accept the Terms and Conditions to continue.";
-
-    return next;
+    setErrors(next);
+    return Object.keys(next).length === 0;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setStatusMessage("");
+    setFormError(null);
 
-    const fieldErrors = validate();
-    if (Object.keys(fieldErrors).length > 0) {
-      setErrors(fieldErrors);
-      return;
-    }
+    if (!validate()) return;
 
-    setErrors({});
     setIsLoading(true);
 
     try {
@@ -71,65 +72,130 @@ export function SignupForm() {
         !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       if (!supabaseConfigured) {
+        // UI-only fallback (no Supabase wired up): simulate the flow so the
+        // click-through stays testable.
         await new Promise((resolve) => setTimeout(resolve, 700));
         router.push("/student/home");
         return;
       }
 
       if (!school) {
-        setErrors({ school: "Please select your school." });
+        setErrors((prev) => ({ ...prev, school: "Please select your school." }));
         setIsLoading(false);
         return;
       }
 
-      // Call server action to sign up with profile creation
-      const result = await signUpWithProfile(
+      const result = await signUpWithProfile({
         email,
         password,
         firstName,
         lastName,
-        school.id,
-        role as "student" | "teacher" | "admin",
-        role === "teacher" ? isLibrarian : false
-      );
+        middleName,
+        role,
+        schoolId: school.id,
+        studentId,
+        facultyId,
+        isLibrarian,
+      });
 
-      if (result.error) {
-        setErrors({ form: result.error });
+      if (!result.success) {
+        if (result.fieldErrors) setErrors((prev) => ({ ...prev, ...result.fieldErrors }));
+        setFormError(result.error);
         return;
       }
 
-      // Determine landing page based on role
-      const landing = role === "teacher" ? "teacher" : role === "admin" ? "admin" : "student";
-
-      // Show confirmation message
-      setStatusMessage(
-        "A confirmation email was sent. Verify your address and then sign in to continue."
-      );
-
-      // Redirect to login after a delay
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
-    } catch (error) {
-      setErrors({ form: "Something went wrong. Try again." });
+      // Confirmation email sent - show the verification state (never assume
+      // confirmation succeeded).
+      setMode("checkEmail");
+    } catch {
+      setFormError("Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
     }
   }
 
+  async function handleResend() {
+    setResending(true);
+    setResendStatus(null);
+    const result = await resendSignupConfirmation(email);
+    setResending(false);
+    setResendStatus(
+      result.ok
+        ? "A new confirmation link was sent. Check your inbox (and spam folder)."
+        : result.error ?? "Couldn't resend. Try again in a moment."
+    );
+  }
+
+  if (mode === "checkEmail") {
+    return (
+      <div className="animate-pop-in flex w-full flex-col items-center gap-4 text-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path className="draw-check" d="M22 7l-10 6L2 7" />
+          </svg>
+        </span>
+        <h2 className="text-lg font-bold text-navy">Check your email</h2>
+        <p className="text-sm leading-6 text-muted">
+          We&apos;ve sent a confirmation link to <span className="font-semibold text-navy">{email}</span>.
+          Confirm your email before logging in.
+        </p>
+        {resendStatus && (
+          <p className={`text-xs ${resendStatus.startsWith("A new") ? "text-gold-token" : "text-warn"}`}>
+            {resendStatus}
+          </p>
+        )}
+        <div className="flex w-full flex-col gap-2">
+          <button
+            type="button"
+            disabled={resending}
+            onClick={handleResend}
+            className="rounded-lg bg-navy py-3 text-sm font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            {resending ? "Sending..." : "Resend confirmation email"}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/login")}
+            className="rounded-lg border border-base py-3 text-sm font-semibold text-navy transition hover:border-gold-soft"
+          >
+            Back to login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-5">
-      {errors.form ? (
+      {formError && (
         <div className="animate-shake rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
-          {errors.form}
+          {formError}
         </div>
-      ) : null}
+      )}
 
-      {statusMessage ? (
-        <div className="animate-pop-in rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-muted">
-          {statusMessage}
-        </div>
-      ) : null}
+      {/* Account type: Student / Teacher only. Administrators are provisioned
+          by the platform owner and never appear here. */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {ROLE_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setRole(option.value)}
+            className={`rounded-[10px] border px-3.5 py-3 text-left transition ${
+              role === option.value
+                ? "border-gold-token bg-[var(--surface-strong)]"
+                : "border-base bg-surface hover:border-gold-soft"
+            }`}
+          >
+            <span className={`block text-sm font-bold ${role === option.value ? "text-navy" : "text-muted"}`}>
+              {option.label}
+            </span>
+            <span className="mt-0.5 block text-[11px] text-faint">{option.hint}</span>
+          </button>
+        ))}
+      </div>
+      {errors.role && <p className="-mt-2 text-xs text-warn">{errors.role}</p>}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
@@ -170,6 +236,61 @@ export function SignupForm() {
 
       <div className="flex flex-col gap-1.5">
         <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
+          Middle name <span className="font-normal normal-case text-faint">(optional)</span>
+        </label>
+        <input
+          id="signup-middle-name"
+          type="text"
+          value={middleName}
+          onChange={(e) => setMiddleName(e.target.value)}
+          placeholder="Marie"
+          disabled={isLoading}
+          autoComplete="additional-name"
+          className="rounded-lg border border-base px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)] disabled:bg-tile disabled:text-faint"
+        />
+      </div>
+
+      {role === "student" ? (
+        <div className="flex flex-col gap-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
+            Student ID
+          </label>
+          <input
+            id="signup-student-id"
+            type="text"
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            placeholder="Your school-issued ID (e.g. 2024-1001)"
+            disabled={isLoading}
+            autoComplete="off"
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+              ${errors.studentId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+          />
+          {errors.studentId && <p className="text-xs text-warn">{errors.studentId}</p>}
+          <p className="text-[11px] text-faint">The ID your school issued to you - not a password, and never shared.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
+            Faculty ID
+          </label>
+          <input
+            id="signup-faculty-id"
+            type="text"
+            value={facultyId}
+            onChange={(e) => setFacultyId(e.target.value)}
+            placeholder="Your school-issued faculty ID"
+            disabled={isLoading}
+            autoComplete="off"
+            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
+              ${errors.facultyId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+          />
+          {errors.facultyId && <p className="text-xs text-warn">{errors.facultyId}</p>}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1.5">
+        <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
           Email
         </label>
         <input
@@ -179,6 +300,7 @@ export function SignupForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           disabled={isLoading}
+          autoComplete="email"
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
             ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
@@ -194,35 +316,16 @@ export function SignupForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Create a strong password"
+          placeholder="At least 8 characters, with a letter and a number"
           disabled={isLoading}
+          autoComplete="new-password"
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
             ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
         {errors.password && <p className="text-xs text-warn">{errors.password}</p>}
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wider text-navy">
-            Role
-          </label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            disabled={isLoading}
-            className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.role ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
-          >
-            {ROLES.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {errors.role && <p className="text-xs text-warn">{errors.role}</p>}
-        </div>
-
+      <div className="grid gap-5 sm:grid-cols-1">
         <div className="flex flex-col gap-1.5">
           <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
           {schoolsLoading && <p className="text-xs text-muted">Loading schools...</p>}

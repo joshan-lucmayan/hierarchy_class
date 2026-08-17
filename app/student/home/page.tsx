@@ -85,7 +85,7 @@ export default function StudentHomePage() {
                     {[profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ")}
                   </p>
 
-                  <div className="mt-5">
+                  <div className="mt-3">
                     <RankBadge
                       rank={displayRank}
                       size="lg"

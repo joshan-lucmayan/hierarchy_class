@@ -14,6 +14,9 @@ interface UseSchoolProfilesOptions {
   /** Skip the query entirely and return an empty list (e.g. a directory that
    *  only wants admins while an explicit search is active). */
   enabled?: boolean;
+  /** Include deactivated accounts. Default false (active roster only).
+   *  Admin user management turns this on to review/reactivate accounts. */
+  includeDeactivated?: boolean;
 }
 
 interface UseSchoolProfilesResult {
@@ -31,7 +34,7 @@ interface UseSchoolProfilesResult {
  * even though this hook itself doesn't pass a school_id).
  */
 export function useSchoolProfiles(options: UseSchoolProfilesOptions = {}): UseSchoolProfilesResult {
-  const { role, excludeSelf, enabled = true } = options;
+  const { role, excludeSelf, enabled = true, includeDeactivated = false } = options;
   const { profile: me } = useMyProfile();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,8 +61,11 @@ export function useSchoolProfiles(options: UseSchoolProfilesOptions = {}): UseSc
     const supabase = createClient();
 
     // Deactivated accounts are not "active users" - exclude them from
-    // rosters/search (leaderboard already filters server-side).
-    let query = supabase.from("profiles").select("*").is("deactivated_at", null).order("full_name");
+    // rosters/search by default (leaderboard already filters server-side).
+    // Admin user management can pass includeDeactivated to review them.
+    let query = supabase.from("profiles").select("*");
+    if (!includeDeactivated) query = query.is("deactivated_at", null);
+    query = query.order("full_name");
     if (role) query = query.eq("role", role);
     if (excludeSelf && me?.id) query = query.neq("id", me.id);
 
@@ -95,7 +101,7 @@ export function useSchoolProfiles(options: UseSchoolProfilesOptions = {}): UseSc
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [role, excludeSelf, enabled, me?.id, refetchTick]);
+  }, [role, excludeSelf, enabled, includeDeactivated, me?.id, refetchTick]);
 
   function refetch() {
     // Background refresh: keep the current roster on screen while the new

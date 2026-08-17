@@ -92,6 +92,12 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
                   {isStudent ? "Student" : "Faculty"}
                 </p>
                 {isStudent && identityLine && <p className="mt-1 text-sm text-muted">{identityLine}</p>}
+                {person.favorite_subject && (
+                  <p className="mt-1.5 text-[12.5px] text-muted">
+                    <span className="font-semibold text-gold-token">Favorite subject:</span>{" "}
+                    {person.favorite_subject}
+                  </p>
+                )}
               </div>
               {!isSelf && (
                 <button
@@ -110,6 +116,11 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
               </div>
             )}
 
+            {!person.bio && hobbies.length === 0 && (
+              <p className="mt-4 w-full text-left text-sm leading-6 text-muted">
+                {person.full_name.split(" ")[0]} hasn&apos;t added a bio or hobbies yet.
+              </p>
+            )}
             {person.bio && <p className="mt-4 w-full text-left text-sm leading-6 text-muted">{person.bio}</p>}
             {hobbies.length > 0 && (
               <div className="mt-3 flex w-full flex-wrap justify-center gap-2">

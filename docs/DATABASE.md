@@ -13,8 +13,10 @@ migration index. Migrations live in `database/migrations/` - see
 
 | Table | Purpose | Key columns |
 |---|---|---|
-| `schools` | The tenant (a school/campus) | name, abbreviation |
-| `profiles` | One row per app user (student/teacher/admin) | user_id, role, school_id, full_name, avatar_url, bio, hobbies, tags, favorite_subject, educational_level, program, level_label, section (legacy), is_librarian, **deactivated_at** (self-service deactivation timestamp, nullable) |
+| `schools` | The tenant (a school/campus), registered by the platform owner | name, abbreviation, active, **registration_enabled** (whether the school accepts public signup - migration 059) |
+| `profiles` | One row per app user (student/teacher/admin) | user_id, role, school_id, full_name, **middle_name** (nullable), first_name, last_name, **student_id** / **faculty_id** (school-issued identifiers, unique within school), avatar_url, bio, hobbies, tags, favorite_subject, educational_level, program, level_label, section (legacy), is_librarian, **deactivated_at** (self-service deactivation timestamp, nullable), **restricted_at** (school-admin restriction timestamp, nullable - migration 060) |
+| `account_appeals` | Appeals from restricted users (migration 060) | user_id, reason, status (pending/approved/denied), reviewed_by, reviewed_at; one OPEN appeal per user (partial unique index) |
+| `feedback_reports` | Feedback/bug reports with attachments (migration 060) | user_id, page, message, attachment_paths (paths into the private `feedback` bucket) |
 | `account_requests` | Deletion requests (deactivation is now self-service) | requester_id, type ('deletion'), status |
 
 ### Academics (the hierarchy)
@@ -75,9 +77,13 @@ managed from the admin pages and are read-only for everyone else.
 **Row-level security is the gate for everything.** No policy, no data. The
 pattern is consistent across tables:
 
-1. **School scoping** - every school-scoped table joins back to `profiles` or
-   uses `auth.jwt()` metadata to confirm the row belongs to the caller's
-   `school_id`.
+1. **School scoping** - every school-scoped table confirms the row belongs to
+   the caller's school via `profiles` (database truth): the SECURITY DEFINER
+   helpers `my_school_id()` / `my_role()` (migration 059) or an
+   `EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() ...)` subquery.
+   **`auth.jwt()` / `user_metadata` is never used for authorization** - the
+   user can edit their own metadata, so all policies resolve school and role
+   from the `profiles` row instead.
 2. **Role scoping** - students, teachers, and admins see different slices:
    - Students: only their own rows (grades, habits, enrollment) or
      school-wide rows that are safe to share (roster, feed, leaderboard
@@ -98,8 +104,19 @@ pattern is consistent across tables:
 
 ### Protected columns
 
-A BEFORE UPDATE trigger on `profiles` blocks non-admins from changing `role`,
-`school_id`, `academic_excellence`, rank, and the librarian flag.
+A BEFORE UPDATE trigger on `profiles` (`protect_profile_columns`, hardened
+in migration 059) blocks:
+
+- **users** from changing `role`, `school_id`, `user_id`, `academic_excellence`,
+  rank, the librarian flag, and their school-issued `student_id` / `faculty_id`;
+- **school admins** from changing `school_id` or `user_id` and from promoting
+  anyone to `admin` (they can manage student/teacher rows in their own
+  school, including `deactivated_at` and student/faculty IDs);
+- **service role** is exempt - that is the platform-owner provisioning path.
+
+The `profiles_admin_update` RLS policy adds a WITH CHECK that rejects any
+update whose target row is an admin, so a school admin can never edit admin
+rows or promote a user to admin at the policy level either.
 
 ---
 
@@ -203,6 +220,13 @@ All files live in `database/migrations/`.
 | 056 | Student achievements: `student_achievements` (title, school_year, date_awarded, school, image_path; owner insert/delete via profiles join, same-school read) + public `certificates` storage bucket (owner folder write/delete mirroring avatars, public read) |
 | 057 | Student music: `student_music` (music_url, platform, title, artist, album_cover_url; owner insert/delete via profiles join, same-school read) - metadata resolved server-side (keyless oEmbed for YouTube/SoundCloud/Vimeo, iTunes lookup for Apple Music, Spotify keyless oEmbed with optional Web API upgrade), links out only |
 | 058 | Account lifecycle: `profiles.deactivated_at` (self-service, reversible deactivation; no data deleted). Deletion-safe FKs - school-required records (`grade_entries`, `course_enrollments`, `rank_period_entries`, `season_history_log`, `rank_history_log`, `library_borrow_log`, teacher/admin attribution on `learning_materials`/`quizzes`/`teacher_tasks`/`library_books`) switch to ON DELETE SET NULL (preserved + anonymized when the profile is deleted); `quiz_attempts` switches to CASCADE (personal). `get_school_leaderboard` excludes deactivated students |
+| 059 | **Auth/registration restructure:** `schools.registration_enabled` (platform-owner controlled); `profiles.middle_name` + `student_id` + `faculty_id` with partial unique indexes `(school_id, student_id)` / `(school_id, faculty_id)` (NULL-safe); hardened `handle_new_user()` (rejects `role='admin'` and non-registered schools at the DB level, persists new fields, forces `is_librarian` to teacher-only, skips florin for provisioned accounts); SECURITY DEFINER helpers `my_school_id()` / `my_role()`; all `auth.jwt() -> user_metadata` school-read policies rewritten to profiles truth (`profiles_school_reads_all`, materials/books/quizzes/feed/banner/programs/sections/courses/enrollments/stories/achievements/music); removed `profiles_user_inserts_own` (trigger-only profile creation) and `schools_admin_write` (platform-owner managed; also fixed the `profiles.id = auth.uid()` bug); hardened `protect_profile_columns` + `profiles_admin_update` (school admins can't move users across schools, can't promote to admin, and can't modify an existing admin account at all - no demotion, no authorization-field edits; only the service-role provisioning path creates/modifies admins); fixed cross-school write holes (`quizzes_teacher_create`, `banner_admin_insert`, `grade_entries_teacher_write`/`delete` now school-scoped for admins); owner-insert policies (`stories_own_create`, `achievements_own_insert`, `music_own_insert`, `quiz_attempts_student_create`, `borrow_requests_student_create`, `account_requests_own_create`) now require `school_id = my_school_id()` |
+| 060 | **v1.7.66 hardening:** `profiles.restricted_at` (admin-only restriction of suspicious accounts - separate from self-service `deactivated_at`); `account_appeals` (one open appeal per user, partial unique index, own-create + same-school-admin read/resolve policies, realtime); `feedback_reports` + private `feedback` bucket (`{school_id}/{user_id}/{uuid}.ext`, owner write + same-school-admin read); `get_profile_email()` SECURITY DEFINER (returns a user's auth email only to a same-school admin - used by restriction notices); `send_chat_message` now creates an in-app notification with a link straight into the conversation (role-appropriate `/student|teacher|admin/messages?with=<sender>`, skipped when the recipient read the thread within 2 minutes) |
+| 061 | **Deactivation is self-service only** - `protect_profile_columns` now raises when any non-service-role caller sets or clears another user's `deactivated_at` (the UI/action were already removed in v1.7.66; this closes the raw-API path found in the production audit) and blocks non-admins from changing `restricted_at` (admin-controlled state) |
+| 062 | **Fix `appeals_own_create`** - the migration-060 policy's unqualified `user_id` inside the `EXISTS` subquery resolved to `profiles.user_id` (`p.id = p.user_id`, never true), so appeals could never be submitted; now correlates `account_appeals.user_id` explicitly |
+| 063 | **Fix `send_chat_message`** - 060 rewrote it against a `participant_id`/`other_user_id` schema that does not exist (all message sends failed with `42703`); restored the real `user_a_id`/`user_b_id` logic (025 semantics: other side revived from archive, `deleted_at` untouched) and kept the 060 notification with the `?with=<sender>` link |
+| 064 | **Fix storage owner policies** - feedback + myday owner write/update/delete compared folder 2 to `auth.uid()` but client paths use the profile id (broken since 059's `profiles.id != auth.uid()` fix); now resolve the caller's profile id; fixes feedback uploads and pre-existing story image uploads |
+| 065 | **Feedback owner read** - reporters can read (and the Storage API can delete) their own feedback attachments; admin read unchanged |
 | 047 | ~~Restore composite bar fill~~ **SUPERSEDED by 049** - 045's weight-dominant experiment was briefly reverted, then permanently replaced by per-entry isolation (049) |
 | 046 | Period baseline: `student_rank_state` gains `period_start_rank/bar/ex_score/peak` (captured when the grading period is adopted); `revert_grade_rank_feed` now recomputes order-independently from the baseline + all remaining current-period entries, so bulk-clearing all grades (admin → clear course data) collapses the state to the baseline (D/0 for a fresh student) instead of leaving a stale bar residue; old-period deletions keep the anchor + replay path |
 
@@ -234,6 +258,15 @@ keys. The two behaviors are independent:
   filters `.is('deactivated_at', null)`), and friend lists (`friendsStore`
   excludes deactivated peers).
 - **Admins** cannot deactivate their own account through the app.
+- **DB-enforced self-service only (061).** `protect_profile_columns` raises
+  when any non-service-role caller sets or clears another user's
+  `deactivated_at` - a school admin can no longer deactivate a user through
+  the raw API either (the restriction state is the admin-controlled path).
+  `restricted_at` is likewise admin-only: non-admins cannot set/clear it.
+- **No profile row?** An authenticated auth user without a `profiles` row
+  (e.g. accounts created before the `handle_new_user` trigger existed) is
+  routed to `/auth/incomplete` and can only sign out; completing the account
+  is a platform-owner action (insert the profile via the service-role path).
 
 ### Permanent deletion (admin-approved)
 

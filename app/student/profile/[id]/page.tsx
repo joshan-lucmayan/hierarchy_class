@@ -181,6 +181,12 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
                   {isStudent ? "Student" : "Faculty"}
                 </p>
                 {isStudent && identityLine && <p className="mt-1.5 text-sm text-muted">{identityLine}</p>}
+                {isStudent && person.favorite_subject && (
+                  <p className="mt-1.5 text-[12.5px] text-muted">
+                    <span className="font-semibold text-gold-token">Favorite subject:</span>{" "}
+                    {person.favorite_subject}
+                  </p>
+                )}
               </div>
               <button
                 type="button"

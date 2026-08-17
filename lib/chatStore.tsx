@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useCallback, useMemo, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
-import { notifyUser } from "@/lib/notify";
 
 export type ChatRole = "student" | "teacher" | "admin";
 
@@ -350,11 +349,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
 
-      // Notify the other participant (best-effort, one per send).
-      const other = conversations.find((c) => c.id === conversationId)?.otherId;
-      if (other) {
-        notifyUser(other, "message", profile.full_name, text, "/messages");
-      }
+      // The other participant's notification (with a link straight into the
+      // thread) is created inside the send_chat_message DB function - never
+      // client-side, so it also fires when the sender's tab is closed. The
+      // old client-side notifyUser call with the broken "/messages" link was
+      // removed to avoid duplicate notifications.
       return true;
     },
     [profile, conversations]

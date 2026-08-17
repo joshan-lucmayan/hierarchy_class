@@ -1,22 +1,23 @@
 "use client";
 
 import type { Rank } from "@/lib/rankEngine";
+import { RankTriangle } from "@/components/ui/RankTriangle";
 
 /**
- * Rank badge per the 07 right-column spec, fed by the non-linear rank engine
- * (lib/rankEngine.ts + lib/rankStore.tsx).
+ * Rank badge per the v1.7.66 rank visual spec, fed by the non-linear rank
+ * engine (lib/rankEngine.ts + lib/rankStore.tsx).
  *
- * The RANK LETTER is the hero - rendered large and bold - while the rank bar
- * (or the open-ended EX score) sits beneath it at a deliberately smaller size
- * with a thin progress track and an uppercase caption. No shield, star,
- * chevron, or crest graphics - purely typographic + one bar.
+ * The rank is represented by the shared INVERTED-TRIANGLE emblem
+ * (RankTriangle) - the same shape across students, teachers, and admins,
+ * with the rank letter BELOW the triangle (never inside it). EX carries the
+ * gold "glory" glow.
  *
  * - Non-EX ranks: `bar` is the 0-100 progress toward the next rank; it renders
  *   as "N / 100" with a matching track fill.
- * - EX: `exScore` is the open-ended dominance score (uncapped); it replaces the
- *   bar entirely ("no /100", no track).
+ * - EX: `exScore` is the open-ended dominance score (uncapped); it replaces
+ *   the bar entirely ("no /100", no track).
  * - List/row contexts (search, leaderboard, teacher roster, admin panels) pass
- *   no bar/exScore and get a compact "{rank} Rank" pill only.
+ *   no bar/exScore and get a compact "{rank} Rank" pill with a small triangle.
  */
 interface RankBadgeProps {
   rank: Rank;
@@ -28,17 +29,11 @@ interface RankBadgeProps {
   className?: string;
 }
 
-const RANK_LETTER_SIZES = {
-  sm: "text-lg",
-  md: "text-2xl",
-  lg: "text-[32px]",
-} as const;
-
-const DOT_SIZES = {
-  sm: "h-1.5 w-1.5",
-  md: "h-2 w-2",
-  lg: "h-2.5 w-2.5",
-} as const;
+const TRIANGLE_SIZES = {
+  sm: "sm" as const,
+  md: "md" as const,
+  lg: "lg" as const,
+};
 
 const PILL_SIZES = {
   sm: "px-2.5 py-1 text-[11px] gap-1.5",
@@ -55,7 +50,7 @@ export function RankBadge({ rank, bar, exScore, size = "md", className = "" }: R
   if (!showDetail) {
     return (
       <span className={`inline-flex items-center rounded-md border border-line bg-tile ${PILL_SIZES[size]}`}>
-        <span className={`shrink-0 rounded-full bg-gold ${DOT_SIZES[size]}`} />
+        <RankTriangle rank={rank} size={TRIANGLE_SIZES[size]} showLabel={false} />
         <span className="font-extrabold tracking-[0.3px] text-navy">{rank} Rank</span>
       </span>
     );
@@ -66,14 +61,8 @@ export function RankBadge({ rank, bar, exScore, size = "md", className = "" }: R
 
   return (
     <div className={`flex flex-col items-center text-center ${className}`}>
-      {/* Rank letter is the hero; the score is secondary. */}
-      <span className="flex items-center gap-2.5">
-        <span className={`shrink-0 rounded-full bg-gold ${DOT_SIZES[size]}`} />
-        <span className={`font-extrabold leading-none tracking-[0.02em] text-navy ${RANK_LETTER_SIZES[size]}`}>
-          {rank}
-        </span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.3px] text-faint">Rank</span>
-      </span>
+      {/* The inverted triangle is the hero; the letter sits below it. */}
+      <RankTriangle rank={rank} size={TRIANGLE_SIZES[size]} showLabel />
 
       <div className="mt-2.5 flex items-baseline gap-1">
         <span className="text-sm font-bold leading-none text-navy">{displayValue}</span>

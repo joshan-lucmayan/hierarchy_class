@@ -1,9 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
-// Server-only Supabase client with the service role. Used ONLY by the
-// account-deletion path (deleting auth.users and removing storage objects) -
-// never imported from a client component and never shipped to the browser.
+// Server-only Supabase client with the service role. Used by:
+//   - the account-deletion path (deleting auth.users + storage objects)
+//   - the signup duplicate-identifier pre-check (read-only profiles lookup)
+//   - the developer admin-provisioning script (scripts/provision-admin.mjs)
+// Never imported from a client component and never shipped to the browser.
 //
 // SECURITY: the key is read from the SUPABASE_SERVICE_ROLE_KEY env var, which
 // is server-only (never NEXT_PUBLIC_, never committed). Callers must perform

@@ -9,7 +9,7 @@ Next.js 14 (App Router) + React 18 + TypeScript + Tailwind. Pages live in
 
 | Area | Pages |
 |---|---|
-| Public | `/` (marketing landing), `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/terms`, `/privacy` |
+| Public | `/` (marketing landing), `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/auth/reactivate`, `/auth/restricted` (restricted-account appeal), `/auth/incomplete` (signed-in user with no profile), `/terms`, `/privacy` |
 | Student | `/student/home`, `/student/search`, `/student/messages`, `/student/learning-materials`, `/student/library`, `/student/quiz`, `/student/leaderboard`, `/student/shop`, `/student/profile`, `/student/profile/[id]`, `/student/habits`, `/student/settings` |
 | Teacher | `/teacher/home`, `/teacher/workspace`, `/teacher/classroom`, `/teacher/students`, `/teacher/quiz`, `/teacher/learning-materials`, `/teacher/library-management`, `/teacher/messages`, `/teacher/settings` |
 | Admin | `/admin/home`, `/admin/users`, `/admin/programs`, `/admin/students`, `/admin/teachers`, `/admin/reports`, `/admin/ranks`, `/admin/messages`, `/admin/settings` |
@@ -49,6 +49,7 @@ is no mock data.
 | `useRankStore` (`RankProvider`) | School-wide rank state - `rankOf(profileId)` + `sorted` (best-first); realtime refetch on `student_rank_state` |
 | `useMyEnrollment` / `useAdminEnrollments` | Enrollment status |
 | `useAccountRequests` | Deactivate/delete requests |
+| `useAppeals` | Restricted-account appeals (list, approve/restore, deny) - admin review surface in Admin Settings |
 
 ---
 
@@ -77,8 +78,10 @@ is no mock data.
   are actually generated.
 - **Cards**: `CornerFrame` - flat 1px hairline border, 10px radius, no shadow.
 - **Accent**: Great Falls (`--gold`) - used for ranks, fills, primary accents.
-- **Shared UI** in `components/ui/`: `RankBadge` (fed by the rank engine:
-  rank letter hero + bar / EX score + track), `StatBar`, `StatRadarChart`,
+- **Shared UI** in `components/ui/`: `RankTriangle` (the inverted-triangle
+  rank emblem: layered glow + rank fill, no letters inside the shape, rank
+  label beneath) + `RankBadge` (triangle + bar / EX score + track, fed by the
+  rank engine), `StatBar`, `StatRadarChart`,
   `EnrolledBadge`, `UserAvatar` (+ theme-adaptive `DefaultAvatar`), `CornerFrame`,
   `CrownMark` (logo), `CoinIcon`.
 - **Home intelligence components** in `components/dashboard/`:
@@ -93,6 +96,9 @@ The whole interface follows one idea: **flat, quiet, typographic - the data
 is the decoration.** No gradients, no glows, no drop shadows, no hero
 images inside the card system. Every card is a flat panel defined only by a
 1px hairline border; color is used sparingly (one accent, one warning tone,
+(the **single deliberate exception** is the rank emblem - `RankTriangle`
+carries a restrained layered glow so EX reads as legendary/glowing while
+remaining minimalist when the glow is reduced; everything else stays flat).
 neutrals everywhere else) so the rank bar and the numbers stand out.
 
 Layout:
@@ -106,7 +112,10 @@ Layout:
   (coin icon + balance + small "+") and a notification bell with a small
   unread dot.
 - **Search bar** - flat rounded rectangle under the top bar (students,
-  teachers, people).
+  teachers, people). `QuickSearchBar`'s magnifier sits at the original
+  placement (left-4, vertically centered, `pl-11` input) and was made
+  clearly visible in v1.7.66 (18px, thicker stroke, `--muted` color, gold on
+  focus) - it was low-contrast in the Rose theme before.
 - **Content** - a two-column grid on the student home: the left column is
   the school feed (StoriesRail + feed posts), the right column stacks the
   five cards in a fixed order: **Profile/rank card → Weakest Subject →
@@ -117,7 +126,7 @@ Why this design?
 - **Tokens over hex.** Every color routes through CSS variables, so the
   Midnight/Rose theme and any future rebrand happen in one file
   (`app/globals.css`), not across hundreds of pages.
-- **Shared primitives.** `CornerFrame`, `RankBadge`, `UserAvatar`,
+- **Shared primitives.** `CornerFrame`, `RankTriangle`/`RankBadge`, `UserAvatar`,
   `EnrolledBadge` are used by student, teacher, and admin pages alike - fix
   them once and every role picks up the change (this is how the rank
   redesign reached all roles without per-page edits).
@@ -188,7 +197,7 @@ Why this design?
   → S++ → EX using the same rank identity tokens as the landing page ladder
   and `RankDistribution` (`bg-rank-*` / `text-rankText-*` /
   `border-rankBorder-*`, EX as the gold-token tile), each tier with its
-  product note (Fresh start … Flawless) and the real season-reset rule (S and
+  product note (Fresh start … Extra) and the real season-reset rule (S and
   above → C, A and below → D). Below it: live standings (rank position,
   `UserAvatar`, `RankBadge` + bar/EX score) and a season-control rail -
   Declare semester (`declare_semester`, shared `Button` + inputs), End season
@@ -216,7 +225,11 @@ Why this design?
   requests render a token `Chip` (success/danger). The version footer is now
   mono-faint. All data hooks (`useAccountRequests`), the `resolveRequest`
   handler, `ThemePicker`, `FeedbackForm`, and `APP_VERSION` are unchanged.
-- **Admin Users - the school directory (1.4.25).**
+  A **Restricted accounts** section (v1.7.66) lists restricted users and open
+  appeals (`useAppeals`) with gold Restore + outline Deny `Button`s wired to
+  the `resolveAppeal` server action - restoring an account clears
+  `restricted_at`, denying leaves it restricted and the appeal resolved.
+- **Admin Users - the school directory (1.4.25, v1.7.66).**
   `app/admin/users/page.tsx` is the directory surface: a header band with a
   `font-display` "School directory" title, mono "Users · N registered" line,
   and a students `Stat` (with the teacher count as its hint) anchored right.
@@ -227,7 +240,14 @@ Why this design?
   roster rows use `UserAvatar` (with `profileId` so equipped avatar borders
   follow), name + level metadata, a role `Chip` (gold for teachers, neutral
   for students - replacing the old static `bg-gold/20 text-gold` pill), and
-  `RankBadge` for students. Plain text states were replaced with
+  `RankBadge` for students. **The Deactivate button/action was removed in
+  v1.7.66** - school admins cannot deactivate/suspend/ban accounts directly
+  (the `adminSetUserDeactivation` server action is gone); instead the row
+  offers **Restrict** (temporarily block a suspicious account, sets
+  `profiles.restricted_at`, triggers the restriction email) / **Restore**
+  (clears `restricted_at`), and deactivation requests flow through the
+  existing `account_requests` approve/deny workflow. Plain text states were
+  replaced with
   geometry-matching skeleton rows, a warn-token error banner, and composed
   `EmptyState`s (distinct "No users yet" vs "No users found" with a clear
   search & filters action). All filtering semantics, `useSchoolProfiles`
@@ -239,12 +259,14 @@ Why this design?
   average `Stat` derived from approved grades anchored right), a
   `section-label` roster card with a search input carrying a live mono
   result-count chip, and dense rows (`UserAvatar` with `profileId`,
-  `RankBadge`, `EnrolledBadge`, and the level/identity line). Selection now
+  `EnrolledBadge`, and the level/identity line - no rank next to the name
+  and no Tags/Favorite pills, per the v1.7.66 minimalist search cleanup;
+  rank lives in the detail panel). Selection now
   uses `border-gold-token` / `hover:border-gold-soft` instead of the old
   `border-sealion` treatment. The detail card leads with the student identity
-  box, then a 2-`Stat` strip (Average / Tags with favorite-subject hint),
-  then `section-label` sections for Rank progress (with bar/EX score) and
-  Student details (favorite subject, tags). Plain text states were replaced
+  box, then a 2-`Stat` strip (Average / Enrollment), then
+  `section-label` sections for Rank progress (with bar/EX score) and
+  Student details (level + student ID). Plain text states were replaced
   with geometry-matching skeleton rows, a warn-token error banner, and
   composed `EmptyState`s ("No students yet" / "No students found" with a
   clear-search action). All teacher-scoping is byte-for-byte unchanged: the
@@ -257,7 +279,9 @@ Why this design?
   staying teacher-specific: a header band (`font-display` "Preferences and
   account" title + mono "Teacher settings · appearance, feedback, account"
   line, no invented stats), then `section-label` `CornerFrame` sections for
-  Appearance (`ThemePicker`) and Feedback & report (`FeedbackForm`). The
+  Appearance (`ThemePicker`) and Feedback & report (`FeedbackForm` - up to
+  3 attachments, 2 MB each, JPG/PNG/WebP/GIF/PDF, uploaded to the private
+  `feedback` bucket before submit). The
   Account section keeps its warn-tone card (`CornerFrame tone="warn"`,
   replacing the old inline `border-warn-soft`). Deactivate account is now
   **self-service and immediate** (server action `deactivateAccount` in
@@ -799,11 +823,29 @@ flat token dashboard look, but built on the same tokens and fonts):
   `LoginForm` / `SignupForm` behind a sliding-pill tab switcher - no mock
   auth. `LogoLockup` shows the 38px crown + shimmering Cinzel wordmark.
   Fields glow gold on focus (border + ring + icon via `group-focus-within`),
-  the submit button sweeps a shine across on hover, errors shake in, the
-  school dropdown staggers in, and success states pop in with a drawn
-  checkmark. `/login`, `/signup`, `/forgot-password`, `/reset-password` all
-  reuse the same card + background, so the outside and the login pages
-  blend.
+  the submit button sweeps a shine across on hover, errors shake in, and
+  success states pop in with a drawn checkmark. `/login`, `/signup`,
+  `/forgot-password`, `/reset-password` all reuse the same card +
+  background, so the outside and the login pages blend.
+
+  **Signup** (`components/auth/SignupForm.tsx`) supports only **Student**
+  and **Teacher** - there is no administrator option in the UI, in the
+  server action, or in the `handle_new_user()` database trigger. Each role
+  collects first/last name, optional middle name, and a **school-issued
+  identifier** (Student ID / Faculty ID, unique within the school), plus
+  email, password, and a school picked from the live `registration_enabled`
+  schools list (`lib/useSchools.ts` - no hardcoded schools). Password
+  strength is enforced client-side and server-side (`lib/signupValidation.ts`).
+  On success the form shows the **Check your email** confirmation state with
+  a resend link (`resendSignupConfirmation`) - login is refused until the
+  email is confirmed.
+
+  **Login** (`components/auth/LoginForm.tsx`) is email + password only - no
+  school, campus, or role selector. After auth the app resolves the user's
+  role and school from their `profiles` row (database truth) and redirects
+  to the right home (`/student/home`, `/teacher/home`, or `/admin/home`).
+  Unconfirmed accounts see the confirmation-required state; deactivated
+  accounts are sent to `/auth/reactivate` by middleware.
 - **Legal** - detailed `docs`-backed prose pages at `/terms` and `/privacy`
   (`components/landing/LegalLayout.tsx`); the signup form requires checking
   the Terms & Privacy agreement before it submits.

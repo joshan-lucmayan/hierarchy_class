@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { siteUrlBase } from "@/lib/siteUrl";
 import { LandingBackground } from "@/components/landing/Background";
 import { AuthCard } from "@/components/auth/AuthCard";
 
@@ -30,7 +31,12 @@ export default function ForgotPasswordPage() {
     }
 
     const supabase = createClient();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = siteUrlBase();
+    if (!siteUrl) {
+      setError("Password recovery isn't configured yet. Please contact support.");
+      setStatus("error");
+      return;
+    }
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${siteUrl}/auth/callback?type=recovery`,
     });

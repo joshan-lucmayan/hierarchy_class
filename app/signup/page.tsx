@@ -6,7 +6,8 @@ export default function SignupPage() {
   return (
     <main className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--bg)] px-4 py-12">
       <LandingBackground />
-      <div className="relative z-[2] flex w-full justify-center">
+
+      <div className="relative z-[2] flex w-full items-center justify-center">
         <AuthCard>
           <AuthTabs defaultTab="signup" />
         </AuthCard>

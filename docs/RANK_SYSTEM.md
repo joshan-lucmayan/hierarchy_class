@@ -1,6 +1,6 @@
 # Hierarchy Class - The Rank System
 
-**Version 1.7.32.** This document explains how ranks work in Hierarchy
+**Version 1.7.66.** This document explains how ranks work in Hierarchy
 Class, from a student's perspective and from a teacher/admin perspective.
 It covers the ranks, the exact math behind the progress bar, how grades
 move it, how seasons reset it, and where everything lives.
@@ -178,7 +178,7 @@ Teacher submits a grade (score / out-of, with the category type)
 |---|---|
 | Pure math (unit-tested) | `lib/rankEngine.ts` + `lib/rankEngine.test.ts` |
 | Client rank store | `lib/rankStore.tsx` (`RankProvider`, mounted in `app/layout.tsx`) |
-| Rank UI | `components/ui/RankBadge.tsx` |
+| Rank UI | `components/ui/RankTriangle.tsx` (the inverted-triangle emblem) + `components/ui/RankBadge.tsx` |
 | Database (RPCs + tables) | migrations `034`-`049` in `database/migrations/` |
 | Season control | Admin → Ranks (`/admin/ranks`) |
 | Grade entry | Teacher → Classroom (`/teacher/classroom`) |

@@ -19,8 +19,9 @@ three surfaces:
 |---|---|---|
 | `/api/feedback` | POST | Sends the feedback/report form to email (Resend) |
 | `/auth/callback` | GET | Exchanges the auth/recovery code for a session; routes password-reset flows |
-| `/actions/auth` | server action | Signup (first/last name + auth) |
-| `middleware.ts` | - | Session refresh + role-prefix guard (see [SECURITY.md](./SECURITY.md)) |
+| `/actions/auth` | server action | `signUpWithProfile` (validated student/teacher signup: role, school eligibility, school-issued IDs, password policy; email confirmation required) and `resendSignupConfirmation` |
+| `/actions/account` | server action | Account lifecycle (`deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`) + restriction/appeals (`adminRestrictUser`, `adminUnrestrictUser`, `submitAppeal`, `resolveAppeal`). School-admin deactivation (`adminSetUserDeactivation`) was removed in v1.7.66 |
+| `middleware.ts` | - | Session refresh + DB-truth role guard (profiles.role / school_id / deactivated_at / restricted_at + email confirmation) - see [SECURITY.md](./SECURITY.md) |
 
 Everything else under `app/` is the client-rendered UI (App Router pages).
 

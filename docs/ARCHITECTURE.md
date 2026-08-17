@@ -1,6 +1,6 @@
 # Hierarchy Class - Architecture
 
-**Version 1.7.32.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
+**Version 1.7.66.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).
@@ -21,8 +21,12 @@ database-backed; there is no mock-data layer left.
 | Deployment | Vercel-ready; env vars in `.env.local` |
 
 Everything runs in one Supabase project; multi-tenancy is by `school_id`
-column on every school-scoped table, enforced in RLS. The product currently
-serves a single school (CSA).
+column on every school-scoped table, enforced in RLS. The sole registered
+school today is **CSA - College of Saint Amateil**; new schools are added
+only by the **platform owner** (see `scripts/seed-schools.sql` /
+`scripts/seed.ts`) - there is no public school registration. Public signup
+accepts only students and teachers; admins are provisioned by the platform
+owner (see [ADMIN_PROVISIONING.md](./ADMIN_PROVISIONING.md)).
 
 ---
 
@@ -38,6 +42,7 @@ hierarchy_class/
 │   ├── forgot-password/     Password recovery request
 │   ├── reset-password/      Password reset (recovery code exchange)
 │   ├── auth/callback/       OAuth/password recovery code exchange
+│   ├── auth/incomplete/     Safe state for a signed-in user with no profile
 │   ├── api/                 BACKEND - route handlers (e.g. feedback -> email)
 │   ├── actions/             Server actions (signup, etc.)
 │   ├── student/             Student pages: home, search, messages,
@@ -82,7 +87,7 @@ hierarchy_class/
 │   └── weekUtils.ts         Date/week helpers
 │
 ├── database/                DATABASE - everything Postgres
-│   ├── migrations/          Numbered SQL migrations 001 -> 053 (see DATABASE.md)
+│   ├── migrations/          Numbered SQL migrations 001 -> 060 (see DATABASE.md)
 │   └── README.md            How to apply migrations
 │
 ├── types/                   TypeScript types (supabase.ts, school.ts, ...)
@@ -121,11 +126,30 @@ Postgres
 ### Routing & auth
 
 - **middleware.ts** refreshes the Supabase session cookie on every request and
-  enforces the role prefix: `/student`, `/teacher`, `/admin` require a logged-in
-  user whose `user_metadata.role` matches; wrong role -> bounce to their own
-  home; logged out -> `/login`. `/login`/`/signup` redirect signed-in users to
-  their home. Logging **out** lands on the public home page (`/`), which shows
-  the landing site for visitors.
+  enforces access from the **`profiles` table** (database truth) - never from
+  `auth.users.user_metadata`, which the user can edit themselves. It resolves
+  the caller's profile by `profiles.user_id`, then:
+  - enforces email confirmation (`email_confirmed_at`) before any app access;
+  - bounces deactivated accounts (`deactivated_at`) to `/auth/reactivate` and
+    restricted accounts (`restricted_at`, school-admin action for suspicious
+    users) to `/auth/restricted` (appeal flow);
+  - sends signed-in users with **no profile** to `/auth/incomplete`;
+  - enforces the role prefix: `/student`, `/teacher`, `/admin` require a
+    logged-in user whose `profiles.role` matches; wrong role -> bounce to
+    their own home; logged out -> `/login` (destination preserved).
+  `/login`/`/signup` redirect signed-in users to their home. Logging **out**
+  lands on the public home page (`/`), which shows the landing site for
+  visitors.
+- **Signup**: public signup accepts only **student** and **teacher**; the
+  server action validates the role, the school (must exist, be active, and be
+  open for registration via `schools.registration_enabled`), and the
+  school-issued student/faculty ID. The `handle_new_user()` DB trigger
+  re-validates role + school at the database level, so a forged payload is
+  rejected even if the server action is bypassed. Admins are provisioned by
+  the platform owner only.
+- **Email confirmation** is required: signup sends a confirmation link
+  (`NEXT_PUBLIC_SITE_URL` must be set in production), login refuses
+  unconfirmed accounts, and middleware re-checks on every request.
 - **Fake-auth fallback**: when `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` are absent,
   middleware blocks nothing and the client stores render empty/error states -
   intentional for UI-only work, a deployment hazard if env vars are forgotten.
@@ -161,7 +185,7 @@ where it matters. All are Supabase-backed - **there is no mock data**.
 | `useRankStore` (`RankProvider`) | student_rank_state (+ rank_config) | Non-linear rank engine: `rankOf(profileId)`, `sorted` (best-first); realtime refetch on rank state changes |
 | `useMyEnrollment` / `useAdminEnrollments` | enrollment_status | Effective status computed at read time |
 | `useAccountRequests` | account_requests | Submit deletion request + admin list (approve/deny runs via `resolveDeletionRequest` server action) |
-| `app/actions/account.ts` | profiles, account_requests, auth.users, storage | Account lifecycle: self-service deactivate/reactivate (`profiles.deactivated_at`), admin-approved permanent deletion (service-role auth delete + storage cleanup, migration 058 preserves/anonymizes school records) |
+| `app/actions/account.ts` | profiles, account_requests, account_appeals, auth.users, storage | Account lifecycle: self-service deactivate/reactivate (`profiles.deactivated_at`), admin-approved permanent deletion (service-role auth delete + storage cleanup, migration 058 preserves/anonymizes school records), admin restriction of suspicious accounts (`profiles.restricted_at`) + appeal submission/review (`account_appeals`, migration 060). School admins CANNOT deactivate other users - that power was removed |
 | `app/api/export-account` | RLS-gated reads | Own-data JSON export (Download My Data) |
 
 See [FRONTEND.md](./FRONTEND.md) for the pages and component breakdown.
@@ -344,7 +368,7 @@ storage cleanup require privileged access that RLS alone cannot provide.
 
 | File | Responsibility |
 |---|---|
-| `app/actions/account.ts` | Server actions: `deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`. Authorization runs against the caller's session (anon key + RLS) before the service-role client is used for the irreversible step |
+| `app/actions/account.ts` | Server actions: `deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`, `adminRestrictUser`, `adminUnrestrictUser`, `submitAppeal`, `resolveAppeal`. Authorization runs against the caller's session (anon key + RLS) before the service-role client is used for the irreversible step |
 | `app/api/export-account/route.ts` | Data export endpoint ("Download My Data"). Uses the caller's own session — RLS gates every query. Returns JSON. No service role involved |
 | `app/auth/reactivate/page.tsx` | Reactivation page shown to deactivated users. Two options: Reactivate (clears `deactivated_at`, welcome-back notification) or Stay Deactivated (sign out) |
 | `lib/supabase/serviceClient.ts` | Server-only Supabase client with the service role. Used ONLY by account deletion (auth admin + storage cleanup) |

@@ -12,13 +12,30 @@ interface SchoolSelectorProps {
 
 const HEX_CLIP = "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)";
 
-function Crest({ abbr }: { abbr: string }) {
+function Crest({ school }: { school: School }) {
+  const isCSA =
+    school.name === "CSA - College of Saint Amateil" ||
+    school.abbreviation === "CSA";
+
+  if (isCSA) {
+    return (
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+        <img
+          src="/brand/csa_logo.jpg"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-contain"
+        />
+      </span>
+    );
+  }
+
   return (
     <span
       className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-navy text-[9px] font-bold text-gold"
       style={{ clipPath: HEX_CLIP }}
     >
-      {abbr}
+      {school.abbreviation}
     </span>
   );
 }
@@ -58,7 +75,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
         >
           {value ? (
             <span className="flex items-center gap-2.5">
-              <Crest abbr={value.abbreviation} />
+              <Crest school={value} />
               <span className="text-navy">{value.name}</span>
             </span>
           ) : (
@@ -111,7 +128,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
                         ${isSelected ? "bg-[var(--surface-strong)]" : ""}`}
                     >
                       <span className="flex items-center gap-2.5">
-                        <Crest abbr={school.abbreviation} />
+                        <Crest school={school} />
                         <span className="text-navy">{school.name}</span>
                       </span>
                       {isSelected && (

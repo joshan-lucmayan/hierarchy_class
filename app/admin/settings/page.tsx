@@ -13,12 +13,15 @@ import { IconCheck, IconX, IconUser, IconPencil } from "@/components/ui/icons";
 import { ThemePicker } from "@/components/ThemePicker";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
-import { resolveDeletionRequest } from "@/app/actions/account";
+import { useAppeals } from "@/lib/useAppeals";
+import { resolveDeletionRequest, resolveAppeal } from "@/app/actions/account";
 import { APP_VERSION } from "@/lib/version";
 
 export default function AdminSettingsPage() {
   const { requests, loading: requestsLoading, error: requestsError, refetch: refetchRequests } = useAccountRequests();
+  const { appeals, loading: appealsLoading, error: appealsError, refetch: refetchAppeals } = useAppeals();
   const pendingCount = requests.filter((r) => r.status === "pending").length;
+  const pendingAppeals = appeals.filter((a) => a.status === "pending").length;
 
   // Approve/deny run through the server action, which re-verifies the caller
   // is an admin of the same school and (for approval) executes the deletion.
@@ -54,6 +57,24 @@ export default function AdminSettingsPage() {
       return;
     }
     refetchRequests();
+  }
+
+  // Appeal review: approving restores the user's access (clears the
+  // restriction); denying keeps the account restricted. The server action
+  // re-verifies the caller is an admin of the appeal's school.
+  const [appealBusyId, setAppealBusyId] = useState<string | null>(null);
+  const [appealActionError, setAppealActionError] = useState<string | null>(null);
+
+  async function handleAppeal(id: string, approved: boolean) {
+    setAppealBusyId(id);
+    setAppealActionError(null);
+    const result = await resolveAppeal(id, approved);
+    setAppealBusyId(null);
+    if (!result.ok) {
+      setAppealActionError(result.error ?? "Couldn't update the appeal.");
+      return;
+    }
+    refetchAppeals();
   }
 
   return (
@@ -219,6 +240,95 @@ export default function AdminSettingsPage() {
             </div>
           )}
         </div>
+      </CornerFrame>
+
+      {/* ============================================================ */}
+      {/* ACCOUNT APPEALS                                             */}
+      {/* ============================================================ */}
+      <CornerFrame className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="section-label">Account appeals</h3>
+          {pendingAppeals > 0 && <Chip variant="warn">{pendingAppeals} pending</Chip>}
+        </div>
+        <p className="mt-1.5 text-xs leading-5 text-muted">
+          Restricted users appeal here. Approving an appeal restores the user&apos;s access immediately; denying it
+          keeps the account restricted. Appeals are scoped to your school only.
+        </p>
+        <div className="mt-4">
+          {appealsLoading ? (
+            <div className="space-y-2">
+              {[0, 1].map((i) => (
+                <div key={i} className="h-16 animate-pulse rounded-[10px] border border-base bg-tile" />
+              ))}
+            </div>
+          ) : appealsError ? (
+            <p className="rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">
+              {appealsError}
+            </p>
+          ) : appeals.length === 0 ? (
+            <div className="py-4">
+              <EmptyState
+                icon={<IconUser size={16} />}
+                title="No appeals on record"
+                desc="Appeals from restricted users will appear here."
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {appeals.map((appeal) => {
+                const resolved = appeal.status !== "pending";
+                return (
+                  <div
+                    key={appeal.id}
+                    className="flex flex-col gap-3 rounded-[10px] border border-base bg-surface p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-navy">
+                        {appeal.user_name ?? "A user"}
+                        <span className="font-normal text-muted"> · appealed on {new Date(appeal.created_at).toLocaleDateString()}</span>
+                      </p>
+                      <p className="mt-1 text-[13px] leading-5 text-muted">{appeal.reason}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {resolved ? (
+                        <Chip variant={appeal.status === "approved" ? "success" : "danger"}>
+                          {appeal.status}
+                        </Chip>
+                      ) : (
+                        <>
+                          <Button
+                            variant="gold"
+                            size="sm"
+                            icon={<IconCheck size={13} />}
+                            loading={appealBusyId === appeal.id}
+                            disabled={appealBusyId !== null}
+                            onClick={() => handleAppeal(appeal.id, true)}
+                          >
+                            Restore access
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<IconX size={13} />}
+                            disabled={appealBusyId !== null}
+                            onClick={() => handleAppeal(appeal.id, false)}
+                          >
+                            Deny
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {appealActionError && (
+          <p className="mt-3 rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">
+            {appealActionError}
+          </p>
+        )}
       </CornerFrame>
 
       {/* ============================================================ */}
