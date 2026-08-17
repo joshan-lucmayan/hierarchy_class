@@ -57,7 +57,9 @@ export function useSchoolProfiles(options: UseSchoolProfilesOptions = {}): UseSc
     let cancelled = false;
     const supabase = createClient();
 
-    let query = supabase.from("profiles").select("*").order("full_name");
+    // Deactivated accounts are not "active users" - exclude them from
+    // rosters/search (leaderboard already filters server-side).
+    let query = supabase.from("profiles").select("*").is("deactivated_at", null).order("full_name");
     if (role) query = query.eq("role", role);
     if (excludeSelf && me?.id) query = query.neq("id", me.id);
 

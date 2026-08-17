@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { IconX } from "@/components/ui/icons";
 
 /**
@@ -7,8 +9,13 @@ import { IconX } from "@/components/ui/icons";
  * backdrop (click to close), surface panel with the gold hairline accent and
  * a mono eyebrow, close button, and the app's entrance animation.
  *
- * PostEditor now renders through this shell; future admin dialogs should use
- * it too instead of hand-rolling overlays.
+ * The overlay is rendered through a portal to `document.body` so it is always
+ * centered on the browser viewport. This is required because `position:
+ * fixed` descendants are positioned relative to the nearest ancestor with a
+ * transform/filter/backdrop-filter containing block - and the student shell's
+ * `.glass-cards` surfaces apply `backdrop-filter: blur(...)`, which would
+ * otherwise anchor modals opened inside a card to that card's box instead of
+ * the viewport.
  */
 export interface ModalProps {
   onClose: () => void;
@@ -19,7 +26,14 @@ export interface ModalProps {
 }
 
 export function Modal({ onClose, eyebrow, description, children, maxWidth = "max-w-lg" }: ModalProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // Modals only ever render after a user interaction, but the guard keeps the
+  // portal from touching `document` during server rendering.
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
         className={`animate-modal-in max-h-[90vh] w-full ${maxWidth} overflow-y-auto rounded-[10px] border border-base bg-surface p-6`}
@@ -48,6 +62,7 @@ export function Modal({ onClose, eyebrow, description, children, maxWidth = "max
         )}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

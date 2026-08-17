@@ -34,6 +34,7 @@ export interface ProfileRow {
   interests: string[];
   is_librarian: boolean;
   avatar_url: string | null;
+  deactivated_at: string | null;
   created_at: string;
 }
 
@@ -473,6 +474,50 @@ export interface AccountRequestRow {
   created_at: string;
 }
 
+export interface StudentAchievementRow {
+  id: string;
+  student_id: string;
+  school_id: string;
+  title: string;
+  school_year: string;
+  date_awarded: string;
+  school: string;
+  image_path: string;
+  created_at: string;
+}
+
+export type StudentAchievementInsert = {
+  student_id: string;
+  school_id: string;
+  title: string;
+  school_year: string;
+  date_awarded: string;
+  school: string;
+  image_path: string;
+};
+
+export interface StudentMusicRow {
+  id: string;
+  student_id: string;
+  school_id: string;
+  music_url: string;
+  platform: string;
+  title: string;
+  artist: string;
+  album_cover_url: string | null;
+  created_at: string;
+}
+
+export type StudentMusicInsert = {
+  student_id: string;
+  school_id: string;
+  music_url: string;
+  platform: string;
+  title: string;
+  artist: string;
+  album_cover_url?: string | null;
+};
+
 export type NotificationInsert = Omit<NotificationRow, "id" | "created_at" | "actor_name" | "actor_avatar"> & {
   id?: string;
   created_at?: string;
@@ -691,6 +736,22 @@ export interface Database {
         Row: NotificationRow;
         Insert: NotificationInsert;
         Update: Partial<Omit<NotificationRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      student_achievements: {
+        Row: StudentAchievementRow;
+        Insert: StudentAchievementInsert;
+        Update: Partial<Omit<StudentAchievementRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      student_music: {
+        Row: StudentMusicRow;
+        Insert: StudentMusicInsert;
+        Update: Partial<Omit<StudentMusicRow, "id" | "created_at">> & {
           id?: string;
           created_at?: string;
         };

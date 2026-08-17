@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { LoginForm } from "./LoginForm";
 import { SignupForm } from "./SignupForm";
 
@@ -13,9 +14,16 @@ type Tab = "login" | "signup";
  */
 export function AuthTabs({ defaultTab = "login" }: { defaultTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(defaultTab);
+  const searchParams = useSearchParams();
+  const justDeactivated = searchParams.get("deactivated") === "1";
 
   return (
     <div className="flex w-full flex-col gap-5">
+      {justDeactivated && (
+        <p className="rounded-[10px] border border-base bg-surface px-4 py-3 text-center text-xs text-muted">
+          Your account has been deactivated. Sign in anytime to reactivate it.
+        </p>
+      )}
       <div className="relative flex rounded-[10px] bg-[rgba(70,76,85,0.25)] p-1">
         <div
           className="absolute bottom-1 top-1 left-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-b from-[#c2c7cf] to-[#9ea7b3] shadow-[0_2px_12px_rgba(158,167,179,0.35)] transition-transform duration-300 ease-out"

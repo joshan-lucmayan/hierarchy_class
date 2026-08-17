@@ -43,10 +43,25 @@ export function resolveFileExtension(file: File): string | null {
   return EXT_TO_EXT[nameExt] ?? null;
 }
 
-export function validateUpload(file: File, kind: UploadKind): string | null {
-  const max = kind === "image" ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
+export interface ValidateUploadOptions {
+  /** Override the size cap in MB (defaults to the 5 MB image / 20 MB document caps). */
+  maxSizeMB?: number;
+  /** Custom message used when the file exceeds the size cap. */
+  sizeError?: string;
+}
+
+/**
+ * Validates MIME + extension + size. The default limits (and the default
+ * size error message) are unchanged for existing callers; pass `options` to
+ * scope a specific upload path to its own limit, e.g. the 10 MB certificate
+ * cap used by student achievements.
+ */
+export function validateUpload(file: File, kind: UploadKind, options?: ValidateUploadOptions): string | null {
+  const max =
+    options?.maxSizeMB != null ? options.maxSizeMB * 1024 * 1024 : kind === "image" ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
   if (file.size <= 0) return "The file is empty.";
   if (file.size > max) {
+    if (options?.sizeError) return options.sizeError;
     return `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is ${Math.floor(max / 1024 / 1024)} MB.`;
   }
 

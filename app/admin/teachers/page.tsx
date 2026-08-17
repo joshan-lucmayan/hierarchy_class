@@ -55,7 +55,10 @@ export default function AdminTeachersPage() {
 
   const sectionName = (sectionId: string) => sections.find((s) => s.id === sectionId)?.name ?? "";
 
-  const selectedCourses = selectedTeacher ? getCoursesByTeacher(selectedTeacher.id) : [];
+  const selectedCourses = useMemo(
+    () => (selectedTeacher ? getCoursesByTeacher(selectedTeacher.id) : []),
+    [selectedTeacher, getCoursesByTeacher]
+  );
 
   const selectedStudentCount = useMemo(() => {
     const ids = new Set<string>();

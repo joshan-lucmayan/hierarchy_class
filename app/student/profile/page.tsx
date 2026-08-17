@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { StatBar } from "@/components/ui/StatBar";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Wardrobe } from "@/components/profile/Wardrobe";
+import { Achievements } from "@/components/profile/Achievements";
+import { SeasonHistory } from "@/components/profile/SeasonHistory";
+import { IconMore, IconArchive, IconEye } from "@/components/ui/icons";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
 import { useMyEnrollment } from "@/lib/useEnrollment";
 import { useRankStore } from "@/lib/rankStore";
 import { useShop } from "@/lib/shopStore";
-import { createClient } from "@/lib/supabase/client";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { Modal } from "@/components/ui/Modal";
@@ -43,6 +45,10 @@ export default function StudentProfilePage() {
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [seasonOpen, setSeasonOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [viewAs, setViewAs] = useState(false);
 
   // Seed local edit-buffers once the real profile arrives
   const [hydrated, setHydrated] = useState(false);
@@ -103,23 +109,6 @@ export default function StudentProfilePage() {
   const rankExScore = myRank?.current_rank === "EX" ? myRank.ex_score : null;
   const hobbiesList = hobbies.split(",").map((h) => h.trim()).filter(Boolean);
 
-  // Season history (Section 10) - peak rank per season, for the season card.
-  const [seasonHistory, setSeasonHistory] = useState<any[] | null>(null);
-  useEffect(() => {
-    if (!profile) return;
-    let cancelled = false;
-    const supabase = createClient();
-    (supabase as any)
-      .rpc("get_season_history", { p_student_id: profile.id })
-      .then(({ data, error: rpcError }: any) => {
-        if (cancelled) return;
-        if (!rpcError) setSeasonHistory((data ?? []) as any[]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [profile]);
-
   const academicInfo = useMemo(() => {
     if (!profile) return null;
     const enrolledCourseIds = enrollments.filter((e) => e.profileId === profile.id).map((e) => e.courseId);
@@ -163,7 +152,17 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
+    <div className="space-y-6">
+      {viewAs && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-gold-soft bg-surface px-4 py-3">
+          <p className="text-sm text-muted">Viewing your profile as another student would see it.</p>
+          <Button variant="gold" size="sm" onClick={() => setViewAs(false)}>
+            Exit View As
+          </Button>
+        </div>
+      )}
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
+      <div className="relative">
       <CornerFrame className="relative space-y-6 overflow-hidden rounded-[10px] border border-base bg-surface p-5">
         {equippedProfileCard?.image_url && (
           <>
@@ -184,19 +183,21 @@ export default function StudentProfilePage() {
               className="border-2 border-surface"
               profileId={profile.id}
             />
-            {/* Instagram-style pencil sits ON the avatar: opens the photo/name editor. */}
-            <button
-              type="button"
-              onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
-              aria-label="Edit profile"
-              title="Edit profile"
-              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            </button>
+            {/* Instagram-style pencil sits ON the avatar: opens the photo/name editor (hidden in View As). */}
+            {!viewAs && (
+              <button
+                type="button"
+                onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
+                aria-label="Edit profile"
+                title="Edit profile"
+                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+            )}
           </div>
           <div>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -234,42 +235,55 @@ export default function StudentProfilePage() {
           <RankBadge rank={overallRank} size="lg" bar={rankBar} exScore={rankExScore} />
         </div>
 
-        {/* Season history - the rank card a caller asked for: "Grade 12 ICT - First Semester 2026-2027: S++". */}
-        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-          <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Season history</h2>
-          {seasonHistory === null ? (
-            <p className="text-sm text-muted">Loading seasons...</p>
-          ) : seasonHistory.length === 0 ? (
-            <p className="text-sm text-muted">No seasons recorded yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {seasonHistory.map((s: any) => (
-                <div key={s.season_id} className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-navy">
-                        {[s.school_year, s.semester_label].filter(Boolean).join(" · ")}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-muted">
-                        {[s.grade_level, s.strand_or_track, s.section].filter(Boolean).join(" · ") || "-"}
-                      </p>
-                    </div>
-                    <RankBadge rank={s.peak_rank} size="sm" />
-                  </div>
-                  <p className="mt-2 text-[11px] text-muted">
-                    Reset to <span className="font-semibold text-navy">{s.reset_to_rank}</span> for the next season
-                    {s.ex_achieved ? " · EX achieved" : ""}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </CornerFrame>
+        {/* Tabbed Achievements / Music / Photos section, inside the profile card. */}
+        <Achievements viewer={viewAs} />
+
         </div>
       </CornerFrame>
 
+      {/* Profile card three-dot menu: View As + Season History. */}
+      <button
+        type="button"
+        onClick={() => setMenuOpen((o) => !o)}
+        title="More"
+        aria-label="More"
+        className="absolute right-4 top-4 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
+      >
+        <IconMore size={14} />
+      </button>
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-4 top-12 z-40 w-52 rounded-[10px] border border-base bg-surface p-1.5 shadow-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setViewAs(true);
+                setMenuOpen(false);
+              }}
+              className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-left text-sm font-medium text-navy transition hover:bg-tile"
+            >
+              <IconEye size={15} className="shrink-0 text-muted" />
+              View As
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSeasonOpen(true);
+                setMenuOpen(false);
+              }}
+              className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-left text-sm font-medium text-navy transition hover:bg-tile"
+            >
+              <IconArchive size={15} className="shrink-0 text-muted" />
+              Season History
+            </button>
+          </div>
+        </>
+      )}
+      </div>
+
       <div className="space-y-6">
-        <Wardrobe />
+        {!viewAs && <Wardrobe />}
 
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-navy">Stat overview</h2>
@@ -310,6 +324,7 @@ export default function StudentProfilePage() {
           <p className="mt-4 text-xs text-muted">Grades and ranks are set by your teachers and can&apos;t be edited here.</p>
         </CornerFrame>
 
+        {!viewAs && (
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">About</h2>
@@ -403,6 +418,7 @@ export default function StudentProfilePage() {
             )}
           </div>
         </CornerFrame>
+        )}
 
         {/* Friends Section */}
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
@@ -519,6 +535,14 @@ export default function StudentProfilePage() {
           </div>
         </div>
       )}
+      </div>
+
+      {seasonOpen && (
+        <Modal onClose={() => setSeasonOpen(false)} eyebrow="Archive" description="Your rank record, season by season">
+          <SeasonHistory />
+        </Modal>
+      )}
+
     </div>
   );
 }

@@ -9,13 +9,17 @@ interface UseAccountRequestsResult {
   requests: AccountRequestRow[];
   loading: boolean;
   error: string | null;
-  resolve: (id: string, status: "approved" | "denied") => Promise<void>;
-  /** Student/teacher side: submit a deactivation or deletion request. */
-  request: (type: "deactivation" | "deletion", reason?: string) => Promise<boolean>;
+  /** Student/teacher side: submit a deletion request (deactivation is now self-service). */
+  request: (type: "deletion", reason?: string) => Promise<boolean>;
   refetch: () => void;
 }
 
-/** Admin view of pending deactivation/deletion requests at their school. */
+/**
+ * Admin view of deletion requests at their school. Deactivation is
+ * self-service now (no request row), so the admin queue only surfaces
+ * deletion requests. Approve/deny run through the server action
+ * `resolveDeletionRequest` (school + role verified server-side).
+ */
 export function useAccountRequests(): UseAccountRequestsResult {
   const { profile } = useMyProfile();
   const [requests, setRequests] = useState<AccountRequestRow[]>([]);
@@ -37,6 +41,7 @@ export function useAccountRequests(): UseAccountRequestsResult {
       .from("account_requests")
       .select("*, requester:profiles!requester_id(full_name, role)")
       .eq("school_id", profile.school_id)
+      .eq("type", "deletion")
       .order("created_at", { ascending: false })
       .limit(50)
       .then(({ data, error: fetchError }) => {
@@ -72,7 +77,7 @@ export function useAccountRequests(): UseAccountRequestsResult {
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   const request = useCallback(
-    async (type: "deactivation" | "deletion", reason?: string): Promise<boolean> => {
+    async (type: "deletion", reason?: string): Promise<boolean> => {
       if (!profile) return false;
       const supabase = createClient();
       const { error } = await supabase.from("account_requests").insert({
@@ -86,21 +91,5 @@ export function useAccountRequests(): UseAccountRequestsResult {
     [profile]
   );
 
-  const resolve = useCallback(
-    async (id: string, status: "approved" | "denied") => {
-      if (!profile) return;
-      const supabase = createClient();
-      await (supabase.from("account_requests") as any)
-        .update({
-          status,
-          reviewed_by: profile.id,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-      refetch();
-    },
-    [profile, refetch]
-  );
-
-  return { requests, loading, error, resolve, request, refetch };
+  return { requests, loading, error, request, refetch };
 }

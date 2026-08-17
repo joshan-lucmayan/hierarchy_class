@@ -17,6 +17,8 @@ import { randomId } from "@/lib/randomId";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { StatRadarChart } from "@/components/profile/StatRadarChart";
+import { Achievements } from "@/components/profile/Achievements";
+import { IconArchive } from "@/components/ui/icons";
 import type { ProfileRow } from "@/types/supabase";
 
 const COIN_PACKAGES = [
@@ -95,6 +97,26 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-20">
         <p className="text-sm text-warn">{error ?? "Profile not found."}</p>
+      </div>
+    );
+  }
+
+  // Deactivated accounts don't render a normal personal profile - only a
+  // neutral "deactivated" state. Historical school records are untouched.
+  if (person.deactivated_at) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="w-full max-w-md">
+          <CornerFrame className="rounded-[10px] border border-base bg-surface p-8 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-base bg-tile text-muted">
+              <IconArchive size={20} />
+            </span>
+            <h1 className="mt-4 text-lg font-bold text-navy">This account is deactivated</h1>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              This profile is temporarily unavailable. The account holder can reactivate it when they return.
+            </p>
+          </CornerFrame>
+        </div>
       </div>
     );
   }
@@ -272,6 +294,8 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
           </p>
         </CornerFrame>
       )}
+
+      {isStudent && <Achievements studentId={person.id} viewer />}
 
       {charismaOpen && <SendCharismaModal person={person} onClose={() => setCharismaOpen(false)} />}
       </div>

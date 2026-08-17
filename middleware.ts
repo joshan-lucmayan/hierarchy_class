@@ -61,6 +61,25 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const matchedPrefix = Object.keys(ROLE_PREFIXES).find((prefix) => pathname.startsWith(prefix));
 
+  // Deactivated accounts: server-side enforcement. A signed-in user whose
+  // profile is deactivated can only reach the minimal auth/reactivation flow
+  // (/auth/reactivate, login/signup so they can sign out, and API routes that
+  // do their own auth). Everything else bounces to the reactivation screen.
+  // This runs on the server for every request, so hiding UI alone can never
+  // bypass it.
+  if (user && !pathname.startsWith("/api/") && pathname !== "/auth/reactivate" && pathname !== "/auth/callback" && pathname !== "/forgot-password" && pathname !== "/reset-password") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("deactivated_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (profile?.deactivated_at) {
+      // Deactivated users only ever land on the minimal reactivation flow -
+      // login/signup included, so they can reactivate or sign out.
+      return NextResponse.redirect(new URL("/auth/reactivate", request.url));
+    }
+  }
+
   if (matchedPrefix && !user) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", pathname);

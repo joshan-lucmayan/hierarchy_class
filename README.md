@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastination, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.5.27`
+**Current version:** `1.7.32`
 
 ---
 
@@ -40,7 +40,10 @@ Teacher and Admin Home pages are personal command centers built from widgets - e
 - **Grade approval queue** - teacher submissions go to admins as pending; only approved grades count toward stats.
 - **Messaging** - one shared chat across all three roles with unread badges, archive, per-user delete, and blocking.
 - **School feed & announcements** (admin-created posts carry an "Administrator" badge), **MyDay stories**, **notifications**.
+- **Student achievements** - post certificates (title, school year, date awarded, school) with a raw image upload (public `certificates` bucket, owner-folder RLS, 10 MB cap); the profile shows a title-only 3×3 grid that opens a detail modal and a full-screen certificate viewer. Other students see a read-only version.
+- **Student music** - post music by link (YouTube / Spotify / Apple Music / SoundCloud / Vimeo): the app resolves title, artist, and album cover server-side via keyless oEmbed / iTunes lookup (Spotify upgrades to the Web API when server-only env vars are set) and links out to the original track.
 - **Habit tracker** - default and custom habits with goal types, scheduled days, streaks, pause/resume/archive, and a history calendar. Entries are one per (habit, day) at the database level; habits never touch the rank engine or grades.
+- **Account lifecycle** - students and teachers can deactivate their own account (reversible, nothing is deleted) and reactivate it from the sign-in flow with a welcome-back notification. Permanent deletion is admin-approved: the account and personal data are removed while school-required academic records are preserved and anonymized (migration 058), and user storage objects are cleaned up via a server-only service-role client. Admins have no in-app deactivate/delete controls - account changes for administrators go through the developer.
 - **Weekly progress** chart derived from real approved grades.
 - **Library** with barcode (camera or USB scanner) ISBN lookup and a borrow flow.
 - **Quiz engine**, **learning materials** with private storage, **Florin** currency balances.
@@ -88,5 +91,4 @@ Full documentation lives in [`docs/`](docs/README.md): architecture, the backend
 ## Not yet implemented
 
 - Real payments for Coin Charisma (purchases stay disabled)
-- Account deletion actually removing data (requests are recorded for admin review)
 - School logos in the school picker

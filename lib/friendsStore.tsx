@@ -46,7 +46,7 @@ export function FriendsProvider({ children }: { children: React.ReactNode }) {
 
     supabase
       .from("friends")
-      .select("*, a:profiles!user_a_id(id, full_name, avatar_url, level_label, section), b:profiles!user_b_id(id, full_name, avatar_url, level_label, section)")
+      .select("*, a:profiles!user_a_id(id, full_name, avatar_url, level_label, section, deactivated_at), b:profiles!user_b_id(id, full_name, avatar_url, level_label, section, deactivated_at)")
       .or(`user_a_id.eq.${profile.id},user_b_id.eq.${profile.id}`)
       .then(({ data, error: fetchError }: any) => {
         if (cancelled) return;
@@ -55,16 +55,22 @@ export function FriendsProvider({ children }: { children: React.ReactNode }) {
           setFriends([]);
         } else {
           setFriends(
-            ((data ?? []) as any[]).map((row) => {
-              const other = row.user_a_id === profile.id ? row.b : row.a;
-              return {
-                id: other.id,
-                fullName: other.full_name,
-                avatarUrl: other.avatar_url,
-                levelLabel: other.level_label,
-                section: other.section,
-              };
-            })
+            ((data ?? []) as any[])
+              // Deactivated accounts aren't available for normal interaction.
+              .filter((row) => {
+                const other = row.user_a_id === profile.id ? row.b : row.a;
+                return !other?.deactivated_at;
+              })
+              .map((row) => {
+                const other = row.user_a_id === profile.id ? row.b : row.a;
+                return {
+                  id: other.id,
+                  fullName: other.full_name,
+                  avatarUrl: other.avatar_url,
+                  levelLabel: other.level_label,
+                  section: other.section,
+                };
+              })
           );
           setError(null);
         }

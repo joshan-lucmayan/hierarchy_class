@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import { Chip } from "@/components/ui/Chip";
 import { Stat } from "@/components/ui/Stat";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -11,11 +13,48 @@ import { IconCheck, IconX, IconUser, IconPencil } from "@/components/ui/icons";
 import { ThemePicker } from "@/components/ThemePicker";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
+import { resolveDeletionRequest } from "@/app/actions/account";
 import { APP_VERSION } from "@/lib/version";
 
 export default function AdminSettingsPage() {
-  const { requests, loading: requestsLoading, error: requestsError, resolve: resolveRequest } = useAccountRequests();
+  const { requests, loading: requestsLoading, error: requestsError, refetch: refetchRequests } = useAccountRequests();
   const pendingCount = requests.filter((r) => r.status === "pending").length;
+
+  // Approve/deny run through the server action, which re-verifies the caller
+  // is an admin of the same school and (for approval) executes the deletion.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionWarnings, setActionWarnings] = useState<string | null>(null);
+
+  async function handleApprove(id: string) {
+    setBusyId(id);
+    setActionError(null);
+    setActionWarnings(null);
+    const result = await resolveDeletionRequest(id, "approved");
+    setBusyId(null);
+    setConfirmingId(null);
+    if (!result.ok) {
+      setActionError(result.error ?? "Couldn't approve the request.");
+      return;
+    }
+    if (result.warnings?.length) {
+      setActionWarnings(`Account deleted, but some files could not be removed: ${result.warnings.join("; ")}`);
+    }
+    refetchRequests();
+  }
+
+  async function handleDeny(id: string) {
+    setBusyId(id);
+    setActionError(null);
+    const result = await resolveDeletionRequest(id, "denied");
+    setBusyId(null);
+    if (!result.ok) {
+      setActionError(result.error ?? "Couldn't deny the request.");
+      return;
+    }
+    refetchRequests();
+  }
 
   return (
     <div className="space-y-4">
@@ -87,7 +126,8 @@ export default function AdminSettingsPage() {
       <CornerFrame className="p-5">
         <h3 className="section-label">Account requests</h3>
         <p className="mt-1.5 text-xs leading-5 text-muted">
-          Deactivation and deletion requests from students and teachers need your confirmation.
+          Deletion requests from students and teachers need your confirmation. Deactivation is now self-service and
+          needs no approval.
         </p>
         <div className="mt-4">
           {requestsLoading ? (
@@ -116,7 +156,7 @@ export default function AdminSettingsPage() {
               <EmptyState
                 icon={<IconUser size={16} />}
                 title="No requests on record"
-                desc="Deactivation and deletion requests from students and teachers will appear here."
+                desc="Deletion requests from students and teachers will appear here."
               />
             </div>
           ) : (
@@ -152,10 +192,12 @@ export default function AdminSettingsPage() {
                       ) : (
                         <>
                           <Button
-                            variant="gold"
+                            variant="danger"
                             size="sm"
                             icon={<IconCheck size={13} />}
-                            onClick={() => resolveRequest(request.id, "approved")}
+                            loading={busyId === request.id}
+                            disabled={busyId !== null}
+                            onClick={() => setConfirmingId(request.id)}
                           >
                             Approve
                           </Button>
@@ -163,7 +205,8 @@ export default function AdminSettingsPage() {
                             variant="outline"
                             size="sm"
                             icon={<IconX size={13} />}
-                            onClick={() => resolveRequest(request.id, "denied")}
+                            disabled={busyId !== null}
+                            onClick={() => handleDeny(request.id)}
                           >
                             Deny
                           </Button>
@@ -177,6 +220,42 @@ export default function AdminSettingsPage() {
           )}
         </div>
       </CornerFrame>
+
+      {/* ============================================================ */}
+      {/* ADMIN OWN ACCOUNT                                            */}
+      {/* ============================================================ */}
+      <CornerFrame className="p-5">
+        <h3 className="section-label">Your account</h3>
+        <p className="mt-1.5 text-xs leading-5 text-muted">
+          Account changes for administrators must be handled by the Hierarchy Class developer. Please contact the
+          developer for assistance.
+        </p>
+      </CornerFrame>
+
+      {actionError && (
+        <p className="rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">{actionError}</p>
+      )}
+      {actionWarnings && (
+        <p className="rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-muted">{actionWarnings}</p>
+      )}
+
+      {confirmingId && (
+        <Modal eyebrow="Account deletion" description="Permanent and irreversible" onClose={() => setConfirmingId(null)}>
+          <h2 className="mt-3 text-xl font-bold text-navy">Permanently delete this account?</h2>
+          <p className="mt-3 text-sm leading-6 text-muted">
+            This permanently removes the user&apos;s account and personal data. School-required academic records are
+            retained or anonymized. This cannot be undone.
+          </p>
+          <div className="mt-5 flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setConfirmingId(null)} disabled={busyId !== null}>
+              Cancel
+            </Button>
+            <Button variant="danger" className="flex-1" loading={busyId === confirmingId} disabled={busyId !== null} onClick={() => handleApprove(confirmingId)}>
+              Delete account permanently
+            </Button>
+          </div>
+        </Modal>
+      )}
 
       <p className="pt-1 text-center font-mono-ui text-[10px] uppercase tracking-[0.2em] text-faint">
         Hierarchy Class · v{APP_VERSION}

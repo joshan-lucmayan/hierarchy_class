@@ -23,6 +23,7 @@ import { useClassroomHierarchy, type GradeEntry } from "@/lib/classroomHierarchy
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { useSchoolFeed, type SchoolPost } from "@/lib/schoolFeedStore";
 import { useAccountRequests } from "@/lib/useAccountRequests";
+import { resolveDeletionRequest } from "@/app/actions/account";
 import { useRankStore } from "@/lib/rankStore";
 import { useAdminEnrollments } from "@/lib/useEnrollment";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
@@ -268,7 +269,7 @@ export default function AdminHomePage() {
   } = useClassroomHierarchy();
   const { tasks } = useTeacherTasks();
   const { posts, deletePost } = useSchoolFeed();
-  const { requests: accountRequests, resolve: resolveAccountRequest } = useAccountRequests();
+  const { requests: accountRequests, refetch: refetchAccountRequests } = useAccountRequests();
   const { ranks: schoolRanks, loading: rankLoading } = useRankStore();
   const { statuses: enrollmentStatuses } = useAdminEnrollments();
   const { profiles: schoolProfiles } = useSchoolProfiles();
@@ -277,6 +278,37 @@ export default function AdminHomePage() {
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalError, setApprovalError] = useState<string | null>(null);
   const [seasonHistory, setSeasonHistory] = useState<SeasonHistoryRow[] | null>(null);
+
+  // Account-request review: server action verifies the admin + school and
+  // executes the deletion on approve (with a destructive confirm dialog).
+  const [confirmingRequestId, setConfirmingRequestId] = useState<string | null>(null);
+  const [requestBusyId, setRequestBusyId] = useState<string | null>(null);
+  const [requestActionError, setRequestActionError] = useState<string | null>(null);
+
+  async function handleAccountApprove(id: string) {
+    setRequestBusyId(id);
+    setRequestActionError(null);
+    const result = await resolveDeletionRequest(id, "approved");
+    setRequestBusyId(null);
+    setConfirmingRequestId(null);
+    if (!result.ok) {
+      setRequestActionError(result.error ?? "Couldn't approve the request.");
+      return;
+    }
+    refetchAccountRequests();
+  }
+
+  async function handleAccountDeny(id: string) {
+    setRequestBusyId(id);
+    setRequestActionError(null);
+    const result = await resolveDeletionRequest(id, "denied");
+    setRequestBusyId(null);
+    if (!result.ok) {
+      setRequestActionError(result.error ?? "Couldn't deny the request.");
+      return;
+    }
+    refetchAccountRequests();
+  }
 
   const loading = !profile || hierarchyLoading || prefsLoading;
 
@@ -1013,7 +1045,7 @@ export default function AdminHomePage() {
                 <EmptyState
                   icon={<IconUser />}
                   title="No account requests"
-                  desc="No deactivation or deletion requests are waiting on you."
+                  desc="No deletion requests are waiting on you."
                 />
               ) : (
                 pendingRequests.slice(0, 5).map((request) => (
@@ -1030,7 +1062,9 @@ export default function AdminHomePage() {
                         variant="danger"
                         size="sm"
                         icon={<IconCheck size={12} />}
-                        onClick={() => resolveAccountRequest(request.id, "approved")}
+                        loading={requestBusyId === request.id}
+                        disabled={requestBusyId !== null}
+                        onClick={() => setConfirmingRequestId(request.id)}
                       >
                         Approve
                       </Button>
@@ -1038,7 +1072,8 @@ export default function AdminHomePage() {
                         variant="outline"
                         size="sm"
                         icon={<IconX size={12} />}
-                        onClick={() => resolveAccountRequest(request.id, "denied")}
+                        disabled={requestBusyId !== null}
+                        onClick={() => handleAccountDeny(request.id)}
                       >
                         Deny
                       </Button>
@@ -1047,6 +1082,34 @@ export default function AdminHomePage() {
                 ))
               )}
             </div>
+            {requestActionError && (
+              <p className="mt-3 rounded-[10px] border border-warn-soft bg-warn-soft px-3 py-2 text-xs text-warn">
+                {requestActionError}
+              </p>
+            )}
+            {confirmingRequestId && (
+              <Modal eyebrow="Account deletion" description="Permanent and irreversible" onClose={() => setConfirmingRequestId(null)}>
+                <h2 className="mt-3 text-xl font-bold text-navy">Permanently delete this account?</h2>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  This permanently removes the user&apos;s account and personal data. School-required academic records
+                  are retained or anonymized. This cannot be undone.
+                </p>
+                <div className="mt-5 flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setConfirmingRequestId(null)} disabled={requestBusyId !== null}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="flex-1"
+                    loading={requestBusyId === confirmingRequestId}
+                    disabled={requestBusyId !== null}
+                    onClick={() => handleAccountApprove(confirmingRequestId)}
+                  >
+                    Delete account permanently
+                  </Button>
+                </div>
+              </Modal>
+            )}
           </div>
         );
 

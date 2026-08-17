@@ -259,13 +259,18 @@ Why this design?
   line, no invented stats), then `section-label` `CornerFrame` sections for
   Appearance (`ThemePicker`) and Feedback & report (`FeedbackForm`). The
   Account section keeps its warn-tone card (`CornerFrame tone="warn"`,
-  replacing the old inline `border-warn-soft`) and both request rows now use
-  the shared `Button` - outline for Deactivate account, danger for Request
-  account deletion - with the same `busy`/disabled handling and
-  gold-token/warn success + error messages. No confirm dialog was added
-  (these are admin-confirmed requests, not in-page destructive actions). The
-  `handleRequest` → `useAccountRequests().request` flow, validation, and
-  messaging are byte-for-byte unchanged; the version footer is mono-faint.
+  replacing the old inline `border-warn-soft`). Deactivate account is now
+  **self-service and immediate** (server action `deactivateAccount` in
+  `app/actions/account.ts` sets `profiles.deactivated_at`, then signs out) - a
+  confirm modal explains nothing is deleted and that reactivation is possible.
+  Request account deletion opens a strong warning modal (permanent, needs
+  admin approval) with a **Download My Data** link to `/api/export-account`
+  (own-data JSON export, RLS-gated) before submitting the `account_requests`
+  row. Admins approve/deny deletion through the server action
+  `resolveDeletionRequest` (role + same-school verified server-side), with a
+  destructive confirm dialog on approve. Deactivated users are redirected by
+  `middleware.ts` to `/auth/reactivate` and can only reach that minimal flow
+  until they reactivate; the version footer is mono-faint.
 - **Teacher Classroom - the grade workspace (1.4.25).**
   `app/teacher/classroom/page.tsx` keeps its four-step wizard (programs →
   sections → courses → students) and every grade handler, modernized onto the
@@ -816,9 +821,38 @@ flat token dashboard look, but built on the same tokens and fonts):
    `N / 100` (or the open-ended EX score, uncapped, no `/100`).
    Student home/profile cards show the full badge; search results,
    leaderboard rows, and teacher/admin rosters show a compact `{rank} Rank`
-   pill. The   student profile also renders **season history** cards from
-   `get_season_history`. Data flows through `lib/rankStore.tsx` (mounted in
+   pill. The student **Season History** (peak rank per season from
+   `get_season_history`, via `components/profile/SeasonHistory.tsx`) is
+   opened from the profile card's three-dot menu (alongside **View As**, a
+   presentation-only preview mode that hides owner controls) on
+   `/student/profile`. Data flows through `lib/rankStore.tsx` (mounted in
    `app/layout.tsx`).
+
+   The student profile also renders a tabbed **Achievements / Music /
+   Photos** section (`components/profile/Achievements.tsx` +
+   `lib/useAchievements.ts`) inside the profile card: the owner posts a raw
+   certificate image (public `certificates` storage bucket, avatars-style
+   owner-folder RLS, certificate-specific 10 MB cap) with title, school year,
+   date awarded and school from the "Post Achievement" action at the top of
+   the Achievements tab. Achievements display as a **title-only 3×3 grid**
+   (Load More for more, newest first); clicking a tile opens the Achievement
+   Detail modal (full title, School Year, Date Awarded, School, owner
+   delete), and **VIEW RAW IMAGE** opens the certificate in a dedicated
+   full-screen viewer - both modals render through a `document.body` portal
+   so they stay centered on the viewport. Other students see the same tabs
+   read-only on `/student/profile/[id]`.
+
+   The **Music tab** (`components/profile/Music.tsx` + `lib/useMusic.ts`)
+   is post-music-by-link: the owner pastes a YouTube / Spotify / Apple Music
+   / SoundCloud / Vimeo URL, `POST /api/resolve-music` resolves
+   title/artist/cover server-side (keyless oEmbed for YouTube/SoundCloud/
+   Vimeo, keyless iTunes lookup for Apple Music, and keyless Spotify oEmbed
+   with an optional upgrade to the Spotify Web API when server-only env vars
+   are configured - no credentials reach the client, no SSRF, only
+   whitelisted platform endpoints are fetched), and one **Post**
+   action resolves and saves to `student_music` in a single step. Cards show
+   the cover, title and artist and link out to the original track; the owner
+   can remove their own posts. Photos remains a UI placeholder.
 
    **Entering scores** (what makes ranks move): the ONLY way scores reach the
    engine is grades - there is no separate rank-entry page. A teacher
@@ -953,3 +987,75 @@ flat token dashboard look, but built on the same tokens and fonts):
    same animated card on the landing, `/login`, or `/signup` - all share
    `AuthCard` + `AuthTabs` + the real Supabase forms. Forgot/reset follow the
    same shell.
+
+10. **Account lifecycle** - student and teacher **Settings** pages offer
+    self-service deactivation (immediate, reversible, nothing deleted) and
+    admin-approved permanent deletion (with a Download My Data link to
+    `/api/export-account`). Admin Settings has no deactivate/delete controls;
+    the account section tells the admin to contact the developer. See §5
+    for the full lifecycle flow.
+
+---
+
+## 5. Account lifecycle (user-facing)
+
+### Settings pages
+
+**Student Settings** (`/student/settings`) and **Teacher Settings**
+(`/teacher/settings`) each expose:
+
+- **Deactivate Account** - sets `profiles.deactivated_at` via the
+  `deactivateAccount` server action, then signs the user out and redirects to
+  `/login?deactivated=1`. Nothing is deleted; the user can reactivate by
+  logging back in.
+- **Request Account Deletion** - opens a warning modal explaining the
+  request is permanent, requires admin approval, and recommending a data
+  download first. The modal links to `/api/export-account` (Download My Data).
+  On confirmation, a `deletion` request is inserted into `account_requests`.
+
+**Admin Settings** (`/admin/settings`) has:
+
+- An **Account requests** section listing pending deletion requests from
+  students and teachers, with Approve/Deny buttons.
+- A **Your account** section that says admin account changes require
+  developer intervention. There is no self-service deactivate or delete for
+  admins.
+
+### Reactivation flow
+
+```
+Login
+  ↓
+deactivated_at detected (middleware check)
+  ↓
+/auth/reactivate
+  ↓
+Reactivate Account  ──or──  Stay Deactivated
+  ↓                              ↓
+/welcome-back notification    sign out → /login?deactivated=1
+  ↓
+role home
+```
+
+- `middleware.ts` checks `profiles.deactivated_at` on every request. If
+  set, the user is redirected to `/auth/reactivate` regardless of which
+  page they tried to reach (except `/api/`, `/auth/callback`,
+  `/forgot-password`, `/reset-password`).
+- The `/auth/reactivate` page shows a "Welcome back" message with two
+  buttons: **Reactivate Account** (clears `deactivated_at`, creates a
+  "Welcome back!" notification, redirects to role home) or **Stay
+  Deactivated** (signs out, redirects to `/login?deactivated=1`).
+- Simply logging in does NOT silently reactivate. The user must explicitly
+  choose to reactivate.
+
+### Deactivated-profile behavior
+
+- **Search:** `useSchoolProfiles` filters `.is('deactivated_at', null)` —
+  deactivated users are excluded from active user searches.
+- **Friends:** `friendsStore` filters out deactivated peers from the friends
+  list.
+- **Leaderboard:** the `get_school_leaderboard` RPC filters
+  `deactivated_at IS NULL` — deactivated students do not appear.
+- **Profile viewer:** viewing a deactivated user's profile (`/student/profile/[id]`
+  or teacher equivalent) shows a neutral "This account is deactivated" state
+  instead of the normal personal profile.
