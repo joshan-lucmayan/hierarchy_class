@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
               </p>
               <a
                 href="/login"
-                className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+                className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
               >
                 Back to login
               </a>
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
                     className="rounded-lg border border-base px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)] disabled:bg-surface-50"
                   />
                 </div>
-                {error && <p className="animate-shake text-xs text-red-500">{error}</p>}
+                {error && <p className="animate-shake text-xs text-warn">{error}</p>}
                 <button
                   type="submit"
                   disabled={status === "sending"}

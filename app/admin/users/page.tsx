@@ -3,8 +3,13 @@
 import { useMemo, useState } from "react";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { Stat } from "@/components/ui/Stat";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { IconUser, IconRefresh } from "@/components/ui/icons";
 import { useRankStore } from "@/lib/rankStore";
 
 // The school directory shows students and teachers only - admin accounts
@@ -47,80 +52,129 @@ export default function AdminUsersPage() {
   }, [directory]);
 
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Users</p>
-            <h1 className="mt-2 text-3xl font-bold text-navy">School directory</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-              Every student and teacher registered at your school.
-            </p>
-          </div>
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* BAND 0 - HEADER                                             */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-navy">School directory</h1>
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
+            Users · {counts.all} registered
+          </h2>
+        </div>
+        <Stat
+          label="Students"
+          value={loading ? "—" : counts.student}
+          tone="gold"
+          hint={`${counts.teacher} teachers registered`}
+        />
+      </div>
+
+      {/* ============================================================ */}
+      {/* BAND 1 - CONTROL BAR (search · role tabs · refresh)         */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-xs">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search directory"
-            className="w-full max-w-md rounded-md border border-line bg-tile px-3.5 py-2 text-[13px] text-navy placeholder:text-faint outline-none transition focus:border-sealion"
+            placeholder="Search users..."
+            className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-14 text-sm text-navy outline-none focus:border-gold"
           />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
+            {filtered.length}
+          </span>
         </div>
-      </CornerFrame>
-
-      <div className="flex flex-wrap items-center gap-2">
-        {ROLE_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setRoleFilter(tab.value)}
-            className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
-              roleFilter === tab.value
-                ? "border-sealion bg-[var(--surface-strong)] text-navy"
-                : "border-base bg-surface text-muted hover:border-sealion"
-            }`}
-          >
-            {tab.label} ({counts[tab.value]})
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={refetch}
-          className="ml-auto rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-muted transition hover:border-sealion"
-        >
+        <div className="flex flex-wrap items-center gap-2">
+          {ROLE_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setRoleFilter(tab.value)}
+              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                roleFilter === tab.value
+                  ? "border-gold-token bg-[var(--surface-strong)] text-navy"
+                  : "border-base bg-surface text-muted hover:border-gold-soft"
+              }`}
+            >
+              {tab.label} ({counts[tab.value]})
+            </button>
+          ))}
+        </div>
+        <Button variant="outline" size="sm" icon={<IconRefresh size={13} />} onClick={refetch} className="ml-auto">
           Refresh
-        </button>
+        </Button>
       </div>
 
-      {loading && <p className="text-sm text-muted">Loading school directory...</p>}
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      {!loading && !error && filtered.length === 0 && (
-        <p className="text-sm text-muted">No users match your search.</p>
+      {error && (
+        <p className="rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">{error}</p>
       )}
 
-      {!loading && !error && filtered.length > 0 && (
-        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
+      {loading ? (
+        /* Skeleton: mirror the real directory-row geometry. */
+        <CornerFrame className="p-5">
+          <div className="space-y-1">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex animate-pulse items-center gap-3 py-4">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-tile" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-44 rounded-full bg-tile" />
+                  <div className="h-2.5 w-28 rounded-full bg-tile" />
+                </div>
+                <div className="h-5 w-16 rounded-full bg-tile" />
+              </div>
+            ))}
+          </div>
+        </CornerFrame>
+      ) : directory.length === 0 ? (
+        <CornerFrame className="p-8">
+          <EmptyState
+            icon={<IconUser size={16} />}
+            title="No users yet"
+            desc="Students and teachers appear here as soon as they sign up and are verified in your school."
+          />
+        </CornerFrame>
+      ) : filtered.length === 0 ? (
+        <CornerFrame className="p-8">
+          <EmptyState
+            icon={<IconUser size={16} />}
+            title="No users found"
+            desc="No users match the current search or role filter."
+          />
+          {(query || roleFilter !== "all") && (
+            <div className="mt-3 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setQuery("");
+                  setRoleFilter("all");
+                }}
+              >
+                Clear search &amp; filters
+              </Button>
+            </div>
+          )}
+        </CornerFrame>
+      ) : (
+        <CornerFrame className="p-5">
           <div className="divide-y divide-[var(--border)]">
             {filtered.map((person) => (
               <div key={person.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <UserAvatar name={person.full_name} src={person.avatar_url} size="md" profileId={person.id} />
-                  <div>
-                    <p className="text-sm font-semibold text-navy">{person.full_name}</p>
-                    <p className="text-xs text-muted">
-                      {[person.educational_level, person.program, person.level_label].filter(Boolean).join(" · ") || "No level set"}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-navy">{person.full_name}</p>
+                    <p className="truncate text-xs text-muted">
+                      {[person.educational_level, person.program, person.level_label].filter(Boolean).join(" · ") ||
+                        "No level set"}
                       {person.role === "teacher" && person.is_librarian ? " · Librarian" : ""}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-                      person.role === "teacher"
-                        ? "bg-gold/20 text-gold"
-                        : "bg-[var(--surface-strong)] text-muted"
-                    }`}
-                  >
-                    {person.role}
-                  </span>
+                <div className="flex shrink-0 items-center gap-3">
+                  <Chip variant={person.role === "teacher" ? "gold" : "neutral"}>{person.role}</Chip>
                   {person.role === "student" && (
                     <RankBadge rank={rankOf(person.id)?.current_rank ?? "D"} size="sm" />
                   )}

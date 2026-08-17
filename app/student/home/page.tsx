@@ -40,7 +40,7 @@ export default function StudentHomePage() {
           {feedLoading ? (
             <p className="text-sm text-muted">Loading announcements...</p>
           ) : feedError ? (
-            <p className="text-sm text-red-500">{feedError}</p>
+            <p className="text-sm text-warn">{feedError}</p>
           ) : posts.length === 0 ? (
             <p className="text-sm text-muted">No announcements yet.</p>
           ) : (
@@ -68,7 +68,7 @@ export default function StudentHomePage() {
               {loading ? (
                 <p className="text-sm text-muted">Loading...</p>
               ) : error ? (
-                <p className="text-sm text-red-500">{error}</p>
+                <p className="text-sm text-warn">{error}</p>
               ) : (
                 <>
                   <UserAvatar

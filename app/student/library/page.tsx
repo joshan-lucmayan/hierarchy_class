@@ -1,8 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CornerFrame } from "@/components/ui/CornerFrame";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { Stat } from "@/components/ui/Stat";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { IconPost, IconBack, IconChevronRight, IconCheck } from "@/components/ui/icons";
+import { BookCover } from "@/components/library/BookCover";
+import { BookDetailModal, bookStatusChip, bookStatusLine } from "@/components/library/BookDetailModal";
 import { useMyProfile } from "@/lib/useMyProfile";
-import { LibraryBook } from "@/types/student";
+import { LibraryBook, LibraryStatus } from "@/types/student";
 import { useLibraryStore } from "@/lib/libraryStore";
 
 // Librarians sometimes type multiple genres separated by commas into the
@@ -15,131 +23,64 @@ function splitGenres(genre: string): string[] {
     .filter(Boolean);
 }
 
-function BookCover({ book, size = "sm" }: { book: LibraryBook; size?: "sm" | "lg" }) {
-  const [failed, setFailed] = useState(false);
-  const dims = size === "lg" ? "h-32 w-24" : "h-14 w-10";
-
-  if (!book.coverUrl || failed) {
-    return (
-      <div className={`flex ${dims} shrink-0 items-center justify-center rounded-lg border border-base bg-[var(--surface-strong)]`}>
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">No cover</span>
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={book.coverUrl}
-      alt=""
-      onError={() => setFailed(true)}
-      className={`${dims} shrink-0 rounded-lg border border-base object-cover`}
-    />
-  );
-}
-
-function statusLabel(book: LibraryBook, isMine: boolean) {
-  if (book.status === "available") return null;
-  if (book.status === "requested") return isMine ? "Pending librarian approval" : "Requested by another student";
-  return isMine ? `Due ${book.dueDate}` : "Currently borrowed";
-}
-
-function BookModal({
-  book,
-  isMine,
-  onClose,
-  onRequestBorrow,
-}: {
-  book: LibraryBook;
-  isMine: boolean;
-  onClose: () => void;
-  onRequestBorrow: (book: LibraryBook) => void;
-}) {
-  const label = statusLabel(book, isMine);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-md rounded-[10px] border border-base bg-surface p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <div className="flex flex-wrap gap-1">
-              {splitGenres(book.genre).map((g) => (
-                <span key={g} className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-                  {g}
-                </span>
-              ))}
-            </div>
-          </div>
-          <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
-        </div>
-        <div className="mt-3 flex gap-4">
-          <BookCover book={book} size="lg" />
-          <div>
-            <h2 className="text-2xl font-bold text-navy">{book.title}</h2>
-            <p className="mt-1 text-sm text-muted">by {book.author}</p>
-          </div>
-        </div>
-        <p className="mt-4 text-sm leading-6 text-muted">{book.description}</p>
-
-        {label && (
-          <p className="mt-4 flex items-center gap-2 text-xs text-muted">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-            {label}
-          </p>
-        )}
-
-        {book.status === "available" ? (
-          <button
-            type="button"
-            onClick={() => {
-              onRequestBorrow(book);
-              onClose();
-            }}
-            className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
-          >
-            Request to borrow
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="mt-5 w-full cursor-not-allowed rounded-full bg-[var(--surface-strong)] py-2.5 text-sm font-semibold text-muted"
-          >
-            {isMine ? "Request already sent" : "Not available right now"}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function LibraryPage() {
-  const { books, log, requestBorrow } = useLibraryStore();
+  const { books, log, requestBorrow, loading, error } = useLibraryStore();
   const { profile } = useMyProfile();
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
   const [query, setQuery] = useState("");
   const [genreFilter, setGenreFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<"all" | LibraryStatus>("all");
+  const [sortBy, setSortBy] = useState<"title-asc" | "title-desc" | "author-asc" | "author-desc">("title-asc");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 25;
 
   const genres = useMemo(
     () => ["All", ...Array.from(new Set(books.flatMap((b) => splitGenres(b.genre)))).sort()],
     [books]
   );
 
-  const availableBooks = useMemo(() => {
-    const normalized = query.toLowerCase();
-    return books.filter((book) => {
-      if (book.status !== "available") return false;
+  // Catalog discovery pipeline: raw books -> search (title/author/genre/isbn)
+  // -> status filter -> genre filter -> sort -> paginate. Memoized so a large
+  // catalog stays cheap; the store itself is untouched.
+  const filteredBooks = useMemo(() => {
+    const q = query.toLowerCase();
+    const searched = books.filter((book) => {
       const matchesQuery =
-        !normalized ||
-        book.title.toLowerCase().includes(normalized) ||
-        book.author.toLowerCase().includes(normalized);
+        !q ||
+        book.title.toLowerCase().includes(q) ||
+        book.author.toLowerCase().includes(q) ||
+        book.genre.toLowerCase().includes(q) ||
+        (book.isbn ?? "").toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "all" || book.status === statusFilter;
       const matchesGenre = genreFilter === "All" || splitGenres(book.genre).includes(genreFilter);
-      return matchesQuery && matchesGenre;
+      return matchesQuery && matchesStatus && matchesGenre;
     });
-  }, [books, query, genreFilter]);
+    return [...searched].sort((a, b) => {
+      if (sortBy === "title-desc") return b.title.localeCompare(a.title);
+      if (sortBy === "author-asc") return a.author.localeCompare(b.author);
+      if (sortBy === "author-desc") return b.author.localeCompare(a.author);
+      return a.title.localeCompare(b.title);
+    });
+  }, [books, query, genreFilter, statusFilter, sortBy]);
+
+  const statusCounts = useMemo(
+    () => ({
+      all: books.length,
+      available: books.filter((b) => b.status === "available").length,
+      borrowed: books.filter((b) => b.status === "borrowed").length,
+      requested: books.filter((b) => b.status === "requested").length,
+    }),
+    [books]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredBooks.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageBooks = useMemo(
+    () => filteredBooks.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredBooks, safePage]
+  );
+  const pageStart = (safePage - 1) * PAGE_SIZE + 1;
+  const pageEnd = Math.min(safePage * PAGE_SIZE, filteredBooks.length);
 
   const myActiveBooks = useMemo(
     () => books.filter((book) => book.borrowedBy === profile?.id && book.status !== "available"),
@@ -149,6 +90,15 @@ export default function LibraryPage() {
     () => log.filter((entry) => entry.studentId === profile?.id),
     [log, profile]
   );
+
+  const hasActiveFilters = !!query.trim() || statusFilter !== "all" || genreFilter !== "All";
+
+  function clearAll() {
+    setQuery("");
+    setStatusFilter("all");
+    setGenreFilter("All");
+    setPage(1);
+  }
 
   function handleRequestBorrow(book: LibraryBook) {
     if (!profile) return;
@@ -160,128 +110,339 @@ export default function LibraryPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="grid gap-10 xl:grid-cols-[1.2fr_0.8fr] xl:divide-x xl:divide-[var(--border)]">
-        <div className="space-y-4 xl:pr-10">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Available books</h2>
-            <span className="text-xs font-semibold text-muted">
-              {availableBooks.length} of {books.length}
-            </span>
-          </div>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search..."
-              className="flex-1 border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none placeholder:text-muted focus:border-gold"
-            />
-            <select
-              value={genreFilter}
-              onChange={(e) => setGenreFilter(e.target.value)}
-              className="border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none focus:border-gold"
-            >
-              {genres.map((genre) => (
-                <option key={genre} value={genre}>{genre}</option>
-              ))}
-            </select>
-          </div>
-          <div className="max-h-[420px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
-            {availableBooks.length === 0 ? (
-              <p className="py-4 text-sm text-muted">No books match your search.</p>
-            ) : (
-              availableBooks.map((book) => (
-                <button
-                  key={book.id}
-                  type="button"
-                  onClick={() => setSelectedBook(book)}
-                  className="group flex w-full items-start justify-between gap-4 py-4 text-left transition hover:bg-[var(--surface-strong)]"
-                >
-                  <div className="flex min-w-0 items-start gap-3">
-                    <BookCover book={book} />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-navy">{book.title}</p>
-                      <p className="mt-1 text-xs text-muted">{book.author}</p>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {splitGenres(book.genre).map((g) => (
-                          <span key={g} className="rounded-full bg-[var(--surface-strong)] px-2 py-0.5 text-[10px] font-semibold text-muted">
-                            {g}
-                          </span>
-                        ))}
-                      </div>
-                      <p className="mt-2 line-clamp-2 text-xs text-muted">{book.description}</p>
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
-                    View -&gt;
-                  </span>
-                </button>
-              ))
-            )}
-          </div>
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* BAND 0 - HEADER                                             */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-navy">Library</h1>
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
+            Discover books · check availability · find your next read
+          </h2>
         </div>
+        <Stat
+          label="Available"
+          value={loading ? "—" : statusCounts.available}
+          tone="gold"
+          hint={`${books.length} in catalog`}
+        />
+      </div>
 
-        <div className="space-y-4 xl:pl-10">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">My requests &amp; loans</h2>
-            <span className="text-xs font-semibold text-muted">{myActiveBooks.length}</span>
-          </div>
-          <div className="divide-y divide-[var(--border)]">
-            {myActiveBooks.length === 0 ? (
-              <p className="py-4 text-sm text-muted">No pending requests or borrowed books right now.</p>
-            ) : (
-              myActiveBooks.map((book) => (
-                <button
-                  key={book.id}
-                  type="button"
-                  onClick={() => setSelectedBook(book)}
-                  className="group flex w-full items-start justify-between gap-4 py-4 text-left transition hover:bg-[var(--surface-strong)]"
-                >
-                  <div className="flex items-start gap-3">
-                    <BookCover book={book} />
-                    <div>
-                      <p className="text-sm font-semibold text-navy">{book.title}</p>
-                      <p className="mt-1 text-xs text-muted">{statusLabel(book, true)}</p>
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-xs font-semibold text-muted transition group-hover:text-gold">
-                    View -&gt;
-                  </span>
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="space-y-4 border-t border-base pt-8">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Borrow history</h2>
-        <p className="text-xs text-muted">Everything you&apos;ve borrowed and returned this semester.</p>
-        <div className="max-h-[320px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
-          {myHistory.length === 0 ? (
-            <p className="py-4 text-sm text-muted">No borrow history yet.</p>
-          ) : (
-            myHistory.map((record) => (
-              <div key={record.id} className="flex items-center justify-between gap-4 py-4 text-sm">
-                <div>
-                  <p className="font-semibold text-navy">{record.bookTitle}</p>
-                  <p className="mt-1 text-xs text-muted">
-                    {record.returnedDate ? `Returned ${record.returnedDate}` : "Still out"}
-                  </p>
+      {loading ? (
+        /* Skeleton: mirror the catalog-row geometry. */
+        <CornerFrame className="p-5">
+          <div className="h-3 w-32 animate-pulse rounded-full bg-tile" />
+          <div className="mt-4 h-10 animate-pulse rounded-[10px] bg-tile" />
+          <div className="mt-4 space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex animate-pulse items-center gap-3 rounded-[10px] border border-base p-3">
+                <div className="h-14 w-10 shrink-0 rounded-lg bg-tile" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-40 rounded-full bg-tile" />
+                  <div className="h-2.5 w-24 rounded-full bg-tile" />
                 </div>
-                <span className="shrink-0 text-xs text-muted">{record.borrowedDate}</span>
+                <div className="h-7 w-16 rounded-full bg-tile" />
               </div>
-            ))
-          )}
-        </div>
-      </section>
+            ))}
+          </div>
+        </CornerFrame>
+      ) : error ? (
+        <p className="rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">{error}</p>
+      ) : (
+        <>
+          <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+            {/* ======================================================== */}
+            {/* CATALOG - primary discovery surface                      */}
+            {/* ======================================================== */}
+            <CornerFrame className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="section-label">Catalog</h3>
+                <Chip variant="gold">
+                  {books.length} book{books.length === 1 ? "" : "s"}
+                </Chip>
+              </div>
+              <div className="relative mt-3">
+                <input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search by title, author, genre, or ISBN..."
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-gold"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
+                  {filteredBooks.length}
+                </span>
+              </div>
+
+              {/* Discovery bar: status pills + genre + sort */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {(
+                  [
+                    ["all", "All"],
+                    ["available", "Available"],
+                    ["borrowed", "Borrowed"],
+                    ["requested", "Requested"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(value);
+                      setPage(1);
+                    }}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                      statusFilter === value
+                        ? "border-gold-token bg-[var(--surface-strong)] text-navy"
+                        : "border-base bg-surface text-muted hover:border-gold-soft"
+                    }`}
+                  >
+                    {label} ({statusCounts[value]})
+                  </button>
+                ))}
+                <label className="ml-auto flex items-center gap-2">
+                  <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Genre</span>
+                  <select
+                    value={genreFilter}
+                    onChange={(e) => {
+                      setGenreFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    className="rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold"
+                  >
+                    {genres.map((genre) => (
+                      <option key={genre} value={genre}>{genre}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex items-center gap-2">
+                  <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Sort</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value as typeof sortBy);
+                      setPage(1);
+                    }}
+                    className="rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold"
+                  >
+                    <option value="title-asc">Title A-Z</option>
+                    <option value="title-desc">Title Z-A</option>
+                    <option value="author-asc">Author A-Z</option>
+                    <option value="author-desc">Author Z-A</option>
+                  </select>
+                </label>
+              </div>
+
+              {books.length === 0 ? (
+                <div className="py-6">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="No books available"
+                    desc="The school library hasn't added any books yet. Check back soon."
+                  />
+                </div>
+              ) : filteredBooks.length === 0 ? (
+                <div className="py-6">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="No books found"
+                    desc="No books match the current search or filters."
+                  />
+                  {hasActiveFilters && (
+                    <div className="mt-3 text-center">
+                      <Button variant="ghost" size="sm" onClick={clearAll}>
+                        Clear search &amp; filters
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-mono-ui text-[10px] uppercase tracking-[0.12em] text-faint">
+                      Showing {pageStart}-{pageEnd} of {filteredBooks.length} book{filteredBooks.length === 1 ? "" : "s"}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<IconBack size={12} />}
+                        onClick={() => setPage(safePage - 1)}
+                        disabled={safePage <= 1}
+                      >
+                        Prev
+                      </Button>
+                      {totalPages <= 7 ? (
+                        Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setPage(n)}
+                            aria-current={n === safePage ? "page" : undefined}
+                            className={`h-8 w-8 rounded-[8px] text-xs font-semibold transition ${
+                              n === safePage
+                                ? "bg-gold-token text-on-accent"
+                                : "border border-base bg-surface text-muted hover:border-gold-soft"
+                            }`}
+                          >
+                            {n}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="px-2 font-mono-ui text-[10px] uppercase tracking-[0.12em] text-faint">
+                          {safePage} / {totalPages}
+                        </span>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<IconChevronRight size={12} />}
+                        onClick={() => setPage(safePage + 1)}
+                        disabled={safePage >= totalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 max-h-[480px] space-y-2 overflow-y-auto pr-1">
+                    {pageBooks.map((book) => {
+                      const chip = bookStatusChip(book, book.borrowedBy === profile?.id, "student");
+                      return (
+                        <button
+                          key={book.id}
+                          type="button"
+                          onClick={() => setSelectedBook(book)}
+                          className="group flex w-full items-center gap-3 rounded-[10px] border border-base bg-surface p-3 text-left transition hover:border-gold-soft"
+                        >
+                          <BookCover book={book} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
+                            <p className="mt-0.5 truncate text-xs text-muted">
+                              {book.author} · {book.genre}
+                            </p>
+                            <div className="mt-1.5">
+                              <Chip variant={chip.variant}>{chip.label}</Chip>
+                            </div>
+                          </div>
+                          <span className="shrink-0 text-muted transition group-hover:text-gold-token">
+                            <IconChevronRight size={16} />
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </CornerFrame>
+
+            {/* ======================================================== */}
+            {/* MY REQUESTS & LOANS                                       */}
+            {/* ======================================================== */}
+            <CornerFrame className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="section-label">My requests &amp; loans</h3>
+                <Chip variant={myActiveBooks.length > 0 ? "warn" : "neutral"}>{myActiveBooks.length}</Chip>
+              </div>
+              {myActiveBooks.length === 0 ? (
+                <div className="py-4">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="Nothing active"
+                    desc="Request a book from the catalog and it will show up here."
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 max-h-[480px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
+                  {myActiveBooks.map((book) => (
+                    <button
+                      key={book.id}
+                      type="button"
+                      onClick={() => setSelectedBook(book)}
+                      className="group flex w-full items-center gap-3 py-3 text-left transition hover:bg-[var(--surface-strong)]"
+                    >
+                      <BookCover book={book} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
+                        <p className="mt-1 text-xs text-muted">{bookStatusLine(book, true, "student")}</p>
+                      </div>
+                      <span className="shrink-0 text-muted transition group-hover:text-gold-token">
+                        <IconChevronRight size={16} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CornerFrame>
+          </section>
+
+          {/* ========================================================== */}
+          {/* BORROW HISTORY                                            */}
+          {/* ========================================================== */}
+          <CornerFrame className="p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="section-label">Borrow history</h3>
+              <Chip variant="neutral">{myHistory.length}</Chip>
+            </div>
+            <p className="mt-1.5 text-xs leading-5 text-muted">
+              Everything you&apos;ve borrowed and returned this semester.
+            </p>
+            {myHistory.length === 0 ? (
+              <div className="py-4">
+                <EmptyState
+                  icon={<IconPost size={16} />}
+                  title="No borrow history yet"
+                  desc="Books you borrow and return will appear here."
+                />
+              </div>
+            ) : (
+              <div className="mt-3 max-h-[320px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
+                {myHistory.map((record) => (
+                  <div key={record.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-navy">{record.bookTitle}</p>
+                      <p className="mt-1 text-xs text-muted">
+                        {record.returnedDate ? `Returned ${record.returnedDate}` : "Still out"}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-mono-ui text-[10px] uppercase tracking-[0.1em] text-muted">
+                      {record.borrowedDate}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CornerFrame>
+        </>
+      )}
 
       {selectedBook && (
-        <BookModal
+        <BookDetailModal
           book={selectedBook}
           isMine={selectedBook.borrowedBy === profile?.id}
           onClose={() => setSelectedBook(null)}
-          onRequestBorrow={handleRequestBorrow}
+          action={
+            selectedBook.status === "available" ? (
+              <Button
+                variant="gold"
+                className="w-full"
+                icon={<IconCheck size={13} />}
+                onClick={() => {
+                  handleRequestBorrow(selectedBook);
+                  setSelectedBook(null);
+                }}
+              >
+                Request to borrow
+              </Button>
+            ) : (
+              <Button variant="ghost" disabled className="w-full">
+                {selectedBook.borrowedBy === profile?.id ? "Request already sent" : "Not available right now"}
+              </Button>
+            )
+          }
         />
       )}
     </div>

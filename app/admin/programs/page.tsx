@@ -1,29 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useRankStore } from "@/lib/rankStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
-import { ActionButton, PlusIcon, MinusIcon, CheckIcon, BackIcon } from "@/components/ui/ActionButton";
+import { Button } from "@/components/ui/Button";
+import { Stat } from "@/components/ui/Stat";
+import { Chip } from "@/components/ui/Chip";
+import { Modal } from "@/components/ui/Modal";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { RankBadge } from "@/components/ui/RankBadge";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import {
+  IconPlus,
+  IconBack,
+  IconPencil,
+  IconTrash,
+  IconCheck,
+  IconChevronRight,
+  IconUser,
+  IconPost,
+} from "@/components/ui/icons";
 
 type Step = "levels" | "programs" | "sections" | "courses" | "students";
 
-function IconBtn({ onClick, label, variant, children }: { onClick: (e: React.MouseEvent) => void; label: string; variant: "edit" | "delete"; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs transition ${
-        variant === "delete"
-          ? "border-base text-muted hover:border-red-400 hover:text-red-600"
-          : "border-base text-muted hover:border-gold hover:text-gold"
-      }`}
-    >
-      {children}
-    </button>
-  );
+interface ConfirmTarget {
+  kind: "level" | "program" | "section" | "course" | "student";
+  id: string;
+  name: string;
 }
 
 export default function AdminProgramsPage() {
@@ -33,6 +38,7 @@ export default function AdminProgramsPage() {
     getCoursesBySection, addCourse, updateCourse, deleteCourse,
     getStudentsByCourse, deleteStudent,
     getStudentAverage,
+    loading,
   } = useClassroomHierarchy();
   const { rankOf } = useRankStore();
 
@@ -54,6 +60,8 @@ export default function AdminProgramsPage() {
   const [courseDraft, setCourseDraft] = useState({ name: "", code: "", teacherId: "", teacherName: "" });
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+
   const { profiles: signedUpTeachers } = useSchoolProfiles({ role: "teacher" });
 
   // Education levels are top-level programs (no parent); programs nest inside.
@@ -65,6 +73,48 @@ export default function AdminProgramsPage() {
   const sections = selectedProgram ? getSectionsByProgram(selectedProgram) : [];
   const courses = selectedSection ? getCoursesBySection(selectedSection) : [];
   const students = selectedCourse ? getStudentsByCourse(selectedCourse) : [];
+
+  const selectedSectionName = sections.find((s) => s.id === selectedSection)?.name ?? "";
+  const selectedCourseName = courses.find((c) => c.id === selectedCourse)?.name ?? "";
+
+  // Hierarchy snapshot - all real counts derived from the live store.
+  const snapshot = useMemo(() => {
+    const allPrograms = programs.filter((p) => p.parentId);
+    const allSections = allPrograms.flatMap((p) => getSectionsByProgram(p.id));
+    const allCourses = allSections.flatMap((s) => getCoursesBySection(s.id));
+    return {
+      levels: levels.length,
+      programs: allPrograms.length,
+      sections: allSections.length,
+      courses: allCourses.length,
+    };
+  }, [programs, getSectionsByProgram, getCoursesBySection, levels.length]);
+
+  // Breadcrumb: where am I in the hierarchy?
+  const crumbs: { label: string; step: Step }[] = [{ label: "Education levels", step: "levels" }];
+  if (selectedLevel) crumbs.push({ label: selectedLevelName || "Programs", step: "programs" });
+  if (selectedProgram) crumbs.push({ label: selectedProgramName || "Year levels", step: "sections" });
+  if (selectedSection) crumbs.push({ label: selectedSectionName || "Courses", step: "courses" });
+  if (selectedCourse) crumbs.push({ label: selectedCourseName || "Students", step: "students" });
+
+  function jumpTo(target: Step) {
+    if (target === "levels") {
+      setSelectedLevel(null);
+      setSelectedProgram(null);
+      setSelectedSection(null);
+      setSelectedCourse(null);
+    } else if (target === "programs") {
+      setSelectedProgram(null);
+      setSelectedSection(null);
+      setSelectedCourse(null);
+    } else if (target === "sections") {
+      setSelectedSection(null);
+      setSelectedCourse(null);
+    } else if (target === "courses") {
+      setSelectedCourse(null);
+    }
+    setStep(target);
+  }
 
   function openProgramForm() {
     setEditingProgramId(null);
@@ -92,12 +142,29 @@ export default function AdminProgramsPage() {
     setEditingProgramId(null);
     setShowProgramForm(false);
   }
-  function handleDeleteProgram(e: React.MouseEvent, id: string, name: string) {
+  function requestDelete(e: React.MouseEvent, kind: ConfirmTarget["kind"], id: string, name: string) {
     e.stopPropagation();
-    if (confirm(`Delete "${name}"? This also removes its programs, sections, courses, students, and grades.`)) {
-      deleteProgram(id);
-    }
+    setConfirmTarget({ kind, id, name });
   }
+  function runDelete() {
+    if (!confirmTarget) return;
+    const { kind, id } = confirmTarget;
+    if (kind === "level" || kind === "program") deleteProgram(id);
+    else if (kind === "section") deleteSection(id);
+    else if (kind === "course") deleteCourse(id);
+    else deleteStudent(id);
+    setConfirmTarget(null);
+  }
+  const confirmMessage = (() => {
+    if (!confirmTarget) return "";
+    switch (confirmTarget.kind) {
+      case "level": return "This also removes its programs, sections, courses, students, and grades.";
+      case "program": return "This also removes its sections, courses, students, and grades.";
+      case "section": return "This also removes its courses, students, and grades.";
+      case "course": return "This also removes its students and grades.";
+      case "student": return "This also removes their grades for this course.";
+    }
+  })();
 
   function openSectionForm() {
     setEditingSectionId(null);
@@ -121,12 +188,6 @@ export default function AdminProgramsPage() {
     setSectionDraft("");
     setEditingSectionId(null);
     setShowSectionForm(false);
-  }
-  function handleDeleteSection(e: React.MouseEvent, id: string, name: string) {
-    e.stopPropagation();
-    if (confirm(`Delete "${name}"? This also removes its courses, students, and grades.`)) {
-      deleteSection(id);
-    }
   }
 
   function openCourseForm() {
@@ -159,18 +220,6 @@ export default function AdminProgramsPage() {
     setEditingCourseId(null);
     setShowCourseForm(false);
   }
-  function handleDeleteCourse(e: React.MouseEvent, id: string, name: string) {
-    e.stopPropagation();
-    if (confirm(`Delete "${name}"? This also removes its students and grades.`)) {
-      deleteCourse(id);
-    }
-  }
-
-  function handleDeleteStudent(id: string, name: string) {
-    if (confirm(`Remove "${name}" from this course? This also removes their grades for it.`)) {
-      deleteStudent(id);
-    }
-  }
 
   function handleLevelSelect(levelId: string) {
     setSelectedLevel(levelId);
@@ -201,301 +250,511 @@ export default function AdminProgramsPage() {
     else if (step === "programs") { setStep("levels"); setSelectedLevel(null); }
   }
 
+  const pageTitle =
+    step === "levels" ? "Education levels"
+    : step === "programs" ? selectedLevelName
+    : step === "sections" ? selectedProgramName
+    : step === "courses" ? selectedSectionName
+    : selectedCourseName;
+
+  const pageDesc =
+    step === "levels"
+      ? "Education levels are the top of the hierarchy. Open one to manage the programs inside it, their year/level sections, courses, and enrolled students."
+      : step === "programs"
+      ? `Programs under "${selectedLevelName}". Open one to manage its year/level sections.`
+      : step === "sections"
+      ? `Year / level sections under "${selectedProgramName}". Open one to manage its courses.`
+      : step === "courses"
+      ? "Courses under this year/level. Open one to enroll students."
+      : "Students enrolled in this course.";
+
+  const formEyebrow =
+    step === "levels" ? (editingProgramId ? "Edit education level" : "New education level")
+    : step === "programs" ? (editingProgramId ? "Edit program" : "New program")
+    : step === "sections" ? (editingSectionId ? "Edit year / level" : "New year / level")
+    : (editingCourseId ? "Edit course" : "New course");
+
+  const formDesc =
+    step === "levels" ? "Top of the hierarchy - programs, year levels, and courses live inside it."
+    : step === "programs" ? `Nested under "${selectedLevelName}".`
+    : step === "sections" ? `Year / level under "${selectedProgramName}".`
+    : `Course under "${selectedSectionName}".`;
+
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Education Level Management</p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">
-          {step === "levels" ? "Education levels" : selectedLevelName}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          {step === "levels"
-            ? "Education levels are the top of the hierarchy. Open one to manage the programs inside it, their year/level sections, courses, and enrolled students."
-            : step === "programs"
-            ? `Programs under "${selectedLevelName}". Open one to manage its year/level sections.`
-            : step === "sections"
-            ? `Year / level sections under "${selectedProgramName}". Open one to manage its courses.`
-            : step === "courses"
-            ? "Courses under this year/level. Open one to enroll students."
-            : "Students enrolled in this course."}
-        </p>
-      </CornerFrame>
-
-      {step === "levels" && (
-        <div className="space-y-4">
-          <ActionButton
-            onClick={openProgramForm}
-            variant={showProgramForm ? "neutral" : "gold"}
-            icon={showProgramForm ? <MinusIcon /> : <PlusIcon />}
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* HEADER + BREADCRUMB                                        */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-navy">{pageTitle}</h1>
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
+            Hierarchy management
+          </h2>
+          <nav className="mt-2 flex flex-wrap items-center gap-1.5" aria-label="Hierarchy">
+            {crumbs.map((c, i) => {
+              const isLast = i === crumbs.length - 1;
+              return (
+                <span key={c.step} className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => jumpTo(c.step)}
+                    disabled={isLast}
+                    className={`font-mono-ui text-[10px] uppercase tracking-[0.18em] transition ${
+                      isLast ? "text-navy" : "text-faint hover:text-gold-token"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                  {!isLast && <IconChevronRight size={10} className="text-faint" />}
+                </span>
+              );
+            })}
+          </nav>
+        </div>
+        <div className="flex items-center gap-2">
+          {step !== "levels" && (
+            <Button variant="outline" size="sm" icon={<IconBack size={13} />} onClick={handleBack}>
+              Back
+            </Button>
+          )}
+          <Button
+            variant="gold"
+            size="sm"
+            icon={showProgramForm || showSectionForm || showCourseForm ? undefined : <IconPlus size={13} />}
+            onClick={() => {
+              if (step === "sections") openSectionForm();
+              else if (step === "courses") openCourseForm();
+              else openProgramForm();
+            }}
           >
-            {showProgramForm ? "Cancel" : "Add education level"}
-          </ActionButton>
+            {showProgramForm || showSectionForm || showCourseForm
+              ? "Cancel"
+              : step === "levels" ? "Add education level"
+              : step === "programs" ? "Add program"
+              : step === "sections" ? "Add year / level"
+              : "Add course"}
+          </Button>
+        </div>
+      </div>
 
-          {showProgramForm && (
-            <form onSubmit={handleProgramSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-              <input
-                value={programDraft.name}
-                onChange={(e) => setProgramDraft((d) => ({ ...d, name: e.target.value }))}
-                placeholder="Education level name"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <input
-                value={programDraft.description}
-                onChange={(e) => setProgramDraft((d) => ({ ...d, description: e.target.value }))}
-                placeholder="Description (optional)"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <ActionButton type="submit" variant="navy" icon={editingProgramId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
-                {editingProgramId ? "Save changes" : "Create"}
-              </ActionButton>
-            </form>
+      <p className="max-w-2xl text-sm leading-6 text-muted">{pageDesc}</p>
+
+      {/* ============================================================ */}
+      {/* HIERARCHY SNAPSHOT                                         */}
+      {/* ============================================================ */}
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Education levels" value={snapshot.levels} tone="default" />
+        <Stat label="Programs" value={snapshot.programs} tone="gold" />
+        <Stat label="Year levels" value={snapshot.sections} tone="default" />
+        <Stat label="Courses" value={snapshot.courses} tone="default" />
+      </section>
+
+      {/* ============================================================ */}
+      {/* MAIN MANAGEMENT AREA                                       */}
+      {/* ============================================================ */}
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="animate-pulse rounded-[10px] border border-base bg-surface p-6">
+              <div className="h-5 w-2/3 rounded-full bg-tile" />
+              <div className="mt-3 h-3 w-full rounded-full bg-tile" />
+              <div className="mt-4 h-4 w-24 rounded-full bg-tile" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* ---------------- EDUCATION LEVELS ---------------- */}
+          {step === "levels" && (
+            <div className="space-y-4">
+              {levels.length === 0 ? (
+                <CornerFrame className="p-8">
+                  <EmptyState
+                    icon={<IconUser size={16} />}
+                    title="No education levels"
+                    desc="Education levels are the top of the hierarchy. Add one to start building programs, year levels, and courses."
+                  />
+                  <div className="mt-4 text-center">
+                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openProgramForm}>
+                      Add education level
+                    </Button>
+                  </div>
+                </CornerFrame>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {levels.map((level) => {
+                    const programCount = programs.filter((p) => p.parentId === level.id).length;
+                    return (
+                      <div
+                        key={level.id}
+                        onClick={() => handleLevelSelect(level.id)}
+                        className="group cursor-pointer rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-sealion"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-lg font-bold text-navy">{level.name}</p>
+                          <div className="flex shrink-0 gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              shape="square"
+                              icon={<IconPencil size={12} />}
+                              aria-label="Edit education level"
+                              onClick={(e) => startEditProgram(e, level.id, level.name, level.description)}
+                            />
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              shape="square"
+                              icon={<IconTrash size={12} />}
+                              aria-label="Delete education level"
+                              onClick={(e) => requestDelete(e, "level", level.id, level.name)}
+                            />
+                          </div>
+                        </div>
+                        {level.description && <p className="mt-2 text-xs text-muted">{level.description}</p>}
+                        <div className="mt-3 flex items-center justify-between">
+                          <Chip variant="gold">{programCount} program{programCount === 1 ? "" : "s"} inside</Chip>
+                          <IconChevronRight size={13} className="text-faint transition group-hover:text-gold-token" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {levels.length === 0 && (
-              <p className="text-sm text-muted">No education levels yet - add one to get started.</p>
-            )}
-            {levels.map((level) => {
-              const programCount = programs.filter((p) => p.parentId === level.id).length;
-              return (
-                <div
-                  key={level.id}
-                  onClick={() => handleLevelSelect(level.id)}
-                  className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-lg font-bold text-navy">{level.name}</p>
-                    <div className="flex shrink-0 gap-1.5">
-                      <IconBtn onClick={(e) => startEditProgram(e, level.id, level.name, level.description)} label="Edit education level" variant="edit">✎</IconBtn>
-                      <IconBtn onClick={(e) => handleDeleteProgram(e, level.id, level.name)} label="Delete education level" variant="delete">✕</IconBtn>
-                    </div>
+          {/* ---------------- PROGRAMS ---------------- */}
+          {step === "programs" && (
+            <div className="space-y-4">
+              {levelPrograms.length === 0 ? (
+                <CornerFrame className="p-8">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="No programs"
+                    desc={`No programs under "${selectedLevelName}" yet - add one to start building year levels and courses.`}
+                  />
+                  <div className="mt-4 text-center">
+                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openProgramForm}>
+                      Add program
+                    </Button>
                   </div>
-                  {level.description && <p className="mt-2 text-xs text-muted">{level.description}</p>}
-                  <p className="mt-3 text-xs font-semibold text-gold">
-                    {programCount} program{programCount === 1 ? "" : "s"} inside
-                  </p>
+                </CornerFrame>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {levelPrograms.map((prog) => {
+                    const sectionCount = getSectionsByProgram(prog.id).length;
+                    return (
+                      <div
+                        key={prog.id}
+                        onClick={() => handleProgramSelect(prog.id)}
+                        className="group cursor-pointer rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-sealion"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-lg font-bold text-navy">{prog.name}</p>
+                          <div className="flex shrink-0 gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              shape="square"
+                              icon={<IconPencil size={12} />}
+                              aria-label="Edit program"
+                              onClick={(e) => startEditProgram(e, prog.id, prog.name, prog.description)}
+                            />
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              shape="square"
+                              icon={<IconTrash size={12} />}
+                              aria-label="Delete program"
+                              onClick={(e) => requestDelete(e, "program", prog.id, prog.name)}
+                            />
+                          </div>
+                        </div>
+                        {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
+                        <div className="mt-3 flex items-center justify-between">
+                          <Chip variant="gold">{sectionCount} year/level{sectionCount === 1 ? "" : "s"} inside</Chip>
+                          <IconChevronRight size={13} className="text-faint transition group-hover:text-gold-token" />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {step === "programs" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
-            <ActionButton
-              onClick={openProgramForm}
-              variant={showProgramForm ? "neutral" : "gold"}
-              icon={showProgramForm ? <MinusIcon /> : <PlusIcon />}
-            >
-              {showProgramForm ? "Cancel" : "Add program"}
-            </ActionButton>
-          </div>
-
-          {showProgramForm && (
-            <form onSubmit={handleProgramSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-              <input
-                value={programDraft.name}
-                onChange={(e) => setProgramDraft((d) => ({ ...d, name: e.target.value }))}
-                placeholder="Program name"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <input
-                value={programDraft.description}
-                onChange={(e) => setProgramDraft((d) => ({ ...d, description: e.target.value }))}
-                placeholder="Description (optional)"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <ActionButton type="submit" variant="navy" icon={editingProgramId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
-                {editingProgramId ? "Save changes" : "Create"}
-              </ActionButton>
-            </form>
+              )}
+            </div>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {levelPrograms.length === 0 && (
-              <p className="text-sm text-muted">No programs under {selectedLevelName} yet - add one to get started.</p>
-            )}
-            {levelPrograms.map((prog) => {
-              const sectionCount = getSectionsByProgram(prog.id).length;
-              return (
-                <div
-                  key={prog.id}
-                  onClick={() => handleProgramSelect(prog.id)}
-                  className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-lg font-bold text-navy">{prog.name}</p>
-                    <div className="flex shrink-0 gap-1.5">
-                      <IconBtn onClick={(e) => startEditProgram(e, prog.id, prog.name, prog.description)} label="Edit program" variant="edit">✎</IconBtn>
-                      <IconBtn onClick={(e) => handleDeleteProgram(e, prog.id, prog.name)} label="Delete program" variant="delete">✕</IconBtn>
-                    </div>
+          {/* ---------------- YEAR LEVELS ---------------- */}
+          {step === "sections" && (
+            <div className="space-y-4">
+              {sections.length === 0 ? (
+                <CornerFrame className="p-8">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="No year levels"
+                    desc={`No year / level sections under "${selectedProgramName}" yet - add one to start building courses.`}
+                  />
+                  <div className="mt-4 text-center">
+                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openSectionForm}>
+                      Add year / level
+                    </Button>
                   </div>
-                  {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
-                  <p className="mt-3 text-xs font-semibold text-gold">
-                    {sectionCount} year/level{sectionCount === 1 ? "" : "s"} inside
-                  </p>
+                </CornerFrame>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {sections.map((sec) => (
+                    <div
+                      key={sec.id}
+                      onClick={() => handleSectionSelect(sec.id)}
+                      className="group relative cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-center transition hover:border-sealion"
+                    >
+                      <div className="absolute right-3 top-3 flex gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          shape="square"
+                          icon={<IconPencil size={12} />}
+                          aria-label="Edit year / level"
+                          onClick={(e) => startEditSection(e, sec.id, sec.name)}
+                        />
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          shape="square"
+                          icon={<IconTrash size={12} />}
+                          aria-label="Delete year / level"
+                          onClick={(e) => requestDelete(e, "section", sec.id, sec.name)}
+                        />
+                      </div>
+                      <p className="text-2xl font-bold text-navy">{sec.name}</p>
+                      <p className="mt-1 flex items-center justify-center gap-1 text-[11px] text-faint">
+                        Open year level <IconChevronRight size={11} />
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              )}
+            </div>
+          )}
+
+          {/* ---------------- COURSES ---------------- */}
+          {step === "courses" && (
+            <div className="space-y-4">
+              {courses.length === 0 ? (
+                <CornerFrame className="p-8">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="No courses"
+                    desc={`No courses in this year / level yet - add one to start enrolling students.`}
+                  />
+                  <div className="mt-4 text-center">
+                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openCourseForm}>
+                      Add course
+                    </Button>
+                  </div>
+                </CornerFrame>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {courses.map((crs) => (
+                    <div
+                      key={crs.id}
+                      onClick={() => handleCourseSelect(crs.id)}
+                      className="group cursor-pointer rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-sealion"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-lg font-bold text-navy">{crs.name}</p>
+                        <div className="flex shrink-0 gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            shape="square"
+                            icon={<IconPencil size={12} />}
+                            aria-label="Edit course"
+                            onClick={(e) => startEditCourse(e, crs.id, crs.name, crs.code, crs.teacherId, crs.teacherName)}
+                          />
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            shape="square"
+                            icon={<IconTrash size={12} />}
+                            aria-label="Delete course"
+                            onClick={(e) => requestDelete(e, "course", crs.id, crs.name)}
+                          />
+                        </div>
+                      </div>
+                      {crs.code && <p className="mt-2 text-xs text-muted">{crs.code}</p>}
+                      <div className="mt-3 flex items-center justify-between">
+                        <Chip variant={crs.teacherName ? "success" : "neutral"}>
+                          {crs.teacherName ? `Taught by ${crs.teacherName}` : "No teacher assigned"}
+                        </Chip>
+                        <IconChevronRight size={13} className="text-faint transition group-hover:text-gold-token" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ---------------- STUDENTS ---------------- */}
+          {step === "students" && (
+            <CornerFrame className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="section-label">Students in this course</h3>
+                <Chip variant="neutral">{students.length} enrolled</Chip>
+              </div>
+              {students.length === 0 ? (
+                <div className="py-6">
+                  <EmptyState
+                    icon={<IconUser size={16} />}
+                    title="No students here yet"
+                    desc="Enroll them from Admin > Students - picking their education level, program, and year/level in Academic info automatically gives them access to this course's classes."
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {students.map((s) => {
+                    const avg = s.profileId ? getStudentAverage(s.profileId) : null;
+                    const rank = s.profileId ? rankOf(s.profileId)?.current_rank ?? "D" : "D";
+                    return (
+                      <div
+                        key={s.id}
+                        className="flex items-center justify-between gap-3 rounded-[10px] border border-base bg-surface px-3 py-2"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <UserAvatar name={s.name} size="sm" />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-navy">{s.name}</p>
+                            <p className="text-[11px] text-muted">
+                              {avg !== null ? `Average ${avg}` : "No grades yet"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {s.profileId && <RankBadge rank={rank} size="sm" />}
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            shape="square"
+                            icon={<IconTrash size={12} />}
+                            aria-label={`Remove ${s.name}`}
+                            onClick={(e) => requestDelete(e, "student", s.id, s.name)}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CornerFrame>
+          )}
+        </>
       )}
 
-      {step === "sections" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
-            <ActionButton
-              onClick={openSectionForm}
-              variant={showSectionForm ? "neutral" : "gold"}
-              icon={showSectionForm ? <MinusIcon /> : <PlusIcon />}
-            >
-              {showSectionForm ? "Cancel" : "Add year / level"}
-            </ActionButton>
-          </div>
+      {/* ============================================================ */}
+      {/* CREATE / EDIT MODALS                                       */}
+      {/* ============================================================ */}
+      {(step === "levels" || step === "programs") && showProgramForm && (
+        <Modal onClose={() => setShowProgramForm(false)} eyebrow={formEyebrow} description={formDesc}>
+          <form onSubmit={handleProgramSubmit} className="space-y-2.5">
+            <input
+              value={programDraft.name}
+              onChange={(e) => setProgramDraft((d) => ({ ...d, name: e.target.value }))}
+              placeholder={step === "levels" ? "Education level name" : "Program name"}
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            />
+            <input
+              value={programDraft.description}
+              onChange={(e) => setProgramDraft((d) => ({ ...d, description: e.target.value }))}
+              placeholder="Description (optional)"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            />
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" variant="primary" icon={editingProgramId ? <IconCheck size={13} /> : <IconPlus size={13} />}>
+                {editingProgramId ? "Save changes" : "Create"}
+              </Button>
+              <Button variant="outline" onClick={() => setShowProgramForm(false)}>Cancel</Button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
-          {showSectionForm && (
-            <form onSubmit={handleSectionSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-              <input
-                value={sectionDraft}
-                onChange={(e) => setSectionDraft(e.target.value)}
-                placeholder="Year / level name"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <ActionButton type="submit" variant="navy" icon={editingSectionId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
+      {step === "sections" && showSectionForm && (
+        <Modal onClose={() => setShowSectionForm(false)} eyebrow={formEyebrow} description={formDesc}>
+          <form onSubmit={handleSectionSubmit} className="space-y-2.5">
+            <input
+              value={sectionDraft}
+              onChange={(e) => setSectionDraft(e.target.value)}
+              placeholder="Year / level name"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            />
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" variant="primary" icon={editingSectionId ? <IconCheck size={13} /> : <IconPlus size={13} />}>
                 {editingSectionId ? "Save changes" : "Create"}
-              </ActionButton>
-            </form>
-          )}
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {sections.length === 0 && (
-              <p className="text-sm text-muted">No year/levels under {selectedProgramName} yet.</p>
-            )}
-            {sections.map((sec) => (
-              <div
-                key={sec.id}
-                onClick={() => handleSectionSelect(sec.id)}
-                className="relative cursor-pointer rounded-[10px] border border-base bg-surface p-8 text-center transition hover:border-sealion"
-              >
-                <div className="absolute right-3 top-3 flex gap-1.5">
-                  <IconBtn onClick={(e) => startEditSection(e, sec.id, sec.name)} label="Edit year/level" variant="edit">✎</IconBtn>
-                  <IconBtn onClick={(e) => handleDeleteSection(e, sec.id, sec.name)} label="Delete year/level" variant="delete">✕</IconBtn>
-                </div>
-                <p className="text-2xl font-bold text-navy">{sec.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+              </Button>
+              <Button variant="outline" onClick={() => setShowSectionForm(false)}>Cancel</Button>
+            </div>
+          </form>
+        </Modal>
       )}
 
-      {step === "courses" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
-            <ActionButton
-              onClick={openCourseForm}
-              variant={showCourseForm ? "neutral" : "gold"}
-              icon={showCourseForm ? <MinusIcon /> : <PlusIcon />}
+      {step === "courses" && showCourseForm && (
+        <Modal onClose={() => setShowCourseForm(false)} eyebrow={formEyebrow} description={formDesc}>
+          <form onSubmit={handleCourseSubmit} className="space-y-2.5">
+            <input
+              value={courseDraft.name}
+              onChange={(e) => setCourseDraft((d) => ({ ...d, name: e.target.value }))}
+              placeholder="Course name"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            />
+            <input
+              value={courseDraft.code}
+              onChange={(e) => setCourseDraft((d) => ({ ...d, code: e.target.value }))}
+              placeholder="Course code (optional)"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            />
+            <select
+              value={courseDraft.teacherId}
+              onChange={(e) => {
+                const t = signedUpTeachers.find((p) => p.id === e.target.value);
+                setCourseDraft((d) => ({ ...d, teacherId: e.target.value, teacherName: t?.full_name ?? "" }));
+              }}
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
             >
-              {showCourseForm ? "Cancel" : "Add course"}
-            </ActionButton>
-          </div>
-
-          {showCourseForm && (
-            <form onSubmit={handleCourseSubmit} className="space-y-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-              <input
-                value={courseDraft.name}
-                onChange={(e) => setCourseDraft((d) => ({ ...d, name: e.target.value }))}
-                placeholder="Course name"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <input
-                value={courseDraft.code}
-                onChange={(e) => setCourseDraft((d) => ({ ...d, code: e.target.value }))}
-                placeholder="Course code (optional)"
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <select
-                value={courseDraft.teacherId}
-                onChange={(e) => {
-                  const t = signedUpTeachers.find((p) => p.id === e.target.value);
-                  setCourseDraft((d) => ({ ...d, teacherId: e.target.value, teacherName: t?.full_name ?? "" }));
-                }}
-                className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              >
-                <option value="">Assign teacher (optional)</option>
-                {signedUpTeachers.map((t) => (
-                  <option key={t.id} value={t.id}>{t.full_name}</option>
-                ))}
-              </select>
-              <ActionButton type="submit" variant="navy" icon={editingCourseId ? <CheckIcon /> : <PlusIcon size={12} />} className="w-full justify-center">
+              <option value="">Assign teacher (optional)</option>
+              {signedUpTeachers.map((t) => (
+                <option key={t.id} value={t.id}>{t.full_name}</option>
+              ))}
+            </select>
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" variant="primary" icon={editingCourseId ? <IconCheck size={13} /> : <IconPlus size={13} />}>
                 {editingCourseId ? "Save changes" : "Create"}
-              </ActionButton>
-            </form>
-          )}
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.length === 0 && (
-              <p className="text-sm text-muted">No courses in this year/level yet.</p>
-            )}
-            {courses.map((crs) => (
-              <div
-                key={crs.id}
-                onClick={() => handleCourseSelect(crs.id)}
-                className="cursor-pointer rounded-[10px] border border-base bg-surface p-6 text-left transition hover:border-sealion"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-lg font-bold text-navy">{crs.name}</p>
-                  <div className="flex shrink-0 gap-1.5">
-                    <IconBtn onClick={(e) => startEditCourse(e, crs.id, crs.name, crs.code, crs.teacherId, crs.teacherName)} label="Edit course" variant="edit">✎</IconBtn>
-                    <IconBtn onClick={(e) => handleDeleteCourse(e, crs.id, crs.name)} label="Delete course" variant="delete">✕</IconBtn>
-                  </div>
-                </div>
-                {crs.code && <p className="mt-2 text-xs text-muted">{crs.code}</p>}
-                <p className="mt-1 text-xs text-gold">{crs.teacherName ? `Taught by ${crs.teacherName}` : "No teacher assigned"}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+              </Button>
+              <Button variant="outline" onClick={() => setShowCourseForm(false)}>Cancel</Button>
+            </div>
+          </form>
+        </Modal>
       )}
 
-      {step === "students" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <ActionButton variant="neutral" icon={<BackIcon />} onClick={handleBack}>Back</ActionButton>
+      {/* ============================================================ */}
+      {/* DELETE CONFIRMATION                                        */}
+      {/* ============================================================ */}
+      {confirmTarget && (
+        <Modal
+          onClose={() => setConfirmTarget(null)}
+          eyebrow="Confirm delete"
+          description={`Delete "${confirmTarget.name}"?`}
+          maxWidth="max-w-sm"
+        >
+          <p className="text-sm leading-6 text-muted">{confirmMessage}</p>
+          <div className="mt-5 flex gap-2">
+            <Button variant="danger" icon={<IconTrash size={13} />} onClick={runDelete}>
+              Delete
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmTarget(null)}>Cancel</Button>
           </div>
-
-          <CornerFrame className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Students in this course</p>
-            {students.length === 0 ? (
-              <p className="mt-2 text-sm text-muted">
-                No students here yet. Enroll them from Admin &gt; Students - picking their education level, program,
-                and year/level in Academic info automatically gives them access to this course&apos;s classes.
-              </p>
-            ) : (
-              <div className="mt-3 space-y-2">
-                {students.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-base bg-surface px-3 py-2">
-                    <div>
-                      <p className="text-sm font-semibold text-navy">{s.name}</p>
-                      {s.profileId && (
-                        <p className="text-xs text-muted">
-                          {getStudentAverage(s.profileId) !== null ? `Average ${getStudentAverage(s.profileId)}` : "No grades yet"}
-                          {rankOf(s.profileId) ? ` · Rank ${rankOf(s.profileId)?.current_rank ?? "D"}` : ""}
-                        </p>
-                      )}
-                    </div>
-                    <IconBtn onClick={(e) => { e.stopPropagation(); handleDeleteStudent(s.id, s.name); }} label="Remove student" variant="delete">✕</IconBtn>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CornerFrame>
-        </div>
+        </Modal>
       )}
     </div>
   );

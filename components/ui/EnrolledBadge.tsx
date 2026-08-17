@@ -12,7 +12,7 @@ export function EnrolledBadge({ status, size = "md" }: { status: EffectiveEnroll
 
   return (
     <span title="Active enrollment" className="inline-flex shrink-0 items-center justify-center">
-      <span className={`${dims} flex items-center justify-center rounded-full border border-emerald-400/70 bg-emerald-500/15 text-emerald-600`}>
+      <span className={`${dims} flex items-center justify-center rounded-full border border-gold-soft bg-gold-soft text-gold-token`}>
         <svg viewBox="0 0 20 20" fill="none" className="h-[70%] w-[70%]" aria-hidden>
           <path d="M5.5 10.5l3 3L14.5 7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

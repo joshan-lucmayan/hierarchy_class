@@ -204,7 +204,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
                   type="button"
                   onClick={saveValue}
                   disabled={busy === "value"}
-                  className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-60"
+                  className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
                 >
                   {busy === "value" ? "Saving..." : "Save"}
                 </button>
@@ -223,17 +223,17 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
                 className={`mt-2 rounded-full px-4 py-2 text-xs font-semibold transition disabled:opacity-60 ${
                   binaryDone
                     ? "border border-sealion bg-gold text-on-accent"
-                    : "bg-navy text-white hover:bg-gold hover:text-on-accent"
+                    : "bg-navy text-white hover-bg-gold-token hover-text-on-accent"
                 }`}
               >
                 {busy === "toggle" ? "Saving..." : binaryDone ? "Done today ✓" : todayLabel}
               </button>
             )}
-            {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
+            {error && <p className="mt-2 text-xs text-warn">{error}</p>}
           </div>
         )}
 
-        {error && !dueToday && <p className="mt-3 text-xs text-red-500">{error}</p>}
+        {error && !dueToday && <p className="mt-3 text-xs text-warn">{error}</p>}
 
         {/* Actions */}
         <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-base pt-4">
@@ -293,7 +293,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
                 type="button"
                 onClick={() => run(() => archiveHabit(habit.id), "archive")}
                 disabled={busy === "archive"}
-                className="rounded-full bg-navy px-3 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-60"
+                className="rounded-full bg-navy px-3 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
               >
                 {busy === "archive" ? "Archiving..." : "Archive"}
               </button>

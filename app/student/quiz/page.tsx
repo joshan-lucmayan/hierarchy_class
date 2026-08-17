@@ -86,7 +86,7 @@ export default function StudentQuizPage() {
               Question {questionIndex + 1} of {activeQuiz.questions.length}
             </p>
           </div>
-          <span className={`text-sm font-bold ${timeLeft <= 10 ? "text-red-600" : "text-navy"}`}>
+          <span className={`text-sm font-bold ${timeLeft <= 10 ? "text-warn" : "text-navy"}`}>
             {minutes}:{seconds.toString().padStart(2, "0")}
           </span>
         </div>
@@ -116,7 +116,7 @@ export default function StudentQuizPage() {
             type="button"
             onClick={nextQuestion}
             disabled={answers[questionIndex] === undefined}
-            className="mt-6 w-full justify-center rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
+            className="mt-6 w-full justify-center rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-40"
           >
             {questionIndex < activeQuiz.questions.length - 1 ? "Next question" : "Submit quiz"}
           </button>
@@ -161,7 +161,7 @@ export default function StudentQuizPage() {
               <button
                 type="button"
                 onClick={() => startQuiz(quiz)}
-                className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+                className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
               >
                 Start quiz
               </button>

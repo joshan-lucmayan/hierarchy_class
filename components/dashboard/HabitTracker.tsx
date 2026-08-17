@@ -56,7 +56,7 @@ export default function HabitTracker() {
           ))}
         </div>
       ) : error ? (
-        <p className="mt-4 text-sm text-red-500">{error}</p>
+        <p className="mt-4 text-sm text-warn">{error}</p>
       ) : active.length === 0 ? (
         <p className="mt-4 text-[12.5px] leading-5 text-muted">
           No active habits.{" "}
@@ -129,7 +129,7 @@ export default function HabitTracker() {
             );
           })}
           {actionError && (
-            <p className="mt-2 rounded-md border border-red-300 bg-red-500/5 px-2.5 py-1.5 text-[11px] text-red-600">
+            <p className="mt-2 rounded-md border border-warn-soft bg-warn-soft px-2.5 py-1.5 text-[11px] text-warn">
               {actionError}
             </p>
           )}

@@ -31,8 +31,8 @@ export function LogoLockup() {
         <h1 className="wordmark-shimmer font-display text-[18px] font-semibold uppercase tracking-[0.12em]">
           Hierarchy Class
         </h1>
-        <p className="font-mono-ui text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--gold)]">
-          Climb the ranks
+        <p className="font-mono-ui text-center text-[9px] font-medium uppercase leading-relaxed tracking-[0.16em] text-[var(--gold)]">
+          Make school feel like a game worth playing
         </p>
       </div>
     </div>

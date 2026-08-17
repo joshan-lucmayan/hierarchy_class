@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { IconCheck, IconTrash } from "@/components/ui/icons";
+import { BookCover } from "@/components/library/BookCover";
 import { useLibraryStore } from "@/lib/libraryStore";
 import { LibraryBook } from "@/types/student";
 
@@ -38,104 +42,114 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
     onClose();
   }
 
+  const inputCls =
+    "w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-gold";
+  const fieldLabel = "font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-gold">Edit book</p>
-          <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
+    <Modal onClose={onClose} eyebrow="Library" description="Update this book in the school catalog">
+      <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+        <h3 className="section-label">Book information</h3>
+        <div className="flex gap-4">
+          <BookCover book={book} size="lg" />
+          <div className="flex-1 space-y-2">
+            <label htmlFor="edit-book-title" className={fieldLabel}>Title</label>
+            <input
+              id="edit-book-title"
+              value={draft.title}
+              onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+              placeholder="Title"
+              required
+              className={inputCls}
+            />
+            <label htmlFor="edit-book-author" className={fieldLabel}>Author</label>
+            <input
+              id="edit-book-author"
+              value={draft.author}
+              onChange={(e) => setDraft((d) => ({ ...d, author: e.target.value }))}
+              placeholder="Author"
+              required
+              className={inputCls}
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-3">
-          <div className="flex gap-4">
-            {draft.coverUrl && (
-              <img src={draft.coverUrl} alt="" className="h-28 w-20 shrink-0 rounded-lg border border-base object-cover" />
-            )}
-            <div className="flex-1 space-y-2">
-              <input
-                value={draft.title}
-                onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                placeholder="Title"
-                required
-                className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-              <input
-                value={draft.author}
-                onChange={(e) => setDraft((d) => ({ ...d, author: e.target.value }))}
-                placeholder="Author"
-                required
-                className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-            </div>
-          </div>
+        <label htmlFor="edit-book-genre" className={fieldLabel}>Genre</label>
+        <input
+          id="edit-book-genre"
+          value={draft.genre}
+          onChange={(e) => setDraft((d) => ({ ...d, genre: e.target.value }))}
+          placeholder="Genre"
+          className={inputCls}
+        />
+        <label htmlFor="edit-book-description" className={fieldLabel}>Description</label>
+        <textarea
+          id="edit-book-description"
+          value={draft.description}
+          onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+          placeholder="Description (optional)"
+          rows={3}
+          className={inputCls}
+        />
+        <label htmlFor="edit-book-cover" className={fieldLabel}>Cover image URL</label>
+        <input
+          id="edit-book-cover"
+          value={draft.coverUrl}
+          onChange={(e) => setDraft((d) => ({ ...d, coverUrl: e.target.value }))}
+          placeholder="Cover image URL (optional)"
+          className={inputCls}
+        />
 
-          <input
-            value={draft.genre}
-            onChange={(e) => setDraft((d) => ({ ...d, genre: e.target.value }))}
-            placeholder="Genre"
-            className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-          />
-          <textarea
-            value={draft.description}
-            onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
-            placeholder="Description (optional)"
-            rows={3}
-            className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-          />
-          <input
-            value={draft.coverUrl}
-            onChange={(e) => setDraft((d) => ({ ...d, coverUrl: e.target.value }))}
-            placeholder="Cover image URL (optional)"
-            className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-          />
-
-          <button
+        <div className="flex gap-2 pt-2">
+          <Button
             type="submit"
+            variant="gold"
+            className="flex-1"
+            icon={<IconCheck size={13} />}
             disabled={submitting || !draft.title.trim() || !draft.author.trim()}
-            className="w-full rounded-full bg-navy py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
+            loading={submitting}
           >
             {submitting ? "Saving..." : "Save changes"}
-          </button>
-        </form>
-
-        <div className="mt-4 border-t border-base pt-4">
-          {!confirmingDelete ? (
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              className="w-full rounded-full border border-base px-4 py-2 text-xs font-semibold text-muted transition hover:border-red-400 hover:text-red-600"
-            >
-              Delete this book
-            </button>
-          ) : (
-            <div className="space-y-2 rounded-[10px] border border-red-300 bg-red-500/5 p-4">
-              <p className="text-xs text-navy">
-                Delete &quot;{book.title}&quot; permanently? This can&apos;t be undone.
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={submitting}
-                  className="flex-1 rounded-full bg-red-500 py-2 text-xs font-semibold text-white transition hover:bg-red-600 disabled:opacity-40"
-                >
-                  Yes, delete
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingDelete(false)}
-                  className="flex-1 rounded-full border border-base py-2 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
         </div>
+      </form>
+
+      <div className="mt-4 border-t border-base pt-4">
+        {!confirmingDelete ? (
+          <Button
+            variant="danger"
+            className="w-full"
+            icon={<IconTrash size={13} />}
+            onClick={() => setConfirmingDelete(true)}
+          >
+            Delete this book
+          </Button>
+        ) : (
+          <div className="space-y-3 rounded-[10px] border border-warn-soft bg-warn-soft p-4">
+            <p className="text-xs leading-5 text-navy">
+              Delete &quot;{book.title}&quot; permanently? This removes it from the library for
+              everyone and can&apos;t be undone.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                className="flex-1"
+                onClick={handleDelete}
+                disabled={submitting}
+                loading={submitting}
+              >
+                {submitting ? "Deleting..." : "Yes, delete"}
+              </Button>
+              <Button variant="outline" onClick={() => setConfirmingDelete(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -4,8 +4,12 @@ import { useMemo } from "react";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { Stat } from "@/components/ui/Stat";
+import { Bar } from "@/components/ui/Bar";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { IconTask, IconPost, IconUser, IconCheck } from "@/components/ui/icons";
 import { useRankStore } from "@/lib/rankStore";
 import type { Rank } from "@/lib/rankEngine";
 
@@ -13,8 +17,8 @@ export default function AdminReportsPage() {
   const { programs, sections, courses, gradeEntries, getStudentAverageByProfile } =
     useClassroomHierarchy();
   const { rankOf } = useRankStore();
-  const { profiles: students, loading: studentsLoading } = useSchoolProfiles({ role: "student" });
-  const { profiles: teachers, loading: teachersLoading } = useSchoolProfiles({ role: "teacher" });
+  const { profiles: students, loading: studentsLoading, error: studentsError } = useSchoolProfiles({ role: "student" });
+  const { profiles: teachers, loading: teachersLoading, error: teachersError } = useSchoolProfiles({ role: "teacher" });
 
   const studentStats = useMemo(
     () =>
@@ -107,162 +111,259 @@ export default function AdminReportsPage() {
       .sort((a, b) => b.count - a.count);
   }, [teachers, gradeEntries]);
 
-  const SUMMARY_STATS = [
-    { label: "School academic excellence", value: schoolAverage !== null ? `${schoolAverage}` : "No data yet" },
-    { label: "Students with recorded grades", value: `${gradedStudentCount} / ${students.length}` },
-    { label: "Total grade entries logged", value: `${gradeEntries.length}` },
-    { label: "Courses tracked", value: `${courses.length}` },
-  ];
-
   const loading = studentsLoading || teachersLoading;
+  const error = studentsError || teachersError;
 
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Reports</p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">School progress</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          Live academic excellence, rank distribution, and teacher activity for your school, computed from every grade submitted.
-        </p>
-      </CornerFrame>
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* BAND 0 - HEADER                                             */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-navy">School reports</h1>
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
+            Live academic excellence · rank distribution · teacher activity
+          </h2>
+        </div>
+        <Stat
+          label="School excellence"
+          value={loading ? "—" : schoolAverage !== null ? schoolAverage : "—"}
+          tone="gold"
+          hint="Weighted across all students"
+        />
+      </div>
 
-      {loading && <p className="text-sm text-muted">Loading report data...</p>}
-
-      {!loading && (
-        <>
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {SUMMARY_STATS.map((stat) => (
-              <CornerFrame
-                key={stat.label}
-                className="rounded-[10px] border border-base bg-surface p-5 transition hover:border-gold hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                <p className="text-xs uppercase tracking-[0.2em] text-muted">{stat.label}</p>
-                <p className="mt-4 text-3xl font-bold text-navy">{stat.value}</p>
-              </CornerFrame>
+      {loading ? (
+        /* Skeleton: mirror the report geometry - stat tiles + section rows. */
+        <CornerFrame className="p-5">
+          <div className="h-3 w-40 animate-pulse rounded-full bg-tile" />
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-16 animate-pulse rounded-[8px] border border-line bg-tile" />
             ))}
+          </div>
+          <div className="mt-4 space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex animate-pulse items-center gap-3 rounded-[10px] border border-base p-3">
+                <div className="h-8 w-8 shrink-0 rounded-full bg-tile" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-48 rounded-full bg-tile" />
+                  <div className="h-2.5 w-24 rounded-full bg-tile" />
+                </div>
+                <div className="h-3 w-10 rounded-full bg-tile" />
+              </div>
+            ))}
+          </div>
+        </CornerFrame>
+      ) : error ? (
+        <p className="rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">
+          Couldn&apos;t load report data. Please refresh and try again.
+        </p>
+      ) : (
+        <>
+          {/* ========================================================== */}
+          {/* SNAPSHOT                                                  */}
+          {/* ========================================================== */}
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Stat label="School academic excellence" value={schoolAverage !== null ? schoolAverage : "—"} tone="gold" />
+            <Stat label="Students with recorded grades" value={`${gradedStudentCount} / ${students.length}`} />
+            <Stat label="Total grade entries logged" value={gradeEntries.length} />
+            <Stat label="Courses tracked" value={courses.length} />
           </section>
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Rank distribution</h2>
-              <div className="mt-4 space-y-2">
+          {/* ========================================================== */}
+          {/* RANK DISTRIBUTION + GRADE TYPE                            */}
+          {/* ========================================================== */}
+          <div className="grid gap-4 xl:grid-cols-2">
+            <CornerFrame className="p-5">
+              <h3 className="section-label">Rank distribution</h3>
+              <p className="mt-1.5 text-xs leading-5 text-muted">
+                Where students currently sit on the ladder - unranked students are not counted.
+              </p>
+              <div className="mt-4 space-y-2.5">
                 {Object.entries(rankDistribution).map(([rank, count]) => (
                   <div key={rank} className="flex items-center gap-3">
                     <RankBadge rank={rank as Rank} size="sm" />
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--surface-strong)]">
-                      <div
-                        className="h-full bg-gold"
-                        style={{ width: students.length ? `${(count / students.length) * 100}%` : "0%" }}
-                      />
-                    </div>
-                    <p className="w-6 shrink-0 text-right text-xs font-semibold text-navy">{count}</p>
+                    <Bar
+                      value={students.length ? (count / students.length) * 100 : 0}
+                      tone="gold"
+                      size="md"
+                      className="flex-1"
+                    />
+                    <p className="w-6 shrink-0 text-right font-mono-ui text-[11px] tabular-nums text-muted">{count}</p>
                   </div>
                 ))}
               </div>
             </CornerFrame>
 
-            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Average by grade type</h2>
-              <div className="mt-4 space-y-2">
+            <CornerFrame className="p-5">
+              <h3 className="section-label">Average by grade type</h3>
+              <p className="mt-1.5 text-xs leading-5 text-muted">
+                Mean score per assessment type across every submitted grade.
+              </p>
+              <div className="mt-4 divide-y divide-[var(--border)]">
                 {gradeTypeBreakdown.map((g) => (
-                  <div key={g.type} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
-                    <div>
+                  <div key={g.type} className="flex items-center justify-between gap-4 py-2.5">
+                    <div className="min-w-0">
                       <p className="text-sm text-navy">{g.type}</p>
-                      <p className="text-xs text-muted">{g.count} submitted</p>
+                      <p className="mt-0.5 text-xs text-muted">{g.count} submitted</p>
                     </div>
-                    <p className="text-sm font-bold text-gold">{g.avg ?? "--"}</p>
+                    <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-gold-token">
+                      {g.avg !== null ? g.avg : "--"}
+                    </p>
                   </div>
                 ))}
               </div>
             </CornerFrame>
           </div>
 
+          {/* ========================================================== */}
+          {/* AVERAGE BY PROGRAM                                        */}
+          {/* ========================================================== */}
           {programs.length > 0 && (
-            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Average by program</h2>
+            <CornerFrame className="p-5">
+              <h3 className="section-label">Average by program</h3>
+              <p className="mt-1.5 text-xs leading-5 text-muted">
+                Mean score of every grade entered in each program&apos;s courses.
+              </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {programAverages.map(({ program, avg, courseCount }) => (
-                  <div key={program.id} className="rounded-[10px] border border-base p-4">
-                    <p className="text-sm font-semibold text-navy">{program.name}</p>
+                  <div key={program.id} className="rounded-[10px] border border-base bg-surface p-4">
+                    <p className="truncate text-sm font-semibold text-navy">{program.name}</p>
                     <p className="mt-1 text-xs text-muted">{courseCount} course{courseCount === 1 ? "" : "s"}</p>
-                    <p className="mt-2 text-xl font-bold text-gold">{avg ?? "--"}</p>
+                    <p className="mt-2 font-mono-ui text-xl font-bold tabular-nums text-gold-token">
+                      {avg !== null ? avg : "--"}
+                    </p>
                   </div>
                 ))}
               </div>
             </CornerFrame>
           )}
 
-          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Course averages</h2>
-            <div className="mt-4 space-y-2">
-              {courseAverages.length === 0 && <p className="text-sm text-muted">No courses yet.</p>}
-              {courseAverages.map(({ course, avg }) => (
-                <div key={course.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
-                  <p className="text-sm text-navy">{course.name}</p>
-                  <p className="text-sm font-bold text-gold">{avg !== null ? avg : "--"}</p>
-                </div>
-              ))}
-            </div>
+          {/* ========================================================== */}
+          {/* COURSE AVERAGES                                           */}
+          {/* ========================================================== */}
+          <CornerFrame className="p-5">
+            <h3 className="section-label">Course averages</h3>
+            <p className="mt-1.5 text-xs leading-5 text-muted">
+              Mean score per course, highest first.
+            </p>
+            {courseAverages.length === 0 ? (
+              <div className="py-4">
+                <EmptyState
+                  icon={<IconTask size={16} />}
+                  title="No courses yet"
+                  desc="Course averages appear here once grades are submitted."
+                />
+              </div>
+            ) : (
+              <div className="mt-3 divide-y divide-[var(--border)]">
+                {courseAverages.map(({ course, avg }) => (
+                  <div key={course.id} className="flex items-center justify-between gap-4 py-2.5">
+                    <p className="min-w-0 truncate text-sm text-navy">{course.name}</p>
+                    <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-gold-token">
+                      {avg !== null ? avg : "--"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </CornerFrame>
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Top performers</h2>
-              <div className="mt-4 space-y-2">
-                {topPerformers.length === 0 ? (
-                  <p className="text-sm text-muted">No grades recorded yet.</p>
-                ) : (
-                  topPerformers.map((s, i) => (
-                    <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-base px-3 py-2">
-                      <p className="w-5 text-center text-xs font-bold text-muted">{i + 1}</p>
-                      <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" />
-                      <p className="flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
-                      <p className="text-sm font-bold text-gold">{s.avg}</p>
+          {/* ========================================================== */}
+          {/* TOP PERFORMERS + NEEDING ATTENTION                        */}
+          {/* ========================================================== */}
+          <div className="grid gap-4 xl:grid-cols-2">
+            <CornerFrame className="p-5">
+              <h3 className="section-label">Top performers</h3>
+              <p className="mt-1.5 text-xs leading-5 text-muted">
+                The five students with the highest weighted averages.
+              </p>
+              {topPerformers.length === 0 ? (
+                <div className="py-4">
+                  <EmptyState
+                    icon={<IconPost size={16} />}
+                    title="No grades recorded yet"
+                    desc="Once grades are in, the top students appear here."
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 divide-y divide-[var(--border)]">
+                  {topPerformers.map((s, i) => (
+                    <div key={s.profile.id} className="flex items-center gap-3 py-2.5">
+                      <p className="w-5 shrink-0 text-center font-mono-ui text-[11px] tabular-nums text-muted">{i + 1}</p>
+                      <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" profileId={s.profile.id} />
+                      <p className="min-w-0 flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
+                      {s.rank && <RankBadge rank={s.rank} size="sm" />}
+                      <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-gold-token">{s.avg}</p>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </CornerFrame>
 
-            <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Students needing attention</h2>
-              <p className="mt-1 text-[11px] text-muted">Averages below 75</p>
-              <div className="mt-3 space-y-2">
-                {needsAttention.length === 0 ? (
-                  <p className="text-sm text-muted">No students below 75 right now.</p>
-                ) : (
-                  needsAttention.map((s) => (
-                    <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-red-300 bg-red-500/5 px-3 py-2">
-                      <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" />
-                      <p className="flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
-                      <p className="text-sm font-bold text-red-600">{s.avg}</p>
+            <CornerFrame className="p-5">
+              <h3 className="section-label">Students needing attention</h3>
+              <p className="mt-1.5 text-xs leading-5 text-muted">
+                Students with a weighted average below 75.
+              </p>
+              {needsAttention.length === 0 ? (
+                <div className="py-4">
+                  <EmptyState
+                    icon={<IconCheck size={16} />}
+                    title="All clear"
+                    desc="No students are currently below 75."
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {needsAttention.map((s) => (
+                    <div key={s.profile.id} className="flex items-center gap-3 rounded-[10px] border border-warn-soft bg-warn-soft px-3 py-2.5">
+                      <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" profileId={s.profile.id} />
+                      <p className="min-w-0 flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
+                      <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-warn">{s.avg}</p>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </CornerFrame>
           </div>
 
-          <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Teacher submission activity</h2>
-            <div className="mt-4 space-y-2">
-              {teacherActivity.length === 0 ? (
-                <p className="text-sm text-muted">No teachers signed up yet.</p>
-              ) : (
-                teacherActivity.map(({ teacher, count, lastDate }) => (
-                  <div key={teacher.id} className="flex items-center justify-between rounded-[10px] border border-base px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <UserAvatar name={teacher.full_name} src={teacher.avatar_url} size="sm" />
-                      <p className="text-sm text-navy">{teacher.full_name}</p>
+          {/* ========================================================== */}
+          {/* TEACHER SUBMISSION ACTIVITY                               */}
+          {/* ========================================================== */}
+          <CornerFrame className="p-5">
+            <h3 className="section-label">Teacher submission activity</h3>
+            <p className="mt-1.5 text-xs leading-5 text-muted">
+              How many grades each teacher has submitted so far.
+            </p>
+            {teacherActivity.length === 0 ? (
+              <div className="py-4">
+                <EmptyState
+                  icon={<IconUser size={16} />}
+                  title="No teachers signed up yet"
+                  desc="Submission activity appears here once teachers join."
+                />
+              </div>
+            ) : (
+              <div className="mt-3 divide-y divide-[var(--border)]">
+                {teacherActivity.map(({ teacher, count, lastDate }) => (
+                  <div key={teacher.id} className="flex items-center justify-between gap-4 py-2.5">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <UserAvatar name={teacher.full_name} src={teacher.avatar_url} size="sm" profileId={teacher.id} />
+                      <p className="min-w-0 truncate text-sm text-navy">{teacher.full_name}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-gold">{count} grade{count === 1 ? "" : "s"}</p>
-                      {lastDate && <p className="text-[11px] text-muted">Last: {lastDate}</p>}
+                    <div className="shrink-0 text-right">
+                      <p className="font-mono-ui text-sm font-semibold tabular-nums text-gold-token">
+                        {count} grade{count === 1 ? "" : "s"}
+                      </p>
+                      {lastDate && <p className="mt-0.5 text-[11px] text-muted">Last: {lastDate}</p>}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CornerFrame>
         </>
       )}

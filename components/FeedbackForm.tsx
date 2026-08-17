@@ -51,14 +51,14 @@ export function FeedbackForm() {
         <button
           type="submit"
           disabled={state === "sending" || !feedback.trim()}
-          className="inline-flex items-center justify-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state === "sending" ? "Sending..." : "Send feedback"}
         </button>
         {state === "done" && (
-          <p className="text-sm font-semibold text-emerald-600">Thanks! Your feedback has been sent.</p>
+          <p className="text-sm font-semibold text-gold-token">Thanks! Your feedback has been sent.</p>
         )}
-        {state === "error" && <p className="text-sm text-red-500">{errorText}</p>}
+        {state === "error" && <p className="text-sm text-warn">{errorText}</p>}
       </div>
     </form>
   );

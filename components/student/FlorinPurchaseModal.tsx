@@ -49,7 +49,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
         >
           Close
         </button>

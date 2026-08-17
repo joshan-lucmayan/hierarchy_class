@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useSchoolFeed, SchoolPost } from "@/lib/schoolFeedStore";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 
 const AUDIENCES = [
   { value: "everyone", label: "Everyone in the school" },
@@ -50,26 +52,15 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-              {post ? `Edit ${isAnnouncement ? "announcement" : "post"}` : `New ${isAnnouncement ? "announcement" : "school post"}`}
-            </p>
-            <p className="mt-1 text-[11px] text-muted">
-              {isAnnouncement
-                ? "Text-only notice for an important school announcement."
-                : "A social-style feed post. Text is the main content; image and title are optional."}
-            </p>
-          </div>
-          <button type="button" onClick={onClose} className="text-muted transition hover:text-navy">✕</button>
-        </div>
-
+    <Modal
+      onClose={onClose}
+      eyebrow={post ? `Edit ${isAnnouncement ? "announcement" : "post"}` : `New ${isAnnouncement ? "announcement" : "school post"}`}
+      description={
+        isAnnouncement
+          ? "Text-only notice for an important school announcement."
+          : "A social-style feed post. Text is the main content; image and title are optional."
+      }
+    >
         <div className="mt-5 space-y-4">
           <label className="space-y-2 text-sm font-semibold text-muted">
             Title (optional)
@@ -130,7 +121,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
                 >
                   Choose image
                 </button>
@@ -162,27 +153,24 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
             </label>
           )}
 
-          {formError && <p className="text-sm text-red-500">{formError}</p>}
+          {formError && <p className="text-sm text-warn">{formError}</p>}
 
           <div className="flex gap-3">
-            <button
-              type="button"
+            <Button
+              variant="gold"
+              size="lg"
               onClick={handleSave}
               disabled={submitting}
-              className="flex-1 rounded-full bg-gold py-3 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
+              loading={submitting}
+              className="flex-1"
             >
               {submitting ? "Publishing..." : post ? "Save changes" : isAnnouncement ? "Publish announcement" : "Publish post"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-base px-6 py-3 text-sm font-semibold text-muted transition hover:border-gold"
-            >
+            </Button>
+            <Button variant="outline" size="lg" onClick={onClose}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

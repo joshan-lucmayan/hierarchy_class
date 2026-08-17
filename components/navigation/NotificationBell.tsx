@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useNotifications } from "@/lib/notificationsStore";
 
 const TYPE_DOT: Record<string, string> = {
-  announcement: "bg-gold",
-  message: "bg-blue-500",
+  announcement: "bg-gold-token",
+  message: "bg-sealion",
   task: "bg-purple-500",
-  grade: "bg-emerald-500",
-  friend: "bg-pink-500",
+  grade: "bg-gold-token",
+  friend: "bg-[var(--warn-fill)]",
   system: "bg-gray-400",
 };
 
@@ -81,7 +81,7 @@ export function NotificationBell() {
                   <button
                     type="button"
                     onClick={() => clearAll()}
-                    className="rounded-full border border-base px-2.5 py-1 text-[10px] font-semibold text-muted transition hover:border-red-300 hover:text-red-600"
+                    className="rounded-full border border-base px-2.5 py-1 text-[10px] font-semibold text-muted transition hover-border-warn-soft hover-text-warn"
                   >
                     Clear
                   </button>
@@ -92,7 +92,7 @@ export function NotificationBell() {
           {loading ? (
             <p className="px-3 py-4 text-sm text-muted">Loading...</p>
           ) : error ? (
-            <p className="px-3 py-4 text-sm text-red-500">{error}</p>
+            <p className="px-3 py-4 text-sm text-warn">{error}</p>
           ) : notifications.length === 0 ? (
             <p className="px-3 py-4 text-sm text-muted">You&apos;re all caught up.</p>
           ) : (

@@ -120,7 +120,7 @@ export function SignupForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-5">
       {errors.form ? (
-        <div className="animate-shake rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+        <div className="animate-shake rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
           {errors.form}
         </div>
       ) : null}
@@ -145,9 +145,9 @@ export function SignupForm() {
             disabled={isLoading}
             autoComplete="given-name"
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.firstName ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.firstName ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
-          {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
+          {errors.firstName && <p className="text-xs text-warn">{errors.firstName}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-navy">
@@ -162,9 +162,9 @@ export function SignupForm() {
             disabled={isLoading}
             autoComplete="family-name"
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.lastName ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.lastName ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
-          {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
+          {errors.lastName && <p className="text-xs text-warn">{errors.lastName}</p>}
         </div>
       </div>
 
@@ -180,9 +180,9 @@ export function SignupForm() {
           placeholder="you@example.com"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-            ${errors.email ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+            ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
-        {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+        {errors.email && <p className="text-xs text-warn">{errors.email}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -197,9 +197,9 @@ export function SignupForm() {
           placeholder="Create a strong password"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-            ${errors.password ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+            ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
-        {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+        {errors.password && <p className="text-xs text-warn">{errors.password}</p>}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -212,7 +212,7 @@ export function SignupForm() {
             onChange={(e) => setRole(e.target.value)}
             disabled={isLoading}
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.role ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.role ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           >
             {ROLES.map((option) => (
               <option key={option.value} value={option.value}>
@@ -220,13 +220,13 @@ export function SignupForm() {
               </option>
             ))}
           </select>
-          {errors.role && <p className="text-xs text-red-500">{errors.role}</p>}
+          {errors.role && <p className="text-xs text-warn">{errors.role}</p>}
         </div>
 
         <div className="flex flex-col gap-1.5">
           <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
           {schoolsLoading && <p className="text-xs text-muted">Loading schools...</p>}
-          {schoolsError && <p className="text-xs text-red-500">{schoolsError}</p>}
+          {schoolsError && <p className="text-xs text-warn">{schoolsError}</p>}
         </div>
       </div>
 
@@ -266,7 +266,7 @@ export function SignupForm() {
           .
         </span>
       </label>
-      {errors.terms && <p className="-mt-2 text-xs text-red-500">{errors.terms}</p>}
+      {errors.terms && <p className="-mt-2 text-xs text-warn">{errors.terms}</p>}
 
       <button
         type="submit"

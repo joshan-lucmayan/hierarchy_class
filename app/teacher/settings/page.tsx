@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { CornerFrame } from "@/components/ui/CornerFrame";
+import { Button } from "@/components/ui/Button";
 import { ThemePicker } from "@/components/ThemePicker";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { IconPencil } from "@/components/ui/icons";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { APP_VERSION } from "@/lib/version";
 
@@ -31,26 +34,56 @@ export default function TeacherSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teacher settings</p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">Preferences and account</h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
-          Manage your appearance, send feedback, and control your account.
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* BAND 0 - HEADER                                             */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-navy">Preferences and account</h1>
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
+            Teacher settings · appearance, feedback, account
+          </h2>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* HOME DASHBOARD                                              */}
+      {/* ============================================================ */}
+      <CornerFrame className="p-5">
+        <h3 className="section-label">Home Dashboard</h3>
+        <p className="mt-1.5 text-xs leading-5 text-muted">
+          Customize which information appears on your Home and how it is arranged. Widgets are projections of your
+          live data - arranging them never changes the data itself.
         </p>
+        <div className="mt-4">
+          <Link href="/teacher/home?customize=1">
+            <Button variant="gold" icon={<IconPencil size={13} />}>
+              Customize Home
+            </Button>
+          </Link>
+        </div>
       </CornerFrame>
 
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Appearance</h2>
-        <p className="mt-1 text-xs text-muted">Choose the theme you want to use the app in.</p>
+      {/* ============================================================ */}
+      {/* APPEARANCE                                                  */}
+      {/* ============================================================ */}
+      <CornerFrame className="p-5">
+        <h3 className="section-label">Appearance</h3>
+        <p className="mt-1.5 text-xs leading-5 text-muted">
+          Choose the theme you want to use the app in. Midnight is the default palette; Rose is the soft alternative.
+        </p>
         <div className="mt-4">
           <ThemePicker />
         </div>
       </CornerFrame>
 
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Feedback &amp; report</h2>
-        <p className="mt-1 text-xs text-muted">
+      {/* ============================================================ */}
+      {/* FEEDBACK & REPORT                                           */}
+      {/* ============================================================ */}
+      <CornerFrame className="p-5">
+        <h3 className="section-label">Feedback &amp; report</h3>
+        <p className="mt-1.5 text-xs leading-5 text-muted">
           Send feedback or report a problem. Your name, role, and the current page are included so the developer can follow up.
         </p>
         <div className="mt-4">
@@ -58,43 +91,57 @@ export default function TeacherSettingsPage() {
         </div>
       </CornerFrame>
 
-      <CornerFrame className="rounded-[10px] border border-red-300 bg-surface p-5">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-red-600">Account</h2>
+      {/* ============================================================ */}
+      {/* ACCOUNT                                                     */}
+      {/* ============================================================ */}
+      <CornerFrame tone="warn" className="p-5">
+        <h3 className="section-label">Account</h3>
+        <p className="mt-1.5 text-xs leading-5 text-muted">
+          These actions send a request to your school admin. Nothing changes until they confirm it.
+        </p>
         <div className="mt-4 space-y-3">
-          <div className="flex flex-col gap-2 rounded-[10px] border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-[10px] border border-base bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-navy">Deactivate account</p>
-              <p className="mt-1 text-xs text-muted">Temporarily disable your access. An admin needs to confirm this before it takes effect.</p>
+              <p className="mt-1 text-xs text-muted">
+                Temporarily disable your access. An admin needs to confirm this before it takes effect.
+              </p>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               disabled={busy !== null}
               onClick={() => handleRequest("deactivation")}
-              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
+              className="shrink-0"
             >
               {busy === "deactivation" ? "Submitting..." : "Deactivate account"}
-            </button>
+            </Button>
           </div>
-          <div className="flex flex-col gap-2 rounded-[10px] border border-base p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-[10px] border border-base bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-navy">Request account deletion</p>
-              <p className="mt-1 text-xs text-muted">Sends a request to your school admin. Your account and data are only removed once they confirm it.</p>
+              <p className="mt-1 text-xs text-muted">
+                Sends a request to your school admin. Your account and data are only removed once they confirm it.
+              </p>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="danger"
+              size="sm"
               disabled={busy !== null}
               onClick={() => handleRequest("deletion")}
-              className="shrink-0 rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
+              className="shrink-0"
             >
               {busy === "deletion" ? "Submitting..." : "Request deletion"}
-            </button>
+            </Button>
           </div>
         </div>
-        {requestMessage && <p className="mt-3 text-sm font-semibold text-emerald-600">{requestMessage}</p>}
-        {requestError && <p className="mt-3 text-sm text-red-500">{requestError}</p>}
+        {requestMessage && <p className="mt-3 text-sm font-semibold text-gold-token">{requestMessage}</p>}
+        {requestError && <p className="mt-3 text-sm text-warn">{requestError}</p>}
       </CornerFrame>
 
-      <p className="text-center text-xs text-muted">Hierarchy Class · v{APP_VERSION}</p>
+      <p className="pt-1 text-center font-mono-ui text-[10px] uppercase tracking-[0.2em] text-faint">
+        Hierarchy Class · v{APP_VERSION}
+      </p>
     </div>
   );
 }

@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { IconPlus } from "@/components/ui/icons";
+import { BookCover } from "@/components/library/BookCover";
 import { useLibraryStore } from "@/lib/libraryStore";
+import { LibraryBook } from "@/types/student";
 
 type Mode = "scan" | "manual";
 type ScanInput = "camera" | "device";
@@ -27,6 +32,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
   const [draft, setDraft] = useState<BookDraft>(EMPTY_DRAFT);
   const [submitting, setSubmitting] = useState(false);
   const [deviceBuffer, setDeviceBuffer] = useState("");
+  const [scanRetry, setScanRetry] = useState(0);
   const scannerRef = useRef<any>(null);
   const deviceInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +71,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, scanInput]);
+  }, [mode, scanInput, scanRetry]);
 
   async function stopScanner() {
     const scanner = scannerRef.current;
@@ -117,6 +123,10 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
     setDraft(EMPTY_DRAFT);
     setDeviceBuffer("");
     setScanState("idle");
+    // The scanner effect keys on [mode, scanInput] and would not re-run when
+    // scanState returns to "idle" - bump this counter so "Scan again"
+    // actually restarts the camera instead of leaving an empty box.
+    setScanRetry((t) => t + 1);
     if (scanInput === "device") {
       setTimeout(() => deviceInputRef.current?.focus(), 0);
     }
@@ -153,45 +163,42 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
 
   const showReviewForm = mode === "manual" || scanState === "found" || scanState === "not-found";
 
+  const inputCls =
+    "w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-gold";
+  const fieldLabel = "font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleClose}>
-      <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-gold">Add a book</p>
-          <button type="button" onClick={handleClose} className="text-muted transition hover:text-navy">✕</button>
-        </div>
+    <Modal onClose={handleClose} eyebrow="Library" description="Add a book to the school catalog">
+      {/* Entry mode: scan a barcode or enter the details manually */}
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={() => { setMode("scan"); setScanState("idle"); setDraft(EMPTY_DRAFT); }}
+          className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
+            mode === "scan" ? "bg-gold-token text-on-accent" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+          }`}
+        >
+          Scan barcode
+        </button>
+        <button
+          type="button"
+          onClick={async () => { await stopScanner(); setMode("manual"); setDraft(EMPTY_DRAFT); }}
+          className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
+            mode === "manual" ? "bg-gold-token text-on-accent" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+          }`}
+        >
+          Enter manually
+        </button>
+      </div>
 
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => { setMode("scan"); setScanState("idle"); setDraft(EMPTY_DRAFT); }}
-            className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-              mode === "scan" ? "bg-gold text-on-accent" : "border border-base text-muted hover:border-gold hover:text-gold"
-            }`}
-          >
-            Scan barcode
-          </button>
-          <button
-            type="button"
-            onClick={async () => { await stopScanner(); setMode("manual"); setDraft(EMPTY_DRAFT); }}
-            className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-              mode === "manual" ? "bg-gold text-on-accent" : "border border-base text-muted hover:border-gold hover:text-gold"
-            }`}
-          >
-            Enter manually
-          </button>
-        </div>
-
-        {mode === "scan" && (
+      {mode === "scan" && (
+        <>
           <div className="mt-4 flex gap-2">
             <button
               type="button"
               onClick={() => { setScanInput("camera"); setScanState("idle"); setDraft(EMPTY_DRAFT); }}
               className={`flex-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                scanInput === "camera" ? "border border-gold text-gold" : "border border-base text-muted hover:border-gold hover:text-gold"
+                scanInput === "camera" ? "border border-gold-token text-gold-token" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
               }`}
             >
               Use camera
@@ -206,121 +213,139 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
                 setTimeout(() => deviceInputRef.current?.focus(), 0);
               }}
               className={`flex-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                scanInput === "device" ? "border border-gold text-gold" : "border border-base text-muted hover:border-gold hover:text-gold"
+                scanInput === "device" ? "border border-gold-token text-gold-token" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
               }`}
             >
               Use scanner device
             </button>
           </div>
-        )}
 
-        {mode === "scan" && scanInput === "camera" && !showReviewForm && (
-          <div className="mt-5 space-y-3">
-            <p className="text-xs text-muted">
-              Point the camera at the barcode on the back of the book (the ISBN barcode).
-            </p>
-            <div id={SCANNER_ELEMENT_ID} className="overflow-hidden rounded-[10px] border border-base" />
-            {scanState === "looking-up" && (
-              <p className="text-center text-xs text-muted">Looking up book details...</p>
-            )}
-            {scanState === "camera-error" && (
-              <p className="text-center text-xs text-red-500">
-                Couldn&apos;t access the camera. Check your browser permissions, or switch to manual entry.
+          {scanInput === "camera" && !showReviewForm && (
+            <div className="mt-5 space-y-3">
+              <p className="text-xs text-muted">
+                Point the camera at the barcode on the back of the book (the ISBN barcode).
               </p>
-            )}
-          </div>
-        )}
-
-        {mode === "scan" && scanInput === "device" && !showReviewForm && (
-          <div className="mt-5 space-y-3">
-            <p className="text-xs text-muted">
-              Plug in or connect your barcode scanner, click the box below, then scan the book&apos;s barcode.
-              Most scanners act like a keyboard, so no special setup is needed.
-            </p>
-            <input
-              ref={deviceInputRef}
-              value={deviceBuffer}
-              onChange={(e) => setDeviceBuffer(e.target.value)}
-              onKeyDown={handleDeviceKeyDown}
-              autoFocus
-              placeholder="Waiting for scan..."
-              className="w-full rounded-[10px] border-2 border-dashed border-gold bg-[var(--surface-strong)] px-4 py-3 text-center text-sm text-navy outline-none"
-            />
-            {scanState === "looking-up" && (
-              <p className="text-center text-xs text-muted">Looking up book details...</p>
-            )}
-          </div>
-        )}
-
-        {showReviewForm && (
-          <form onSubmit={handleSubmit} className="mt-5 space-y-3">
-            {scanState === "not-found" && (
-              <p className="rounded-[10px] bg-gold/10 px-3 py-2 text-xs text-navy">
-                Couldn&apos;t find that ISBN online - fill in the details below manually.
-              </p>
-            )}
-            {scanState === "found" && (
-              <div className="flex items-center justify-between rounded-[10px] bg-emerald-500/10 px-3 py-2">
-                <p className="text-xs text-emerald-700">Found it! Review the details below before saving.</p>
-                <button type="button" onClick={handleRetryScan} className="text-xs font-semibold text-emerald-700 underline">
-                  Scan again
-                </button>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              {draft.coverUrl && (
-                <img src={draft.coverUrl} alt="" className="h-28 w-20 shrink-0 rounded-lg border border-base object-cover" />
+              <div id={SCANNER_ELEMENT_ID} className="overflow-hidden rounded-[10px] border border-base" />
+              {scanState === "looking-up" && (
+                <p className="text-center text-xs text-muted">Looking up book details...</p>
               )}
-              <div className="flex-1 space-y-2">
-                <input
-                  value={draft.title}
-                  onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                  placeholder="Title"
-                  required
-                  className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                />
-                <input
-                  value={draft.author}
-                  onChange={(e) => setDraft((d) => ({ ...d, author: e.target.value }))}
-                  placeholder="Author"
-                  required
-                  className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                />
-              </div>
+              {scanState === "camera-error" && (
+                <p className="text-center text-xs text-warn">
+                  Couldn&apos;t access the camera. Check your browser permissions, or switch to manual entry.
+                </p>
+              )}
             </div>
+          )}
 
-            <input
-              value={draft.genre}
-              onChange={(e) => setDraft((d) => ({ ...d, genre: e.target.value }))}
-              placeholder="Genre"
-              className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-            />
-            <textarea
-              value={draft.description}
-              onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
-              placeholder="Description (optional)"
-              rows={3}
-              className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-            />
-            <input
-              value={draft.coverUrl}
-              onChange={(e) => setDraft((d) => ({ ...d, coverUrl: e.target.value }))}
-              placeholder="Cover image URL (optional)"
-              className="w-full rounded-lg border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-            />
-            {draft.isbn && <p className="text-xs text-muted">ISBN: {draft.isbn}</p>}
+          {scanInput === "device" && !showReviewForm && (
+            <div className="mt-5 space-y-3">
+              <p className="text-xs text-muted">
+                Plug in or connect your barcode scanner, click the box below, then scan the book&apos;s barcode.
+                Most scanners act like a keyboard, so no special setup is needed.
+              </p>
+              <input
+                ref={deviceInputRef}
+                value={deviceBuffer}
+                onChange={(e) => setDeviceBuffer(e.target.value)}
+                onKeyDown={handleDeviceKeyDown}
+                autoFocus
+                aria-label="Barcode scanner input - waiting for scan"
+                placeholder="Waiting for scan..."
+                className="w-full rounded-[10px] border-2 border-dashed border-gold-token bg-[var(--surface-strong)] px-4 py-3 text-center text-sm text-navy outline-none focus:border-gold"
+              />
+              {scanState === "looking-up" && (
+                <p className="text-center text-xs text-muted">Looking up book details...</p>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
-            <button
+      {showReviewForm && (
+        <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+          {scanState === "not-found" && (
+            <p className="rounded-[10px] border border-gold-soft bg-gold-soft px-3 py-2.5 text-xs text-gold-token">
+              Couldn&apos;t find that ISBN online - fill in the details below manually.
+            </p>
+          )}
+          {scanState === "found" && (
+            <div className="flex items-center justify-between gap-3 rounded-[10px] border border-gold-soft bg-gold-soft px-3 py-2.5">
+              <p className="text-xs text-gold-token">Found it! Review the details below before saving.</p>
+              <button type="button" onClick={handleRetryScan} className="shrink-0 text-xs font-semibold text-gold-token underline">
+                Scan again
+              </button>
+            </div>
+          )}
+
+          <h3 className="section-label">Book information</h3>
+          <div className="flex gap-4">
+            <BookCover book={{ coverUrl: draft.coverUrl || undefined } as LibraryBook} size="lg" />
+            <div className="flex-1 space-y-2">
+              <label htmlFor="add-book-title" className={fieldLabel}>Title</label>
+              <input
+                id="add-book-title"
+                value={draft.title}
+                onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                placeholder="Title"
+                required
+                className={inputCls}
+              />
+              <label htmlFor="add-book-author" className={fieldLabel}>Author</label>
+              <input
+                id="add-book-author"
+                value={draft.author}
+                onChange={(e) => setDraft((d) => ({ ...d, author: e.target.value }))}
+                placeholder="Author"
+                required
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          <label htmlFor="add-book-genre" className={fieldLabel}>Genre</label>
+          <input
+            id="add-book-genre"
+            value={draft.genre}
+            onChange={(e) => setDraft((d) => ({ ...d, genre: e.target.value }))}
+            placeholder="Genre"
+            className={inputCls}
+          />
+          <label htmlFor="add-book-description" className={fieldLabel}>Description</label>
+          <textarea
+            id="add-book-description"
+            value={draft.description}
+            onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+            placeholder="Description (optional)"
+            rows={3}
+            className={inputCls}
+          />
+          <label htmlFor="add-book-cover" className={fieldLabel}>Cover image URL</label>
+          <input
+            id="add-book-cover"
+            value={draft.coverUrl}
+            onChange={(e) => setDraft((d) => ({ ...d, coverUrl: e.target.value }))}
+            placeholder="Cover image URL (optional)"
+            className={inputCls}
+          />
+          {draft.isbn && <p className="font-mono-ui text-[10px] uppercase tracking-[0.1em] text-muted">ISBN · {draft.isbn}</p>}
+
+          <div className="flex gap-2 pt-2">
+            <Button
               type="submit"
+              variant="gold"
+              className="flex-1"
+              icon={<IconPlus size={13} />}
               disabled={submitting || !draft.title.trim() || !draft.author.trim()}
-              className="w-full rounded-full bg-navy py-2.5 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-40"
+              loading={submitting}
             >
-              {submitting ? "Adding..." : "Add to library"}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+              {submitting ? "Adding..." : "Add book"}
+            </Button>
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      )}
+    </Modal>
   );
 }

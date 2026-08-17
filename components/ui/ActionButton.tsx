@@ -20,17 +20,17 @@ export interface ActionButtonProps {
 }
 
 const VARIANTS = {
-  gold: "border-gold/50 bg-gold/10 text-gold hover:bg-gold hover:text-on-accent",
+  gold: "border-gold-soft bg-gold-soft text-gold-token hover-bg-gold-token hover-text-on-accent",
   navy: "border-[var(--btn)]/50 bg-[var(--btn)]/10 text-navy hover:bg-[var(--btn)] hover:text-white",
   neutral: "border-base bg-surface text-muted hover:border-gold hover:text-navy",
-  danger: "border-red-300/60 bg-surface text-red-500 hover:bg-red-500/10",
+  danger: "border-warn-soft bg-surface text-warn hover-bg-warn-soft",
 } as const;
 
 const TILES = {
   gold: "bg-gold text-on-accent",
   navy: "bg-[var(--btn)] text-white",
   neutral: "bg-tile text-muted",
-  danger: "bg-red-500/10 text-red-500",
+  danger: "bg-warn-soft text-warn",
 } as const;
 
 export function ActionButton({

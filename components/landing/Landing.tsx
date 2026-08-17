@@ -47,11 +47,14 @@ function SectionHeading({ eyebrow, title, sub }: { eyebrow: string; title: strin
 /* ------------------------------------------------------------------ */
 
 const HERO_WORDS = [
-  { text: "Procrastination", accent: false },
-  { text: "is", accent: false },
-  { text: "just", accent: true },
-  { text: "an", accent: true },
-  { text: "illusion.", accent: true },
+  { text: "Make", accent: false },
+  { text: "school", accent: false },
+  { text: "feel", accent: false },
+  { text: "like", accent: false },
+  { text: "a", accent: false },
+  { text: "game", accent: true },
+  { text: "worth", accent: false },
+  { text: "playing", accent: true },
 ];
 
 /* Small gold sparkles that twinkle around the headline after it lands. */
@@ -140,10 +143,9 @@ function Hero() {
         className="mb-9 max-w-[640px] text-[15.5px] leading-[1.75] text-[var(--muted)]"
         style={{ animation: "riseIn 0.6s ease 1.85s both" }}
       >
-        Our main focus is simple:{" "}
-        <span className="font-semibold text-[var(--gold)]">make school feel like a game worth playing</span>.
-        Ranks, streaks, and habits turn everyday work into real progress, so students stay
-        engaged, beat procrastination, and keep improving academically.
+        Every approved grade fills your rank bar, habits build streaks, and your Florin
+        unlocks page backgrounds, profile-card art, and avatar borders - equipped from
+        your wardrobe and visible across the campus in realtime.
       </p>
 
       <div className="flex flex-wrap items-center justify-center gap-3.5" style={{ animation: "riseIn 0.6s ease 2s both" }}>
@@ -209,7 +211,7 @@ const ROLES = [
       "Build education levels, programs, year levels, and courses",
       "Declare seasons with start and end dates",
       "Approve grades, moderate the feed, and monitor enrollment",
-      "See rank distributions and student monitors across every level",
+      "See rank distributions and monitor students and teachers across every level",
     ],
   },
 ];
@@ -323,8 +325,8 @@ const FEATURES = [
     body: "Teachers configure category weights, enter scores out of any total, and preview the rank effect before submitting.",
   },
   {
-    title: "Florin economy",
-    body: "A campus currency that rewards consistency, participation, and streaks alongside academic results.",
+    title: "Weekly progress & stats",
+    body: "Live weekly progress, per-subject performance, and a campus-wide leaderboard keep every climb visible.",
   },
   {
     title: "Seasons and resets",
@@ -396,7 +398,7 @@ function RankLadder() {
       <SectionHeading
         eyebrow="The ladder"
         title="Eight ranks, one climb"
-        sub="D is where every season starts. Promotion happens when your bar fills; the EX tier belongs to flawless seasons."
+        sub="Every season starts fresh: S and above land in C, A and below land in D. Promotion happens when your bar fills; the EX tier belongs to flawless seasons."
       />
       <div className="mb-10 grid grid-cols-4 gap-3 sm:grid-cols-8">
         {RANKS.map((rank, i) => (
@@ -521,7 +523,7 @@ function Footer() {
         </a>
 
         <p className="text-[11.5px] text-[var(--faint)]">
-          © {new Date().getFullYear()} Hierarchy Class · v{APP_VERSION} · Climb the ranks
+          © {new Date().getFullYear()} Hierarchy Class · v{APP_VERSION} · Make school feel like a game worth playing
         </p>
       </div>
     </footer>

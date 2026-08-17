@@ -58,6 +58,8 @@ migration index. Migrations live in `database/migrations/` - see
 | `banner_config` | Admin-managed header banner |
 | `enrollment_status` | Admin-managed enrollment: status, started_at, expires_at |
 | `teacher_notes`, `teacher_schedule`, `teacher_lesson_plans` | Teacher's own workspace (notes/schedule/lessons) |
+| `teacher_dashboard_prefs` | Teacher Home customization: which widgets appear and how they're arranged (layout JSONB `{widgets:[{id,size,tall,order}]}`) - presentation-only, own-row RLS |
+| `admin_dashboard_prefs` | Admin Home customization, same model as teacher (migration 055) - presentation-only, own-row RLS |
 
 ### Admin-only reference tables
 
@@ -192,6 +194,8 @@ All files live in `database/migrations/`.
 | 051 | Third shop type: `profile_card` (viewed-profile card background). Extends the `shop_items.type` CHECK, adds `student_shop_loadout.profile_card_item_id`, extends `equip_shop_item`/`unequip_shop_item` for the new slot, seeds 4 SVG card backgrounds |
 | 052 | Girls' theme shop: renames the `Golden Hour` background to `Samurai Sword` and seeds the two pink page backgrounds (Pink Butterfly, Pink Cat) for the Rose theme |
 | 053 | Full habit tracker: new `habits` table (goal type/target, daily vs weekly frequency, Mon-first `scheduled_days`, status) + `habit_pauses` pause windows, both RLS-protected (own-row students, school-wide admins) and published to realtime. Re-keys `habit_entries` onto `habits.id` (backfills legacy `habit_type` rows, drops the column) and moves the uniqueness constraint to `(student_id, habit_id, entry_date)`. Seeds the five default habits for every student |
+| 054 | Teacher dashboard prefs: `teacher_dashboard_prefs` (own-row RLS via profiles join, `teacher_id` unique, layout JSONB `{widgets:[{id,size,tall,order}]}`) - presentation-only Home customization, empty by default |
+| 055 | Admin dashboard prefs: `admin_dashboard_prefs` (own-row RLS via profiles join, `admin_id` unique, layout JSONB) - same presentation-only model as teacher, empty by default |
 | 047 | ~~Restore composite bar fill~~ **SUPERSEDED by 049** - 045's weight-dominant experiment was briefly reverted, then permanently replaced by per-entry isolation (049) |
 | 046 | Period baseline: `student_rank_state` gains `period_start_rank/bar/ex_score/peak` (captured when the grading period is adopted); `revert_grade_rank_feed` now recomputes order-independently from the baseline + all remaining current-period entries, so bulk-clearing all grades (admin → clear course data) collapses the state to the baseline (D/0 for a fresh student) instead of leaving a stale bar residue; old-period deletions keep the anchor + replay path |
 

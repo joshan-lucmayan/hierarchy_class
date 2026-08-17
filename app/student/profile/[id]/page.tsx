@@ -94,7 +94,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
   if (error || !person) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-20">
-        <p className="text-sm text-red-500">{error ?? "Profile not found."}</p>
+        <p className="text-sm text-warn">{error ?? "Profile not found."}</p>
       </div>
     );
   }
@@ -163,7 +163,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
               <button
                 type="button"
                 onClick={() => router.push(`/student/messages?with=${person.id}`)}
-                className="shrink-0 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+                className="shrink-0 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
               >
                 Message
               </button>
@@ -206,7 +206,7 @@ export default function ViewProfilePage({ params }: { params: { id: string } }) 
               onClick={toggleFriend}
               className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
                 isFriend
-                  ? "border border-base bg-surface text-muted hover:border-red-400 hover:text-red-600"
+                  ? "border border-base bg-surface text-muted hover-border-warn-soft hover-text-warn"
                   : "bg-gold text-on-accent hover:opacity-90"
               }`}
             >
@@ -287,7 +287,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
       <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7" onClick={(e) => e.stopPropagation()}>
         {sent ? (
           <div className="text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold-soft text-gold-token">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6L9 17l-5-5" />
               </svg>
@@ -299,7 +299,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
             <button
               type="button"
               onClick={onClose}
-              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
             >
               Close
             </button>

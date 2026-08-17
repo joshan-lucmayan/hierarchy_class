@@ -167,7 +167,7 @@ export function StoriesRail() {
           </div>
         </div>
       )}
-      {createError && <p className="text-xs text-red-500">{createError}</p>}
+      {createError && <p className="text-xs text-warn">{createError}</p>}
 
       {openIndex !== null && (
         <StoryViewerModal

@@ -77,7 +77,7 @@ export default function LeaderboardPage() {
 
         <div className="space-y-3">
           {loading && <p className="text-sm text-muted">Loading rankings...</p>}
-          {ranksError && <p className="text-sm text-red-500">{ranksError}</p>}
+          {ranksError && <p className="text-sm text-warn">{ranksError}</p>}
           {!loading && !ranksError && entries.length === 0 && (
             <p className="text-sm text-muted">No ranked students yet.</p>
           )}

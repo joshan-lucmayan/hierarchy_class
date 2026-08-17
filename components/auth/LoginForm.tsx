@@ -106,12 +106,12 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-5">
       {justConfirmed && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700">
+        <div className="rounded-lg border border-gold-soft bg-gold-soft px-3.5 py-2.5 text-sm text-gold-token">
           Email confirmed! You can now log in.
         </div>
       )}
       {errors.form && (
-        <div className="animate-shake rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+        <div className="animate-shake rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
           {errors.form}
         </div>
       )}
@@ -144,9 +144,9 @@ export function LoginForm() {
           placeholder="you@example.com"
           disabled={isLoading}
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-            ${errors.email ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+            ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
-        {errors.email && <p className="animate-shake text-xs text-red-500">{errors.email}</p>}
+        {errors.email && <p className="animate-shake text-xs text-warn">{errors.email}</p>}
       </div>
 
       <div className="group flex flex-col gap-1.5">
@@ -177,7 +177,7 @@ export function LoginForm() {
             placeholder="Enter your password"
             disabled={isLoading}
             className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.password ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           <button
             type="button"
@@ -198,12 +198,12 @@ export function LoginForm() {
             )}
           </button>
         </div>
-        {errors.password && <p className="animate-shake text-xs text-red-500">{errors.password}</p>}
+        {errors.password && <p className="animate-shake text-xs text-warn">{errors.password}</p>}
       </div>
 
       <SchoolSelector schools={schools} value={school} onChange={setSchool} error={errors.school} />
       {schoolsLoading && <p className="text-xs text-muted">Loading schools...</p>}
-      {schoolsError && <p className="text-xs text-red-500">{schoolsError}</p>}
+      {schoolsError && <p className="text-xs text-warn">{schoolsError}</p>}
 
       <button
         type="submit"

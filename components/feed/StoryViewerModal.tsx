@@ -110,7 +110,7 @@ export function StoryViewerModal({ stories, startIndex, onClose }: StoryViewerMo
             <button
               type="button"
               onClick={handleDelete}
-              className="absolute bottom-3 right-3 rounded-full bg-red-500/80 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-600"
+              className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-warn transition hover:bg-black/70"
             >
               Delete story
             </button>

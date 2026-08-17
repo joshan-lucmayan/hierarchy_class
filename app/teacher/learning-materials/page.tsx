@@ -5,7 +5,12 @@ import { useMaterials } from "@/lib/materialsStore";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { CornerFrame } from "@/components/ui/CornerFrame";
-import { ActionButton, PlusIcon } from "@/components/ui/ActionButton";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { Stat } from "@/components/ui/Stat";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal";
+import { IconPlus, IconTrash, IconPost, IconChevronRight } from "@/components/ui/icons";
 
 export default function TeacherLearningMaterialsPage() {
   const { materials, loading, error, createMaterial, deleteMaterial } = useMaterials();
@@ -19,6 +24,7 @@ export default function TeacherLearningMaterialsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const myMaterials = useMemo(() => materials.filter((m) => m.mine), [materials]);
@@ -89,30 +95,43 @@ export default function TeacherLearningMaterialsPage() {
     await deleteMaterial(id);
   }
 
-  return (
-    <div className="space-y-6">
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Teaching materials</p>
-            <h1 className="mt-2 text-3xl font-bold text-navy">Upload new lessons</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-              Upload a file (PDF, image) that your students can open directly from their Materials page. You can manage your own uploads here.
-            </p>
-          </div>
-          <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] px-5 py-4 text-sm">
-            <p className="font-semibold text-gold">Upload status</p>
-            <p className="mt-2 text-muted">{myMaterials.length} of your materials visible school-wide</p>
-          </div>
-        </div>
-      </CornerFrame>
+  const deleting = confirmDelete ? myMaterials.find((m) => m.id === confirmDelete) : null;
 
-      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-          <form onSubmit={handleAddMaterial} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-muted">Title</label>
+  return (
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* BAND 0 - HEADER                                             */}
+      {/* ============================================================ */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-navy">Teaching materials</h1>
+          <h2 className="font-mono-ui mt-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-navy">
+            Upload lessons · manage your materials
+          </h2>
+        </div>
+        <Stat
+          label="My materials"
+          value={loading ? "—" : myMaterials.length}
+          tone="gold"
+          hint="Visible to your students"
+        />
+      </div>
+
+      <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        {/* Upload form */}
+        <CornerFrame className="p-5">
+          <h3 className="section-label">Add material</h3>
+          <p className="mt-1.5 text-xs leading-5 text-muted">
+            Upload a file (PDF, image) that your students can open directly from their Materials
+            page. You can manage your own uploads here.
+          </p>
+          <form onSubmit={handleAddMaterial} className="mt-4 space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="material-title" className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                Title
+              </label>
               <input
+                id="material-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Lesson title"
@@ -120,8 +139,10 @@ export default function TeacherLearningMaterialsPage() {
               />
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              <label className="space-y-2 text-sm font-semibold text-muted">
-                Subject
+              <label className="space-y-1.5">
+                <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                  Subject
+                </span>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
@@ -132,8 +153,10 @@ export default function TeacherLearningMaterialsPage() {
                   ))}
                 </select>
               </label>
-              <label className="space-y-2 text-sm font-semibold text-muted">
-                Level
+              <label className="space-y-1.5">
+                <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                  Level
+                </span>
                 <input
                   value={levelLabel}
                   onChange={(e) => setLevelLabel(e.target.value)}
@@ -143,8 +166,10 @@ export default function TeacherLearningMaterialsPage() {
               </label>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              <label className="space-y-2 text-sm font-semibold text-muted">
-                Type
+              <label className="space-y-1.5">
+                <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                  Type
+                </span>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
@@ -155,16 +180,18 @@ export default function TeacherLearningMaterialsPage() {
                   ))}
                 </select>
               </label>
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-muted">File</p>
+              <div className="space-y-1.5">
+                <p className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">File</p>
                 <div className="flex items-center gap-3 rounded-[10px] border border-dashed border-base bg-[var(--surface-strong)] px-4 py-3">
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
+                    size="sm"
                     onClick={() => fileInputRef.current?.click()}
-                    className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+                    className="shrink-0"
                   >
                     Choose file
-                  </button>
+                  </Button>
                   <span className="min-w-0 truncate text-xs text-muted">
                     {file ? file.name : "No file selected (PDF or image)"}
                   </span>
@@ -178,8 +205,10 @@ export default function TeacherLearningMaterialsPage() {
                 </div>
               </div>
             </div>
-            <label className="space-y-2 text-sm font-semibold text-muted">
-              Description
+            <label className="space-y-1.5">
+              <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                Description
+              </span>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -189,30 +218,52 @@ export default function TeacherLearningMaterialsPage() {
               />
             </label>
             {message && (
-              <p className={`text-sm ${message.kind === "ok" ? "text-emerald-600" : "text-red-500"}`}>{message.text}</p>
+              <p className={`text-sm ${message.kind === "ok" ? "text-gold-token" : "text-warn"}`}>{message.text}</p>
             )}
-            <ActionButton type="submit" variant="navy" icon={<PlusIcon size={12} />} disabled={submitting}>
+            <Button type="submit" variant="primary" size="md" icon={<IconPlus size={13} />} disabled={submitting}>
               {submitting ? "Uploading..." : "Add material"}
-            </ActionButton>
+            </Button>
           </form>
         </CornerFrame>
 
-        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Manage uploads</p>
+        {/* Manage uploads */}
+        <CornerFrame className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="section-label">Manage uploads</h3>
+            {!loading && myMaterials.length > 0 && <Chip variant="gold">{myMaterials.length} total</Chip>}
+          </div>
+
           {loading ? (
-            <p className="mt-4 text-sm text-muted">Loading materials...</p>
+            /* Skeleton: mirror the material-row geometry. */
+            <div className="mt-4 space-y-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex animate-pulse items-start gap-3 rounded-[10px] border border-base p-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-44 rounded-full bg-tile" />
+                    <div className="h-2.5 w-28 rounded-full bg-tile" />
+                  </div>
+                  <div className="h-7 w-16 rounded-full bg-tile" />
+                  <div className="h-7 w-16 rounded-full bg-tile" />
+                </div>
+              ))}
+            </div>
           ) : error ? (
-            <p className="mt-4 text-sm text-red-500">{error}</p>
+            <p className="mt-4 rounded-[10px] border border-warn-soft bg-warn-soft px-4 py-3 text-sm text-warn">{error}</p>
+          ) : myMaterials.length === 0 ? (
+            <div className="mt-2">
+              <EmptyState
+                icon={<IconPost size={16} />}
+                title="No materials uploaded"
+                desc="Upload your first lesson and your students can open it from their Materials page."
+              />
+            </div>
           ) : (
-            <div className="mt-6 space-y-4">
-              {myMaterials.length === 0 && (
-                <p className="text-sm text-muted">You haven&apos;t uploaded any materials yet.</p>
-              )}
+            <div className="mt-4 space-y-3">
               {myMaterials.map((material) => (
                 <div key={material.id} className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-navy">{material.title}</p>
+                      <p className="truncate text-sm font-semibold text-navy">{material.title}</p>
                       <p className="mt-1 text-xs text-muted">
                         {material.levelLabel ?? "All levels"} · {material.subject} · {material.type}
                       </p>
@@ -223,22 +274,23 @@ export default function TeacherLearningMaterialsPage() {
                           href={material.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-navy transition hover:border-gold"
+                          className="inline-flex items-center rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-navy transition hover-border-gold-soft hover-text-gold-token"
                         >
                           Open
                         </a>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(material.id)}
-                        className="rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-muted transition hover:border-red-300 hover:text-red-600"
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={<IconTrash size={12} />}
+                        onClick={() => setConfirmDelete(material.id)}
                       >
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   {material.description && <p className="mt-3 text-sm text-muted">{material.description}</p>}
-                  <p className="mt-2 text-[11px] text-muted">
+                  <p className="mt-2 font-mono-ui text-[10px] uppercase tracking-[0.12em] text-faint">
                     Uploaded {new Date(material.uploadDate).toLocaleDateString()}
                   </p>
                 </div>
@@ -247,6 +299,39 @@ export default function TeacherLearningMaterialsPage() {
           )}
         </CornerFrame>
       </section>
+
+      {/* Confirm delete */}
+      {deleting && (
+        <Modal
+          onClose={() => setConfirmDelete(null)}
+          eyebrow="Delete material"
+          description={`Delete "${deleting.title}"?`}
+          maxWidth="max-w-sm"
+        >
+          <p className="text-sm leading-6 text-muted">
+            This removes the material from your list and from your students&apos; Materials page. This cannot be undone.
+          </p>
+          <div className="mt-5 flex gap-2">
+            <Button
+              variant="danger"
+              icon={<IconTrash size={13} />}
+              onClick={() => {
+                setConfirmDelete(null);
+                handleDelete(deleting.id);
+              }}
+            >
+              Delete material
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+              Cancel
+            </Button>
+          </div>
+          <div className="mt-4 flex items-center gap-1.5 text-faint">
+            <IconChevronRight size={12} />
+            <span className="text-[10px] uppercase tracking-[0.15em]">Destructive action</span>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

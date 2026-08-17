@@ -130,6 +130,18 @@ export const TEACHER_NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    href: "/teacher/workspace",
+    label: "Workspace",
+    icon: (active) => (
+      <svg {...iconProps(active)}>
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    ),
+  },
+  {
     href: "/teacher/messages",
     label: "Messages",
     icon: messagesIcon,

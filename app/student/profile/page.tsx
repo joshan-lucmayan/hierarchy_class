@@ -16,6 +16,8 @@ import { useShop } from "@/lib/shopStore";
 import { createClient } from "@/lib/supabase/client";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 
 export default function StudentProfilePage() {
   const { profile, loading, updateProfile, uploadAvatar, removeAvatar } = useMyProfile();
@@ -39,6 +41,7 @@ export default function StudentProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Seed local edit-buffers once the real profile arrives
@@ -61,13 +64,17 @@ export default function StudentProfilePage() {
     setPhotoMessage("Profile picture updated.");
   }
 
-  async function handleRemoveAvatar() {
-    if (!window.confirm("Remove your profile picture? Your default avatar will be shown instead.")) return;
+  function handleRemoveAvatar() {
+    setConfirmingRemove(true);
+  }
+
+  async function handleConfirmRemoveAvatar() {
     setUploading(true);
     setPhotoMessage(null);
     await removeAvatar();
     setUploading(false);
     setPhotoMessage("Profile picture removed.");
+    setConfirmingRemove(false);
   }
 
   async function saveBio() {
@@ -183,7 +190,7 @@ export default function StudentProfilePage() {
               onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
               aria-label="Edit profile"
               title="Edit profile"
-              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold hover:text-navy"
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9" />
@@ -403,7 +410,7 @@ export default function StudentProfilePage() {
           {friendsLoading ? (
             <p className="mt-4 text-sm text-muted">Loading friends...</p>
           ) : friendsError ? (
-            <p className="mt-4 text-sm text-red-500">{friendsError}</p>
+            <p className="mt-4 text-sm text-warn">{friendsError}</p>
           ) : friends.length === 0 ? (
             <p className="mt-4 text-sm text-muted">No friends yet.</p>
           ) : (
@@ -429,14 +436,36 @@ export default function StudentProfilePage() {
         </CornerFrame>
       </div>
 
+      {confirmingRemove && (
+        <Modal eyebrow="Profile picture" description="Remove your current photo?" onClose={() => setConfirmingRemove(false)}>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Your default avatar will be shown instead. You can upload a new photo anytime.
+          </p>
+          <div className="mt-5 flex gap-2">
+            <Button
+              variant="danger"
+              className="flex-1"
+              onClick={handleConfirmRemoveAvatar}
+              disabled={uploading}
+              loading={uploading}
+            >
+              {uploading ? "Removing..." : "Remove photo"}
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmingRemove(false)}>
+              Cancel
+            </Button>
+          </div>
+        </Modal>
+      )}
+
       {editOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditOpen(false)}>
           <div
             className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Edit profile</p>
+            <div className="mb-3 h-1 w-10 rounded-full bg-gold-token" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Edit profile</p>
             <h2 className="mt-2 text-xl font-bold text-navy">Profile picture</h2>
 
             <div className="mt-5 flex flex-col items-center text-center">
@@ -446,7 +475,7 @@ export default function StudentProfilePage() {
                 size="2xl"
                 className="border-2 border-surface"
               />
-              {photoMessage && <p className="mt-3 text-xs font-semibold text-emerald-600">{photoMessage}</p>}
+              {photoMessage && <p className="mt-3 text-xs font-semibold text-gold-token">{photoMessage}</p>}
               <p className="mt-2 text-xs text-muted">
                 {profile.avatar_url ? "Your current picture" : "You're using the default avatar"}
               </p>
@@ -457,7 +486,7 @@ export default function StudentProfilePage() {
                 type="button"
                 disabled={uploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-full bg-gold-token py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
               >
                 {uploading ? "Uploading..." : profile.avatar_url ? "Change photo" : "Upload photo"}
               </button>
@@ -466,7 +495,7 @@ export default function StudentProfilePage() {
                   type="button"
                   disabled={uploading}
                   onClick={handleRemoveAvatar}
-                  className="w-full rounded-full border border-red-300 bg-surface py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
+                  className="w-full rounded-full border border-warn-soft bg-surface py-2.5 text-sm font-semibold text-warn transition hover-bg-warn-soft disabled:opacity-50"
                 >
                   Remove photo
                 </button>

@@ -11,7 +11,7 @@ Next.js 14 (App Router) + React 18 + TypeScript + Tailwind. Pages live in
 |---|---|
 | Public | `/` (marketing landing), `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/terms`, `/privacy` |
 | Student | `/student/home`, `/student/search`, `/student/messages`, `/student/learning-materials`, `/student/library`, `/student/quiz`, `/student/leaderboard`, `/student/shop`, `/student/profile`, `/student/profile/[id]`, `/student/habits`, `/student/settings` |
-| Teacher | `/teacher/home`, `/teacher/classroom`, `/teacher/students`, `/teacher/quiz`, `/teacher/learning-materials`, `/teacher/library-management`, `/teacher/messages`, `/teacher/settings` |
+| Teacher | `/teacher/home`, `/teacher/workspace`, `/teacher/classroom`, `/teacher/students`, `/teacher/quiz`, `/teacher/learning-materials`, `/teacher/library-management`, `/teacher/messages`, `/teacher/settings` |
 | Admin | `/admin/home`, `/admin/users`, `/admin/programs`, `/admin/students`, `/admin/teachers`, `/admin/reports`, `/admin/ranks`, `/admin/messages`, `/admin/settings` |
 
 Each role has its own `layout.tsx` (wraps `AppShell`) and `loading.tsx`.
@@ -42,6 +42,8 @@ is no mock data.
 | `QuizProvider` | Quiz engine |
 | `TeacherTasksProvider` | Teacher tasks |
 | `TeacherWorkspaceProvider` | Teacher notes/schedule/lesson plans |
+| `TeacherPrefsProvider` | Teacher Home customization (`teacher_dashboard_prefs`) - presentation-only structured widget grid (size/tall/order, CSS Grid) |
+| `AdminPrefsProvider` (admin layout) | Admin Home customization (`admin_dashboard_prefs`) - presentation-only structured widget grid (size/tall/order, CSS Grid); empty by default, presets available from the customizer |
 | `useMyProfile` | Current profile + avatar upload |
 | `useSchoolProfiles` | School roster by role |
 | `useRankStore` (`RankProvider`) | School-wide rank state - `rankOf(profileId)` + `sorted` (best-first); realtime refetch on `student_rank_state` |
@@ -70,13 +72,20 @@ is no mock data.
   Cinzel, and the sidebar brand is the crown mark (`CrownMark`).
 - **Tailwind** with the token set in `tailwind.config.ts`; a few utility
   classes (`text-navy`, `bg-tile`, `border-base`, ...) are defined in
-  `globals.css` so they follow the theme variables.
+  `globals.css` so they follow the theme variables. The content globs scan
+  `app/`, `components/`, **and `lib/`** - so class strings defined in lib
+  are actually generated.
 - **Cards**: `CornerFrame` - flat 1px hairline border, 10px radius, no shadow.
 - **Accent**: Great Falls (`--gold`) - used for ranks, fills, primary accents.
 - **Shared UI** in `components/ui/`: `RankBadge` (fed by the rank engine:
   rank letter hero + bar / EX score + track), `StatBar`, `StatRadarChart`,
   `EnrolledBadge`, `UserAvatar` (+ theme-adaptive `DefaultAvatar`), `CornerFrame`,
   `CrownMark` (logo), `CoinIcon`.
+- **Home intelligence components** in `components/dashboard/`:
+  `RankDistribution` (tier counts + mean bar + top students - used school-wide
+  on the admin home and filtered to own students on the teacher home) and
+  `SemesterProgress` (progress + days remaining from the active semester
+  dates, with an empty state that links to declaring a semester).
 
 ### 3.1 UI plan and rationale
 
@@ -112,9 +121,552 @@ Why this design?
   `EnrolledBadge` are used by student, teacher, and admin pages alike - fix
   them once and every role picks up the change (this is how the rank
   redesign reached all roles without per-page edits).
+- **Command-center primitives** (added in 1.4.25 modernization): `CornerFrame`
+  is now a real card primitive (hairline border, surface bg, 10px radius,
+  compatible defaults - existing callers that pass their own border/background
+  keep theirs). `Button` (primary/gold/outline/danger/ghost pills), `Stat`
+  (number + mono label), `Chip` (neutral/gold/success/warn/danger - all
+  token-driven, no hardcoded emerald/blue/red), `Bar` (thin progress),
+  `MiniBars` (compact 7-day trend), and `Modal` (PostEditor's shell, now
+  shared). Theme-aware accent utilities live in `globals.css`:
+  `text/bg/border-gold-token`, `bg/border-gold-soft`, `bg/border-warn-soft` -
+  these track `--gold`/`--warn` so Rose gets Mountain Mist instead of the
+  fixed Great Falls hex. Admin home is structured as bands (header → current
+  state → hierarchy → pipeline → attention → workflow → communication) with
+  skeleton loading and composed empty states.
 - **One accent.** The rank system is the game; the accent (Great Falls) is
   reserved for it plus primary actions. Everything else is neutral greys so
   nothing competes.
+- **Admin Students - second reference implementation (1.4.25).**
+  `app/admin/students/page.tsx` is the management/workflow companion to the
+  Admin Home command center. It keeps the same design grammar - hairline
+  `CornerFrame` cards, `section-label` eyebrows, `Stat` snapshot strip
+  (registered / active / expiring within 7 days / revoked, computed from the
+  live enrollment statuses), a compact search bar with a live result count,
+  and a two-column roster + detail layout. List rows carry `UserAvatar`,
+  `RankBadge` pill, and an enrollment `Chip`; the detail panel shows identity
+  with `RankBadge` + `Bar` progress, a stat strip (grades / courses /
+  average), enrollment (dates + Enroll/Renew/Revoke via `Button`), the
+  academic cascade (education level → program → year level), and the
+  per-course breakdown. Native `confirm()` dialogs were replaced with  a `Modal`-based destructive confirmation. Skeleton loading mirrors the real
+  geometry, empty states are composed `EmptyState`s, and every status uses
+  tokens (no amber/red/emerald) so Rose stays correct.
+- **Admin Programs - hierarchy management (1.4.25).**
+  `app/admin/programs/page.tsx` manages the Education Level → Program → Year
+  Level → Course → Students drill-down and keeps that hierarchy visible at
+  every step: a mono breadcrumb trail (clickable to jump back), a compact
+  4-`Stat` hierarchy snapshot (education levels / programs / year levels /
+  courses - all derived from the live store, no fake metrics), and a
+  drill-down grid of management cards. Cards carry `Chip` child counts, a
+  chevron affordance, and shared `Button` icon actions (edit/delete). Create
+  and edit forms now open in the shared `Modal` shell (with the entity context
+  in the eyebrow/description), and destructive deletes use the shared `Modal`
+  confirmation instead of native `confirm()`. Composed `EmptyState`s per step
+  with inline create actions, skeleton cards on first load, `UserAvatar` +
+  `RankBadge` in the student roster, and token-only colors throughout.
+- **Admin Teachers - workforce management (1.4.25).**
+  `app/admin/teachers/page.tsx` manages the teaching workforce with the same
+  design grammar as Students/Programs: a header band (`font-display` title +
+  mono "Teacher management · N registered" line, with a pending-grades `Stat`
+  anchored right), a compact 4-`Stat` snapshot computed entirely from live
+  store data (teachers / assigned courses / distinct classes / pending
+  teacher tasks), and a two-column directory + detail layout. Roster rows
+  carry `UserAvatar`, a course/class workload line, and a warn `Chip` when
+  the teacher has pending tasks. The detail panel shows identity with a
+  pending-grades `Chip`, a 3-`Stat` strip (courses / students / grades
+  submitted), and `section-label` sections for assigned courses (with
+  section, student count, and average), recent grading activity, and
+  assigned tasks. The legacy `ActionButton` assign form was replaced with the
+  shared `Button` (gold submit + ghost toggle), task statuses use token
+  `Chip` variants, and empty/loading states are composed `EmptyState`s and
+  geometry-matching skeletons. Every number derives from existing hooks
+  (`useSchoolProfiles`, `useTeacherTasks`, `useClassroomHierarchy`) - no new
+  queries, no mock data, no `confirm()` on this page.
+- **Admin Ranks - the ladder as the hero (1.4.25).**
+  `app/admin/ranks/page.tsx` treats the rank ladder as the visual centerpiece:
+  a gold-haired `CornerFrame` "The ladder" band renders D → C → B → A → S → S+
+  → S++ → EX using the same rank identity tokens as the landing page ladder
+  and `RankDistribution` (`bg-rank-*` / `text-rankText-*` /
+  `border-rankBorder-*`, EX as the gold-token tile), each tier with its
+  product note (Fresh start … Flawless) and the real season-reset rule (S and
+  above → C, A and below → D). Below it: live standings (rank position,
+  `UserAvatar`, `RankBadge` + bar/EX score) and a season-control rail -
+  Declare semester (`declare_semester`, shared `Button` + inputs), End season
+  (`end_season_for_school`), and Season history (`get_school_season_history`
+  with peak `RankBadge`, final → reset mono line, and an "EX achieved"
+  `Chip`). The destructive End-season action now opens the shared `Modal`
+  confirmation (what changes, who it affects, irreversible) instead of native
+  `confirm()`. Loading uses geometry-matching skeletons, empty states are
+  composed `EmptyState`s, and surrounding UI is token-only. All RPC calls and
+  handlers are byte-for-byte unchanged - this page is standings + season
+  management; the rank engine and its DB-only config RPCs
+  (`get_rank_config` / `update_rank_config`) remain untouched.
+- **Admin Settings - the configuration surface (1.4.25).**
+  `app/admin/settings/page.tsx` brings the last legacy admin page onto the
+  shared grammar. The header follows the reference pages: a `font-display`
+  "System configuration" title with a mono "Portal appearance · account
+  management" line, and a live pending-account-requests `Stat` (warn tone
+  when > 0) anchored right. The three existing sections (Appearance,
+  Feedback & report, Account requests) now use `section-label` eyebrows with
+  `CornerFrame` surfaces instead of inline `text-gold`/`text-navy` headers.
+  The account-request list replaces plain text states with geometry-matching
+  skeleton rows, a warn-token error banner, and a composed `EmptyState`;
+  pending rows use `UserAvatar` + name/role metadata with shared `Button`s
+  (gold Approve with check icon, outline Deny with X icon), and resolved
+  requests render a token `Chip` (success/danger). The version footer is now
+  mono-faint. All data hooks (`useAccountRequests`), the `resolveRequest`
+  handler, `ThemePicker`, `FeedbackForm`, and `APP_VERSION` are unchanged.
+- **Admin Users - the school directory (1.4.25).**
+  `app/admin/users/page.tsx` is the directory surface: a header band with a
+  `font-display` "School directory" title, mono "Users · N registered" line,
+  and a students `Stat` (with the teacher count as its hint) anchored right.
+  A compact control bar holds the search input (with a live mono result-count
+  chip, styled like the reference pages' `focus:border-gold` inputs), the
+  All/Students/Teachers role tabs (active state uses `border-gold-token`),
+  and a shared outline `Button` "Refresh" (new reusable `IconRefresh`). The
+  roster rows use `UserAvatar` (with `profileId` so equipped avatar borders
+  follow), name + level metadata, a role `Chip` (gold for teachers, neutral
+  for students - replacing the old static `bg-gold/20 text-gold` pill), and
+  `RankBadge` for students. Plain text states were replaced with
+  geometry-matching skeleton rows, a warn-token error banner, and composed
+  `EmptyState`s (distinct "No users yet" vs "No users found" with a clear
+  search & filters action). All filtering semantics, `useSchoolProfiles`
+  (`excludeSelf`), `useRankStore`, and the `refetch` handler are unchanged.
+- **Teacher Students - the roster + detail surface (1.4.25).**
+  `app/teacher/students/page.tsx` keeps its two-column roster + detail
+  workflow but on the shared grammar: a header band (`font-display` "My
+  students" title, mono "Student roster · N at school" line, and a roster-
+  average `Stat` derived from approved grades anchored right), a
+  `section-label` roster card with a search input carrying a live mono
+  result-count chip, and dense rows (`UserAvatar` with `profileId`,
+  `RankBadge`, `EnrolledBadge`, and the level/identity line). Selection now
+  uses `border-gold-token` / `hover:border-gold-soft` instead of the old
+  `border-sealion` treatment. The detail card leads with the student identity
+  box, then a 2-`Stat` strip (Average / Tags with favorite-subject hint),
+  then `section-label` sections for Rank progress (with bar/EX score) and
+  Student details (favorite subject, tags). Plain text states were replaced
+  with geometry-matching skeleton rows, a warn-token error banner, and
+  composed `EmptyState`s ("No students yet" / "No students found" with a
+  clear-search action). All teacher-scoping is byte-for-byte unchanged: the
+  roster is `useSchoolProfiles({ role: "student" })` (RLS school boundary)
+  with per-student program/section identity derived from the existing
+  `useClassroomHierarchy` enrollments, plus `useSchoolEnrollments` and
+  `useRankStore` - no new queries, no broadened scope.
+- **Teacher Settings - the teacher configuration surface (1.4.25).**
+  `app/teacher/settings/page.tsx` mirrors Admin Settings' grammar while
+  staying teacher-specific: a header band (`font-display` "Preferences and
+  account" title + mono "Teacher settings · appearance, feedback, account"
+  line, no invented stats), then `section-label` `CornerFrame` sections for
+  Appearance (`ThemePicker`) and Feedback & report (`FeedbackForm`). The
+  Account section keeps its warn-tone card (`CornerFrame tone="warn"`,
+  replacing the old inline `border-warn-soft`) and both request rows now use
+  the shared `Button` - outline for Deactivate account, danger for Request
+  account deletion - with the same `busy`/disabled handling and
+  gold-token/warn success + error messages. No confirm dialog was added
+  (these are admin-confirmed requests, not in-page destructive actions). The
+  `handleRequest` → `useAccountRequests().request` flow, validation, and
+  messaging are byte-for-byte unchanged; the version footer is mono-faint.
+- **Teacher Classroom - the grade workspace (1.4.25).**
+  `app/teacher/classroom/page.tsx` keeps its four-step wizard (programs →
+  sections → courses → students) and every grade handler, modernized onto the
+  shared grammar. The header band pairs a `font-display` "Grade submission"
+  title with a mono "Classroom · …" line, a live `Stat` (My courses) and an
+  active-semester `Chip` (`school_year · semester_label`). Each step has a
+  shared ghost `Button` Back, a `section-label` prompt, and a mono breadcrumb
+  of the current program/section/course path; selection cards use
+  `hover:border-gold-soft` + chevron affordances and composed `EmptyState`s
+  for the no-courses / no-sections / no-students cases. The Course categories
+  editor uses `Chip` for the running total (warn when ≠ 100), shared
+  `Button`s (outline + Add, gold + Save, danger icon-square Remove replacing
+  the old ✕), and the same validation flow. The Submit grades card replaces
+  the hardcoded amber semester block and green success banner with
+  warn-soft/gold-soft token banners, token-ified category pills, `UserAvatar`
+  student rows with the same score/max inputs, and a full-width gold `Button`.
+  The leaderboard now uses `UserAvatar` + `RankBadge` (replacing the inline
+  rank pill), and Grade history maps type → neutral `Chip` and approval
+  status → `Chip` (approved success / pending warn / rejected danger). All
+  handlers (`handleBack`, `updateDraft`/`removeDraft`, `handleSaveWeights`,
+  `handleSubmitGrades`), the category-key slug/unique logic, teacher scoping
+  (`getCoursesByTeacher(profile.id)`), and store calls are byte-for-byte
+  unchanged - no grade math, weights, or submission/approval behavior was
+  touched.
+- **Teacher Quiz - the quiz builder (1.4.25).**
+  `app/teacher/quiz/page.tsx` modernizes the create-a-timed-quiz workflow:
+  a header band (`font-display` "Quiz builder" + mono "Create timed quizzes ·
+  published to your courses" line, with a live **My quizzes `Stat`** derived
+  from `useQuizStore().quizzes` filtered to `getCoursesByTeacher(profile.id)`).
+  The builder card is organized with `section-label` sections - Quiz details
+  (title / course / time with mono-faint labels) and Questions (with an
+  "N added" `Chip`) - and every action uses the shared `Button` (outline +
+  Add question, gold + Publish quiz, danger + Remove with `IconTrash`
+  replacing the plain text link). The correct-option highlight moved from
+  static `border-gold` to `border-gold-token`. The published-quizzes list
+  gains a count `Chip`, composed `EmptyState` ("No quizzes published"), and
+  dense rows with a question-count `Chip` + mono time limit. Loading now uses
+  a builder-geometry skeleton (guarding against the false "no courses" flash
+  while the profile loads), the quiz-store error renders as a warn-token
+  banner, and the no-courses case is a composed `EmptyState`. All quiz
+  handlers (`updateQuestion`, `updateOption`, `setCorrect`, `addQuestion`,
+  `removeQuestion`, `handleSubmit`), the title/course/time validation, teacher
+  scoping, and `addQuiz` behavior are byte-for-byte unchanged.
+- **Teacher Learning Materials - the upload workspace (1.4.25).**
+  `app/teacher/learning-materials/page.tsx` keeps its two-column upload
+  workflow on the shared grammar. The header band replaces the old inline
+  "Upload status" panel with a `font-display` "Teaching materials" title,
+  mono "Upload lessons · manage your materials" line, and a live **My
+  materials `Stat`** (from `useMaterials` filtered to `m.mine`). The upload
+  form uses `section-label` + mono-faint labels, a shared `Button`
+  "Choose file" in the dashed drop zone, and a shared primary `Button`
+  "Add material" (replacing the legacy `ActionButton`/`PlusIcon`). The
+  Manage uploads card gains a count `Chip`, geometry-matching skeleton rows,
+  a warn-token error banner, and a composed `EmptyState` ("No materials
+  uploaded"). Material rows keep their title/meta/description/date but the
+  Open link hover is token-based and Delete is a shared danger `Button` with
+  `IconTrash`. Deleting now opens the shared `Modal` confirmation (what is
+  removed, who it affects, irreversible) before calling the same
+  `deleteMaterial(id)` handler. All upload logic (`handleAddMaterial`, the
+  title/validation flow, subject sync effect, `createMaterial` payload,
+  teacher scoping via `getCoursesByTeacher(profile.id)`) is byte-for-byte
+  unchanged.
+- **Teacher Library Management - the librarian desk (1.4.25).**
+  `app/teacher/library-management/page.tsx` completes the teacher shell with
+  the same grammar. The header band (`font-display` "Librarian desk" + mono
+  "Library management · approve, track, return") carries a live **Books out
+  `Stat`** (derived from `books.filter(status === "borrowed")`) and a gold
+  `Button` "Add book" (`IconPlus`). All four sections use `section-label`
+  eyebrows with count `Chip`s (gold catalog / warn pending / neutral out):
+  the catalog search gains a live mono result-count chip, book status maps to
+  `Chip` (available/requested → success tone, borrowed → neutral - preserving
+  the earlier token sweep), Edit is a shared outline `Button` (`IconPencil`),
+  pickup requests use shared gold Approve (`IconCheck`) + outline Decline
+  (`IconX`) `Button`s with the same disabled/validation behavior, "Mark
+  returned" is a gold `Button`, and the history-lookup input's stray static
+  `border-gold` was normalized to the standard `focus:border-gold` ring.
+  Plain text states were replaced with geometry-matching skeleton rows
+  (guarding the catalog against a false empty flash), a warn-token error
+  banner, and composed `EmptyState`s for each section. No native `confirm()`
+  exists on this page (audit confirmed) and no destructive in-page action
+  warranted an invented confirmation - the Add/Edit book modals are separate
+  components and were left untouched. All library logic (`ApproveRow`
+  handlers, `approveRequest`/`declineRequest`/`returnBook`,
+  `historyForBook`, catalog filtering, `useLibraryStore`) is byte-for-byte
+  unchanged.
+
+  **Large-catalog / discoverability pass (1.4.25).** The Full Catalog section
+  now runs a client-side discovery pipeline - `books` → search
+  (title/author/genre/ISBN) → status filter → sort → paginate - all memoized
+  so a large catalog stays cheap and the store is untouched. A compact
+  discovery bar adds four status filter pills with live counts (All /
+  Available / Borrowed / Requested) and a sort select (Title A-Z / Z-A,
+  Author A-Z / Z-A - no invented date fields; books have no created date).
+  Pagination is client-side at 25 rows/page with a mono "Showing X-Y of Z
+  books" line, Prev/Next `Button`s, numbered pages when ≤ 7 pages (else a
+  compact "X / Y" indicator), and page-reset on any search/filter/sort
+  change.  Search now also matches `isbn`, and the no-result empty state
+  clears both search and filters. The page's other three sections (requests,
+  borrowed, history) are  unchanged.
+- **Teacher Home - the structured personal dashboard (1.4.25).**
+  Teacher Home is a widget dashboard the teacher builds themselves;
+  there is **no developer-defined default** - a teacher with no saved layout
+  (or a legacy `{hidden, order}` row from the first-generation customizer)
+  sees an empty Home: "Build your own command center" with a **Customize in
+  Settings** CTA. There is no Customize button on Home itself - the entry
+  point lives in **Settings -> Home Dashboard -> Customize Home**
+  (`/teacher/home?customize=1` opens the builder in place). Quick Actions
+  remain as navigation shortcuts.
+  The page deliberately uses the **same outer content column as every
+  other app page (Admin Home included)** - the standard AppShell
+  (`max-w-[1600px] mx-auto`, 100px sidebar gap, `main` padding) with no
+  full-bleed or width overrides.
+
+  **Widget model** (`lib/teacherPrefsStore.tsx`): the prefs row stores
+  `layout` JSONB as `{ "widgets": [{ id, size, tall, order }] }` - the same
+  table, no new migration. `HOME_WIDGETS` is the single registry of 12
+  supported widgets (Teaching State, My Classes, Grading Status, Recent
+  Submissions, Students Needing Attention, My Students, School Feed,
+  Assigned Tasks, Today's Schedule, Today's Lesson Plans, Pinned Notes,
+  Upcoming Lesson Plans), each with a label and description. Every widget
+  is a **projection of existing data** (classroom hierarchy, ranks, tasks,
+  workspace, school feed); the schedule/lessons/pinned-notes projections
+  are read-only and deep-link into the Workspace tools
+  (`/teacher/workspace?tool=…`). No x/y coordinates are ever persisted -
+  the teacher controls WHICH widgets, their ORDER, and their SIZE; the
+  layout engine decides position.
+
+  **One layout engine - CSS Grid.** The dashboard is a 12-column CSS Grid
+  (`grid-cols-12`, `gap-4`, normal row flow - no dense packing, no
+  compactor, no coordinates). A widget's `size` maps to a column span:
+  small = 3, medium = 6, large = 9, full = 12. `tall` maps to
+  `row-span-2` (rows are the fixed `auto-rows-[15rem]` unit below). Widgets flow row by
+  row in saved order; one that doesn't fit the current row simply starts
+  the next one. Below `md` every widget becomes full width (one column).
+  The grid is `width: 100%` of the content column, tiles are plain
+  `CornerFrame` cards - no absolute positioning, no negative margins, no
+  overflow escaping the grid. Rows are a **fixed unit**
+  (`auto-rows-[15rem]`): content-sized rows made `tall` invisible for
+  widgets whose content already filled the row (a row-span-2 tile's
+  content is distributed across both rows), so with a fixed row height
+  `tall` always spans 2 rows + gap and visibly grows for every widget in
+  every layout. Cards contain their content (overflow-hidden + internal
+  scroll in view mode).
+
+  **View mode is a static grid** - a plain map of `CornerFrame` cards
+  with no drag/resize machinery at all. **Edit mode renders the SAME
+  grid** (`components/teacher/WidgetTile.tsx`) with chrome added: a gold
+  strip is the **@dnd-kit sortable** drag handle (reorder only - the
+  transform is temporary and disappears on drop, and the strip is
+  keyboard-operable: Tab, Space, arrows), and a remove button. Resize
+  handles are revealed only when needed, so a resting card stays clean:
+  hovering a card shows four tiny mid-edge grips (N/E/S/W - thin 24x3 /
+  3x24 bars on an invisible GENEROUS hitbox (48x24 / 24x48, extending
+  ~12px outside/inside the edge - the bar stays tiny, only the pointer
+  target is forgiving), and moving the pointer onto a corner reveals
+  that corner for diagonal resize. E/W change width
+  (right = small -> medium -> large -> full, left = reverse), N/S change
+  height (S down / N up = tall on, reverse = off), corners change both;
+  arrow keys mirror each drag. After any change CSS Grid reflows the
+  dashboard - widgets below simply move down. **Save layout** persists
+  the draft;
+  **Cancel** discards it; **Clear Home** (two-step confirm) empties the
+  dashboard. A **Presets** button in the toolbar opens a VISUAL preset
+  picker: each of the six developer-created starting arrangements (Daily
+  Focus, Class Overview, Grading Focus, Teaching Day, Student Attention,
+  Communication) is a card led by a miniature dashboard preview, plus a
+  blank "Customize yourself" card for an empty Home. The presets are
+  designed compositions, not random mixes - every 12-column row is fully
+  occupied (no dead space), the hero widget gets the most height (feeds
+  and attention lists are `tall`), and content-heavy widgets pair with
+  stat widgets in the 3-column rails. Previews are generated from each
+  preset's real widget definitions (`components/dashboard/
+  PresetPreview.tsx` - a mini 12-column grid where each tile carries the
+  widget's actual span and `tall` row span) and render a simplified
+  version of each widget's REAL content - feed tiles show a post with an
+  author line and ADMINISTRATOR badge, class tiles show course rows with
+  averages, grading tiles show stat blocks, attention tiles show alert
+  rows - so the preview can never drift from the layout and reads like
+  the actual Home. The same `PresetCard`/`PresetPicker` components serve
+  Admin Home. Picking a preset loads it into the draft only, and nothing
+  persists until Save.
+  Removing a widget never touches its data, and it returns to the
+  Available Widgets picker.
+
+  **Migration** (`normalizeHomePrefs`, same JSONB column): the previous
+  free-form era `{widgets: [{id, x, y, w, h}]}` converts width to the
+  nearest size (w <= 3 small, <= 6 medium, <= 9 large, else full) and
+  height to tall (h >= 7); the preset era `{id, size, order}` is kept;
+  the BSP tree shape converts each leaf to a placement; legacy
+  `{hidden, order}` rows become the empty dashboard. Unknown widgets are
+  dropped, duplicates keep their first occurrence, invalid sizes fall
+  back to medium. The old Notes / Schedule / Lesson Plan **management UI
+  is not on Home** - those tools live only in the Workspace
+  (`/teacher/workspace`), one source of truth. react-grid-layout and its
+  CSS were removed; @dnd-kit/core + @dnd-kit/sortable power the
+  reorder drag.
+
+  **Teacher Workspace** (`app/teacher/workspace/page.tsx`, `/teacher/workspace`,
+  added to `TEACHER_NAV_ITEMS` right after Home): an internal rail (vertical
+  on desktop, horizontal scroll on mobile) with five tools - **Overview**
+  (today's schedule, today's lesson plans, pinned notes, pending/overdue
+  tasks, each with a jump link), **Notes** (search, add, inline edit, pin,
+  delete - `addNote`/`updateNote`/`togglePinNote`/`removeNote`),
+  **Schedule** (same add/remove form plus a responsive weekly view that
+  stacks days on mobile), **Lesson Plans** (add, inline edit, delete,
+  All/Upcoming/Past filter - `addLessonPlan`/`updateLessonPlan`/
+  `removeLessonPlan`), and **Tasks** (status-filtered full task management
+  through the same `teacherTasksStore` as Home). Workspace tabs are now
+  URL-addressable (`?tool=overview|notes|schedule|lessons|tasks`) so Home
+  projections land on the right tool (inside a Suspense boundary for
+  `useSearchParams`). Home and Workspace share the same `TaskItem` component
+  (`components/teacher/TaskItem.tsx`) for task actions (accept, decline +
+  reason, done, reopen, delete). The Workspace reuses the app-level
+  providers already in memory - no new queries, no duplicated systems, no
+  Subject Tracker yet (Phase 2). Day/time helpers were extracted to
+  `lib/teacherDayUtils.ts` so both surfaces render "today" identically.
+- **Admin Home - the customizable command center (1.4.25).**
+  Admin Home is a widget dashboard using the **same structured dashboard
+  model as Teacher Home** (shared `lib/dashboardShared.ts` primitives:
+  `WidgetSize` small=3 / medium=6 / large=9 / full=12, `SPAN_CLASS`, and the
+  `WidgetTile` resize/reorder chrome). Like Teacher Home it is **EMPTY BY
+  DEFAULT**: an admin with no saved row (or a malformed one) sees the empty
+  command-center state - there is no developer-forced default arrangement.
+  A saved personal layout is authoritative, and a preset is only applied
+  when the admin explicitly picks one.
+
+  **Widget model** (`lib/adminPrefsStore.tsx`): the prefs row stores
+  `layout` JSONB as `{ "widgets": [{ id, size, tall, order }] }` in the new
+  `admin_dashboard_prefs` table (migration 055 - own-row RLS via the
+  profiles join: an admin reads/writes only their own row, `admin_id`
+  unique, `school_id` must match their school; no cross-admin access).
+  `ADMIN_WIDGETS` is the registry of 13 widgets - School Snapshot, Semester
+  Progress, Hierarchy Health, Academic Health, Attention Center, Grade
+  Pipeline, Enrollment Health, Teacher Workload, Pending Grade Submissions,
+  Account Requests, Teacher Tasks, Recent Activity, School Feed &
+  Announcements - each with a description and a default size. Per the
+  sizing policy, EVERY widget supports all four sizes
+  (small/medium/large/full); nothing is locked to a minimum, so School
+  Feed and Pending Grade Submissions can shrink to `small` and the card
+  content adapts (posts wrap, buttons wrap, long strings break). Every
+  widget is a **projection of existing Admin Home data** (classroom
+  hierarchy, ranks, tasks, enrollment, account requests, posts) - no new
+  queries, no invented metrics, no duplicated business logic.
+  `ADMIN_PRESETS` offers six developer-created starting arrangements
+  (School Operations, Academic Overview, Communication, Administration
+  Focus, Academic Health, School Communication) - selecting one loads it
+  into the draft only, and it becomes the admin's layout after Save; any
+  preset widget can then be manually resized to any size.
+
+  **Entry point moved to Admin Settings.** There is no "Customize" button
+  on Admin Home. `/admin/settings` has a **Home Dashboard** section
+  ("Customize which information appears on your Admin Home and how it is
+  arranged") whose **Customize Home** button links to
+  `/admin/home?customize=1` - the page enters the builder and strips the
+  param. The builder edits the real Admin Home in place; there is no
+  separate builder page and no Admin Workspace.
+
+  **One layout engine - CSS Grid** (identical to Teacher Home): 12 columns,
+  `gap-4`, normal row flow, `auto-rows-[15rem]` fixed rows so `tall`
+  (row-span-2) visibly grows; below `md` everything stacks full width.
+  **View mode is a static grid** of `CornerFrame` cards (warn tone for
+  Attention Center; `SemesterProgress` and `RankDistribution` render
+  directly since they self-frame; the Pending Grades tile keeps the
+  `#pending-grades` anchor the Attention Center links to). **Edit mode** is
+  the same grid with `WidgetTile` chrome: a gold strip is the @dnd-kit
+  sortable drag handle (order only, keyboard-operable), hover reveals the
+  four tiny mid-edge resize grips (E/W cycle the widget's supported sizes,
+  N/S toggle tall), corner handles appear on corner proximity and resize
+  both axes, all live during pointer movement. A sticky toolbar holds **Add
+  widget** (picker shows only widgets not already placed; removed widgets
+  return to it), **Presets** (the same visual preset picker as Teacher
+  Home - six cards with miniature dashboard previews: School Operations,
+  Academic Overview, Communication, Administration Focus, Academic
+  Health, School Communication - plus the blank "Customize yourself"
+  card), **Clear Home** (two-step confirm - empties the dashboard; the
+  data is never touched), **Cancel** (discards the session), and **Save
+  layout** (persists the draft; saving an empty draft is a valid personal
+  layout - an empty Home shows the build-your-own state). Removing a widget never touches its data, and the existing
+  workflows are intact: pending grade Approve/Reject, account request
+  Approve/Deny, and school post/announcement Edit/Delete (via the shared
+  `PostEditor`) all work from the widgets, and the New post / Announcement
+  header commands stay available in view mode. Administrator-created posts
+  carry an **Administrator** badge (`authorRole` from the feed's profiles
+  join) in the student/teacher feed and the admin feed rows alike.
+- **Student Library - the discovery catalog (1.4.25).**
+  `app/student/library/page.tsx` now runs the same client-side discovery
+  pipeline as the teacher catalog but stays a student-facing surface - no
+  librarian controls, no admin metrics. The header band uses `font-display`
+  "Library" + mono "Discover books · check availability · find your next
+  read" with a live **Available `Stat`** (gold tone, "N in catalog" hint).
+  The catalog is now the full catalog (not just available books): search
+  matches title/author/genre/ISBN, four status filter pills (All / Available
+  / Borrowed / Requested) carry live counts, the existing genre filter and a
+  new sort select (Title/Author A-Z/Z-A) sit on the right, and client-side
+  pagination bounds the list at 25 rows/page with a mono "Showing X-Y of Z"
+  line, Prev/Next + numbered pages, and page-reset on any control change.
+  Rows are compact cover + title/author·genre + status `Chip` (Available →
+  success, Requested → warn, Borrowed → neutral) + chevron, opening the
+  shared `Modal` book detail (genres as eyebrow, gold hairline, same
+  Request-to-borrow / disabled action, `requestBorrow` handler unchanged).
+  The "My requests & loans" and "Borrow history" panels keep their exact
+  logic on the shared grammar with count `Chip`s, composed `EmptyState`s,
+  and mono dates. Loading uses catalog-geometry skeleton rows, the store
+  error renders as a warn-token banner, and the no-result state clears
+  search + filters. `useLibraryStore`, `requestBorrow`, all borrow rules,
+  and the student scoping are byte-for-byte unchanged.
+- **Shared read-only Book Detail - DISCOVER → VIEW → DECIDE (1.4.25).**
+  `components/library/BookDetailModal.tsx` is the single read-only detail
+  surface for both library audiences. It renders through the shared `Modal`
+  (genres as eyebrow, title as description, gold hairline) and displays only
+  real `LibraryBook` fields: cover, title, author, genre, description, ISBN
+  (when present), and a status `Chip` (Available → success, Requested →
+  warn, Borrowed → neutral). A `context` prop scopes the copy - students
+  (default) get "Pending librarian approval" / "Due …" / "Currently
+  borrowed" and never see borrower identity; teachers get the loan line
+  (`Loaned to … · borrowed … · due …`) and pickup-request copy. Actions live
+  at the page level via an `action` slot: the student page passes its gold
+  Request-to-borrow button (or the disabled "Request already sent" / "Not
+  available right now" state - `requestBorrow` unchanged), the teacher page
+  passes nothing, so no management control ever leaks into the read-only
+  view. `components/library/BookCover.tsx` was extracted as the shared cover
+  renderer (the inline copies in both pages are gone - one definition).
+  Student catalog rows open the detail on click; teacher catalog rows are
+  now clickable to inspect (`title="View book details"`) with the Edit
+  `Button` stopping propagation so EditBookModal stays the only editing
+  path. `bookStatusChip` / `bookStatusLine` are shared named exports used by
+  the student rows and the modal alike.
+- **Library modals on the shared shell (1.4.25).** `AddBookModal.tsx` and
+  `EditBookModal.tsx` dropped their hand-rolled `fixed inset-0 … bg-black/50`
+  overlays for the shared `Modal` primitive, closing the last non-shared
+  dialog in the library system. Add keeps the full Scan-barcode / Enter-
+  manually flow (html5-qrcode camera lifecycle and cleanup, scanner-device
+  input, OpenLibrary lookup, "Scan again" retry, found / not-found banners)
+  token-ified (`bg-gold-token`, `hover:border-gold-soft`, `border-gold-soft`
+  banners); the review form gains a `section-label` "Book information"
+  eyebrow, mono-faint field labels wired to inputs via `htmlFor`/`id`, the
+  shared `BookCover` preview, a shared gold "Add book" submit (`IconPlus`,
+  same disabled/`submitting` guard, identical `addBook` payload incl. the
+  `"Uncategorized"` fallback) plus an outline Cancel. Edit keeps the exact
+  `updateBook` payload, the shared-`BookCover` preview, gold "Save changes",
+  and the **two-step delete safety flow** - a danger "Delete this book"
+  `Button` reveals the warn-soft panel (explicit "removes it from the
+  library for everyone and can't be undone" copy) with danger "Yes, delete"
+  + outline Cancel, all calling the same `deleteBook(id)`. Both modals close
+  through the shared `Modal`'s ✕/backdrop (Add stops the scanner first, as
+  before). No native `confirm()`, no hardcoded colors, no static gold, and
+  the broken `hover-bg-gold-token` classes are gone; the two pre-existing
+  `<img>` lint warnings were eliminated by the shared `BookCover`.
+- **No hardcoded status colors (1.4.25 cleanup).** A full sweep removed every
+  remaining `red`/`emerald`/`blue` Tailwind color from the codebase - errors,
+  warnings, and destructive actions use `text-warn` / `bg-warn-soft` /
+  `border-warn-soft`; success/positive states use `text-gold-token` /
+  `bg-gold-soft`; informational/neutral states use `bg-tile text-muted`; the
+  solid danger buttons use `bg-warn text-on-accent`; and the notification
+  type dots resolve through theme tokens. This is what makes Rose readable
+  everywhere. The one exception is the `gold` static hex in `tailwind.config.ts`
+  (eyebrows, focus rings, small accents) - it is a neutral gray-blue that
+  reads identically in both themes and is scheduled for `-token` migration.
+  The broken `hover:bg-gold hover:text-on-accent` pattern (a plain CSS class
+  can't take a Tailwind `hover:` variant, so the text never changed color) was
+  also replaced app-wide with `hover-bg-gold-token hover-text-on-accent`,
+  which actually flips the label to dark on gold.
+- **Full-app visual + UX consistency audit (1.4.25).** A cross-app sweep
+  closed the last gaps between the modernized reference pages and the
+  remaining surfaces. All three native `window.confirm` dialogs were replaced
+  with the shared `Modal` confirm: `app/student/profile/page.tsx` (remove
+  profile picture) and `components/chat/MessengerView.tsx` (delete
+  conversation, block user) - `window.confirm` is now gone from the entire
+  codebase. `MessengerView` (shared by student/teacher/admin messages) also
+  swapped its legacy `ActionButton` Send for the shared primary `Button` and
+  token-ified its static gold (my-message bubbles `bg-gold` →
+  `bg-gold-token`, unread badge, archived-tab border, hover borders, empty-
+  state icon tile), so chat now adapts correctly in Rose. `app/teacher/home`
+  replaced its three remaining `ActionButton` submits (Add note / Add to
+  schedule / Add lesson plan) with the shared gold `Button` - the reference
+  teacher page is now fully on the shared action language. `app/student/profile`
+  token-ified its edit-photo modal (`bg-gold`/`text-gold` → `-token`, static
+  hover border → `-soft`). After the sweep the shared
+  `components/ui/ActionButton.tsx` has no consumers left (the only remaining
+  `ActionButton` is a local function in `app/student/shop/page.tsx` - a
+  distinct student-gaming surface kept as-is) and is a candidate for removal.
+- **Admin Reports - the analysis surface (1.4.25).**
+  `app/admin/reports/page.tsx` is the last admin page on the shared grammar
+  and the reference for school-analysis reporting. The header band uses
+  `font-display` "School reports" + mono "Live academic excellence · rank
+  distribution · teacher activity" with a live **School excellence `Stat`**
+  (gold tone, hint line) anchored right. The four summary tiles became
+  shared `Stat`s (excellence in gold, the rest neutral) in a compact grid;
+  every section header is now `.section-label` with a one-line explanation;
+  the rank distribution uses the shared `Bar` (gold fill, same count/
+  student-width math); grade-type, course-average, top-performer and
+  teacher-activity lists are hairline `divide-y` rows with mono tabular
+  values; top performers carry their real `RankBadge` (unranked students
+  render no badge - never mislabeled "D"); the below-75 list keeps its
+  warn-soft treatment; and all section empties use composed `EmptyState`s
+  ("All clear" for attention). Loading is a geometry-matching skeleton and
+  the store `error` renders as a warn-token banner. All ten `useMemo`
+  report calculations (`schoolAverage`, `rankDistribution`,
+  `gradeTypeBreakdown`, `programAverages`, `courseAverages`, `topPerformers`,
+  `needsAttention`, `teacherActivity`, `studentStats`) and every data source
+  are byte-for-byte unchanged.
 - **Real data everywhere.** No mock UI - every number on screen is fetched
   from Supabase (rank state, grades, habits, weekly progress) and updates
   through Realtime.
@@ -219,16 +771,18 @@ flat token dashboard look, but built on the same tokens and fonts):
   their role home, otherwise renders `components/landing/Landing.tsx`:
   a fixed atmospheric background (`components/landing/Background.tsx` -
   crown watermark, floating **king/queen chess silhouettes**, flowing
-  ribbons, film grain, vignette; dark-mode only via `.landing-bg`), a glass
-  navbar with the crown mark, and a hero whose tagline **"Procrastination
-  is just an illusion."** fills the viewport with a per-letter cascade
-  entrance, a shimmer sweep on the accent words, twinkling sparkles, and a
-  pulsing halo ring around the crown. The paragraph underneath leads with
-  the product mission ("make school feel like a game worth playing" -
-  engagement, anti-procrastination, academic growth) and the CTAs point to
+  ribbons, film grain, vignette; dark-mode only via `.landing-bg`),  a glass
+  navbar with the crown mark, and a hero whose display headline **"Make school
+  feel like a game worth playing"** (the business tagline, rendered huge) fills
+  the viewport with a per-letter cascade entrance, a shimmer sweep on the
+  accent words "game" and "playing", twinkling sparkles, and a pulsing halo
+  ring around the crown. The mono eyebrow below carries the brand's action
+  line **"Climb the ranks"**, and the paragraph underneath supports it with
+  current product copy: approved grades fill the rank bar, habits build
+  streaks, and Florin unlocks page backgrounds, profile-card art, and avatar
+  borders equipped from the wardrobe - all live in realtime. The CTAs point to
   the auth card. The page moves end to end: a scroll
-  progress bar, scrollspy navbar, a count-up stats band (8 ranks / 5 habits /
-  3 roles / 100% realtime), staggered card pops and hover glows on the
+  progress bar, scrollspy navbar, staggered card pops and hover glows on the
   roles/features cards, a three-step **How it works** section with an
   animated connector line, a rank ladder (D -> EX) whose tiles light up one
   by one on scroll, hover-reactive tech badges, the auth card, and a footer
@@ -358,6 +912,42 @@ flat token dashboard look, but built on the same tokens and fonts):
    education level -> program -> year/level (or **None** to clear); saving
    auto-enrolls the student in that year's courses via `autoEnrollInSection`
    and the roster/identity updates everywhere through realtime.
+8. **Command-center homes** - the Admin and Teacher homes now open with a
+   school/classroom intelligence layer on top of their existing workflows:
+
+   - **Admin (`/admin/home`)**: semester progress + school snapshot (students,
+     teachers, courses, sections, programs), **Hierarchy Health** (rank
+     distribution D -> EX with counts, mean bar, EX count, top 5 - school
+     wide via `useRankStore`), **Academic Health** (approved-only averages per
+     program using the shared weighted-average helper), **Grade Pipeline**
+     (pending / oldest pending / approval rate / submissions per week + a
+     7-day volume chart), **Enrollment Health** (active / expired / revoked /
+     expiring-within-7-days via `useAdminEnrollments`), **Teacher Workload**
+     (open + overdue tasks), an **Attention Center** (aging submissions,
+     expiring enrollments, account requests, overdue tasks - each links to
+     the right screen), and a compact **Season Progression** trend from
+     `get_school_season_history`. The pending-grades workflow, posts,
+     announcements, and activity timeline are preserved below (activity now
+     carries explicit type labels: submitted/approved/rejected,
+     assigned/accepted/completed/declined).
+   - **Teacher (`/teacher/home`)**: header with date, quick-action pills
+     (grades, materials, quiz, students, messages, library), **My Teaching
+     State** (classes today, courses, students, awaiting approval,
+     submissions per week + an "up next" schedule line), **My Classes**
+     (assigned courses with section, student count, weighted average, pending
+     count - links to the classroom), **My Students** (rank distribution
+     restricted to the teacher's own students - never school-wide),
+     **Grading Status** (awaiting approval / approved / rejected /
+     no-grades-yet) with a **Recent Submission Activity** list, an
+     **Attention Center** (declining students, overdue assigned tasks, pending
+     grading - each links to the right screen; composed "all clear" empty
+     state), then the feed + workspace (today's schedule, lesson plans,
+     pinned notes, assigned tasks).
+
+   Both homes share the command-center primitives (`Button`, `Stat`, `Chip`,
+   `Bar`, `MiniBars`, `Modal`) and the shared `components/ui/icons.tsx`
+   semantic icons, so the two command centers look like one product.
+
 9. **Public landing & auth** - visitors at `/` get the marketing page;
    logged-in users are bounced to their role home. Sign in/up happens in the
    same animated card on the landing, `/login`, or `/signup` - all share

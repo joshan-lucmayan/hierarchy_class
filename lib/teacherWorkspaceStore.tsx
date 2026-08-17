@@ -38,6 +38,7 @@ const STORAGE_LESSON_PLANS = "hc-teacher-lesson-plans";
 interface TeacherWorkspaceContextValue {
   notes: TeacherNote[];
   addNote: (text: string) => void;
+  updateNote: (id: string, text: string) => void;
   removeNote: (id: string) => void;
   togglePinNote: (id: string) => void;
 
@@ -47,6 +48,7 @@ interface TeacherWorkspaceContextValue {
 
   lessonPlans: LessonPlanItem[];
   addLessonPlan: (item: Omit<LessonPlanItem, "id">) => void;
+  updateLessonPlan: (id: string, patch: Partial<Omit<LessonPlanItem, "id">>) => void;
   removeLessonPlan: (id: string) => void;
 
   loading: boolean;
@@ -256,6 +258,15 @@ export function TeacherWorkspaceProvider({ children }: { children: React.ReactNo
     );
   }
 
+  function updateNote(id: string, text: string) {
+    if (!text.trim()) return;
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text } : n)));
+    if (!profile) return;
+    void persist("note", () =>
+      (createClient().from("teacher_notes") as any).update({ text }).eq("id", id)
+    );
+  }
+
   function removeNote(id: string) {
     setNotes((prev) => prev.filter((n) => n.id !== id));
     if (!profile) return;
@@ -321,6 +332,22 @@ export function TeacherWorkspaceProvider({ children }: { children: React.ReactNo
     );
   }
 
+  function updateLessonPlan(id: string, patch: Partial<Omit<LessonPlanItem, "id">>) {
+    setLessonPlans((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+    if (!profile) return;
+    void persist("plan", () =>
+      (createClient().from("teacher_lesson_plans") as any)
+        .update({
+          ...(patch.title !== undefined && { title: patch.title }),
+          ...(patch.description !== undefined && { description: patch.description || null }),
+          ...(patch.date !== undefined && { plan_date: patch.date }),
+          ...(patch.startTime !== undefined && { start_time: patch.startTime || "" }),
+          ...(patch.endTime !== undefined && { end_time: patch.endTime || "" }),
+        })
+        .eq("id", id)
+    );
+  }
+
   function removeLessonPlan(id: string) {
     setLessonPlans((prev) => prev.filter((l) => l.id !== id));
     if (!profile) return;
@@ -334,6 +361,7 @@ export function TeacherWorkspaceProvider({ children }: { children: React.ReactNo
       value={{
         notes,
         addNote,
+        updateNote,
         removeNote,
         togglePinNote,
         scheduleItems,
@@ -341,6 +369,7 @@ export function TeacherWorkspaceProvider({ children }: { children: React.ReactNo
         removeScheduleItem,
         lessonPlans,
         addLessonPlan,
+        updateLessonPlan,
         removeLessonPlan,
         loading,
         error,

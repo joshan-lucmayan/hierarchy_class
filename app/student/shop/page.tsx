@@ -12,7 +12,7 @@ function ActionButton({ item, owned, busy, onBuy }: { item: ShopItem; owned: boo
         type="button"
         onClick={onBuy}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-1.5 rounded-full bg-navy py-2 text-[13px] font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full bg-navy py-2 text-[13px] font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
       >
         <CoinIcon size={15} />
         <span>{item.price.toLocaleString()}</span>
@@ -124,7 +124,7 @@ export default function ShopPage() {
       {loading ? (
         <p className="text-sm text-muted">Loading the shop...</p>
       ) : error ? (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-warn">{error}</p>
       ) : items.length === 0 ? (
         <p className="text-sm text-muted">The shop is empty right now. Check back soon.</p>
       ) : (

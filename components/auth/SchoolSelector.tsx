@@ -53,7 +53,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
           className={`flex w-full items-center justify-between rounded-md border bg-tile px-3.5 py-2.5 text-left text-sm transition-colors
-            ${error ? "border-red-400" : "border-line"}
+            ${error ? "border-warn-soft" : "border-line"}
             ${isOpen ? "border-sealion" : "hover:border-sealion"}`}
         >
           {value ? (
@@ -128,7 +128,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
         )}
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-warn">{error}</p>}
     </div>
   );
 }

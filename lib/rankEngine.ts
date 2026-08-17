@@ -1,29 +1,18 @@
 /**
  * rankEngine.ts - Non-linear student rank progression engine (pure logic).
  *
- * Backend/logic + data model only: no UI, no routes. Every function here is a
- * pure function - no database access, no side effects - so the entire system is
- * unit-testable (lib/rankEngine.test.ts) and the same math is mirrored in the
- * SECURITY DEFINER RPCs of database/migrations/034_rank_progression.sql, which
- * are the authoritative write path.
  *
  * Model summary (see spec):
- *  - PER-ENTRY ISOLATION: each individual grade entry computes its own fill
- *    independently from that single entry's score and its category weight. It
- *    does not blend with, or get dragged down/up by, any other entry in the
- *    same category or period (no running averages, no composite S).
- *      entryPct      = (earned / possible) * 100
- *      entryPctCapped= min(entryPct, 100)          // bonus never over-fills
- *      weightShare   = w[category] / sum(all configured weights)
- *      Adjusted      = 100 * (entryPctCapped/100)^k
- *      AdjustedUncap = 100 * (entryPct/100)^k       // EX >= 50 check only
- *      fillChange    = ((Adjusted - 50) / 50) * (100 / n) * weightShare
- *  - The rank bar moves by fillChange; promotion is fill-first (bar hits 100
- *    -> next tier at bar 0), demotion is overflow-based and capped at 2 tiers
- *    per entry, never below D.
+ *  - Categories (quiz/exam/activity/participation) accumulate points per
+ *    grading PERIOD. CategoryPct resets at each new period.
+ *  - Composite S = weighted average of active category percentages.
+ *  - Adjusted = 100*(S/100)^k (power curve, k default 1.8).
+ *  - The rank bar moves by fillChange = ((Adjusted_capped-50)/50)*(100/n);
+ *    promotion is fill-first (bar hits 100 -> next tier at bar 0), demotion is
+ *    overflow-based and capped at 2 tiers per entry, never below D.
  *  - EX is reached by filling the S++ -> EX bar; afterwards the student tracks
- *    an open-ended ex_score (flat +1/-1 per entry based on AdjustedUncap,
- *    floors at 0) and never demotes out of EX through the normal mechanic.
+ *    an open-ended ex_score (flat +1/-1 per period, floors at 0) and never
+ *    demotes out of EX through the normal mechanic.
  *  - Seasons reseed ranks at the end via SEASON_RESET_MAP, using the season's
  *    PEAK rank (a high-water mark) - not the rank at the literal moment the
  *    season ends. highest_rank_ever never resets.
@@ -131,13 +120,13 @@ export interface ValidationResult {
 }
 
 export interface PreviewResult {
-  /** The entry's own percentage (earned/possible * 100); can exceed 100 (bonus). */
+  /** Composite S (0-100+, can exceed 100 with bonus credit). Null when no active categories. */
   S: number | null;
-  /** Adjusted_uncapped (power curve on the UNcapped entry pct) - may exceed 100. */
+  /** Adjusted (power curve) - may exceed 100 (bonus case). */
   adjusted: number | null;
-  /** Adjusted (power curve on the CAPPED entry pct) - drives the normal rank bar. */
+  /** min(adjusted, 100) - drives the normal rank bar. */
   adjusted_capped: number | null;
-  /** Same as adjusted - raw power-curve value, used only for the EX >= 50 check. */
+  /** Raw power-curve value - used only for EX eligibility. */
   adjusted_uncapped: number | null;
   fillChange: number | null;
   bar_before: number;
@@ -263,32 +252,82 @@ export function createDefaultState(studentId: string, opts?: Partial<Omit<Studen
 }
 
 // ---------------------------------------------------------------------------
-// Section 2-3 - per-entry isolation: entry pct + weight share
+// Section 2 - category percentages (per grading period, running total)
 // ---------------------------------------------------------------------------
 
-/** entryPct = (earned / possible) * 100. May exceed 100 (bonus credit). */
-export function computeEntryPct(pointsEarned: number, pointsPossible: number): number {
-  return (pointsEarned / pointsPossible) * 100;
+/**
+ * Accumulates a score entry into a running (earned, possible) total - the pure
+ * equivalent of the spec's updateCategoryTotals (the DB version upserts into
+ * rank_period_entries; this one folds into an in-memory totals map).
+ */
+export function updateCategoryTotals(
+  totals: Record<Category, { earned: number; possible: number }>,
+  category: Category,
+  pointsEarned: number,
+  pointsPossible: number,
+): Record<Category, { earned: number; possible: number }> {
+  const cur = totals[category] ?? { earned: 0, possible: 0 };
+  return {
+    ...totals,
+    [category]: { earned: cur.earned + pointsEarned, possible: cur.possible + pointsPossible },
+  };
 }
 
 /**
- * weightShare = w[category] / sum(ALL configured category weights). The
- * denominator is every configured category (whether or not it has entries this
- * period), so the teacher's weight config fully controls the contribution.
+ * CategoryPct(c) = (Σ points_earned_this_period[c]) / (Σ points_possible_this_period[c]) × 100
+ * null (not 0) when the category has zero entries - excluded from the composite.
+ * Bonus credit allowed: earned may exceed possible, so the result may exceed 100.
  */
-export function computeWeightShare(weights: Record<Category, number>, category: Category): number {
-  const total = CATEGORIES.reduce((sum, c) => sum + (weights[c] ?? 0), 0);
-  if (total <= 0) return 0;
-  return (weights[category] ?? 0) / total;
+export function computeCategoryPercent(
+  entries: Array<Pick<RankPeriodEntry, "points_earned" | "points_possible">>,
+): number | null {
+  if (entries.length === 0) return null;
+  let earned = 0;
+  let possible = 0;
+  for (const e of entries) {
+    earned += e.points_earned;
+    possible += e.points_possible;
+  }
+  if (possible <= 0) return null;
+  return (earned / possible) * 100;
 }
 
 // ---------------------------------------------------------------------------
-// Section 4 - adjusted score (power curve on the entry's own pct)
+// Section 3 - composite score (S)
 // ---------------------------------------------------------------------------
 
-/** Adjusted = 100 × (pct/100)^k, where pct is the ENTRY's own percentage. */
-export function computeAdjusted(pct: number, k: number): number {
-  return 100 * Math.pow(pct / 100, k);
+/**
+ * S = ( Σ weights[c] × active[c] ) / active_weight_total.
+ * active[c] is CategoryPct already in percent units (0-100+), so the weighted
+ * mean is the composite score on the same scale - no extra ×100 (the spec's
+ * ×100 applies when percentages are stored as fractions; ours are already ×100).
+ * Returns null when NO category has entries this period - the pipeline must
+ * stop and not touch the bar.
+ */
+export function computeComposite(
+  pcts: Record<Category, number | null>,
+  weights: Record<Category, number>,
+): number | null {
+  let weighted = 0;
+  let weightTotal = 0;
+  for (const c of CATEGORIES) {
+    const pct = pcts[c];
+    if (pct === null || pct === undefined) continue;
+    const w = weights[c] ?? 0;
+    weighted += w * pct;
+    weightTotal += w;
+  }
+  if (weightTotal <= 0) return null;
+  return weighted / weightTotal;
+}
+
+// ---------------------------------------------------------------------------
+// Section 4 - adjusted score (power curve)
+// ---------------------------------------------------------------------------
+
+/** Adjusted = 100 × (S/100)^k. May exceed 100 when S exceeds 100 (bonus). */
+export function computeAdjusted(S: number, k: number): number {
+  return 100 * Math.pow(S / 100, k);
 }
 
 // ---------------------------------------------------------------------------
@@ -296,13 +335,13 @@ export function computeAdjusted(pct: number, k: number): number {
 // ---------------------------------------------------------------------------
 
 /**
- * fillChange = ((Adjusted − 50) / 50) × (100 / n) × weightShare, where Adjusted
- * comes from the entry's CAPPED pct through the power curve. Each entry moves
- * the bar independently by its own quality scaled by its category's weight
- * share - nothing is blended with other entries.
+ * fillChange = ((Adjusted_capped − 50) / 50) × (100 / n). The bar moves by the
+ * cumulative composite quality (the power-curved weighted average of category
+ * percentages), so a grade that keeps the average high moves the bar, and one
+ * below ~50 composite drains it. Grades below 50% quality drain the bar.
  */
-export function computeFillChange(adjustedCapped: number, n: number, weightShare: number): number {
-  return ((adjustedCapped - 50) / 50) * (100 / n) * weightShare;
+export function computeFillChange(adjustedCapped: number, n: number): number {
+  return ((adjustedCapped - 50) / 50) * (100 / n);
 }
 
 export interface RankUpdateResult {
@@ -447,12 +486,32 @@ export function validateScoreEntry(
   return { valid: true, warnings };
 }
 
+/** Group period entries by category and compute each category's running pct. */
+export function categoryPercentsFromEntries(
+  entries: Array<Pick<RankPeriodEntry, "category" | "points_earned" | "points_possible">>,
+): Record<Category, number | null> {
+  const pcts: Record<Category, number | null> = { quiz: null, exam: null, activity: null, participation: null };
+  const totals: Record<Category, { earned: number; possible: number }> = {
+    quiz: { earned: 0, possible: 0 },
+    exam: { earned: 0, possible: 0 },
+    activity: { earned: 0, possible: 0 },
+    participation: { earned: 0, possible: 0 },
+  };
+  for (const e of entries) {
+    if (!(e.category in totals)) continue;
+    totals[e.category].earned += e.points_earned;
+    totals[e.category].possible += e.points_possible;
+  }
+  for (const c of CATEGORIES) {
+    if (totals[c].possible > 0) pcts[c] = (totals[c].earned / totals[c].possible) * 100;
+  }
+  return pcts;
+}
+
 /**
- * previewRankUpdate - runs the full per-entry pipeline (Sections 2-5) and
- * returns the result WITHOUT persisting anything. Pure: calling it repeatedly
- * has zero side effects. Throws only on hard-invalid input (callers should
- * validate first). The prospective entry is the ONLY thing that moves the bar;
- * periodEntries are used purely for the peers typo-warning.
+ * previewRankUpdate - runs the FULL pipeline (Sections 2-5) and returns the
+ * result WITHOUT persisting anything. Pure: calling it repeatedly has zero side
+ * effects. Throws only on hard-invalid input (callers should validate first).
  */
 export function previewRankUpdate(input: PreviewInput): PreviewResult {
   const { state, periodEntries, config, category, pointsEarned, pointsPossible } = input;
@@ -465,22 +524,42 @@ export function previewRankUpdate(input: PreviewInput): PreviewResult {
   }
 
   const warnings = [...validation.warnings];
+  const entriesWithNew = [
+    ...periodEntries,
+    { student_id: state.student_id, period_id: state.period_id ?? "", category, points_earned: pointsEarned, points_possible: pointsPossible },
+  ];
+  const pcts = categoryPercentsFromEntries(entriesWithNew);
+  const S = computeComposite(pcts, config.weights);
   const barBefore = state.current_bar;
 
-  // Per-entry isolation: this entry's own quality, capped for the bar and
-  // uncapped for the EX check. No blending with any other entry.
-  const entryPct = computeEntryPct(pointsEarned, pointsPossible);
-  const entryPctCapped = Math.min(entryPct, 100);
-  const adjustedUncapped = computeAdjusted(entryPct, config.k);
-  const adjustedCapped = computeAdjusted(entryPctCapped, config.k);
-  const weightShare = computeWeightShare(config.weights, category);
+  if (S === null) {
+    return {
+      S: null,
+      adjusted: null,
+      adjusted_capped: null,
+      adjusted_uncapped: null,
+      fillChange: null,
+      bar_before: barBefore,
+      bar_after: barBefore,
+      rank_before: state.current_rank,
+      rank_after: state.current_rank,
+      promoted: false,
+      demoted: false,
+      cascade_tiers: 0,
+      warnings,
+      ex_score_after: null,
+    };
+  }
 
-  // EX: no bar mechanic - the open-ended score (Section 6) is what moves, and
-  // the check uses the UNCAPPED adjusted value of this single entry.
+  const adjusted = computeAdjusted(S, config.k);
+  const adjustedCapped = Math.min(adjusted, 100);
+  const adjustedUncapped = adjusted;
+
+  // EX: no bar mechanic - the open-ended score (Section 6) is what moves.
   if (state.current_rank === "EX") {
     return {
-      S: entryPct,
-      adjusted: adjustedUncapped,
+      S,
+      adjusted,
       adjusted_capped: adjustedCapped,
       adjusted_uncapped: adjustedUncapped,
       fillChange: null,
@@ -498,14 +577,14 @@ export function previewRankUpdate(input: PreviewInput): PreviewResult {
 
   const tier = config.tiers.find((t) => t.rank === state.current_rank);
   const n = tier ? tier.n : 1;
-  // Isolated, weight-scaled fill: ((Adjusted - 50)/50) * (100/n) * weightShare,
-  // where Adjusted uses this entry's CAPPED pct through the power curve.
-  const fillChange = computeFillChange(adjustedCapped, n, weightShare);
+  // The bar moves by the composite quality through the power curve
+  // (adjusted_capped) - the ORIGINAL rank math, restored by migration 047.
+  const fillChange = computeFillChange(adjustedCapped, n);
   const update = applyRankUpdate(state.current_rank, barBefore, fillChange, config);
 
   return {
-    S: entryPct,
-    adjusted: adjustedUncapped,
+    S,
+    adjusted,
     adjusted_capped: adjustedCapped,
     adjusted_uncapped: adjustedUncapped,
     fillChange,

@@ -8,6 +8,7 @@ import { FlorinProvider } from "@/lib/florinStore";
 import { ShopProvider } from "@/lib/shopStore";
 import { HabitProvider } from "@/lib/habitStore";
 import { TeacherWorkspaceProvider } from "@/lib/teacherWorkspaceStore";
+import { TeacherPrefsProvider } from "@/lib/teacherPrefsStore";
 import { TeacherTasksProvider } from "@/lib/teacherTasksStore";
 import { FriendsProvider } from "@/lib/friendsStore";
 import { ClassroomHierarchyProvider } from "@/lib/classroomHierarchyStore";
@@ -19,7 +20,7 @@ import { RankProvider } from "@/lib/rankStore";
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
-  description: "Climb the ranks - gamified academic tracking for students, teachers, and campuses",
+  description: "Make school feel like a game worth playing - gamified academic tracking for students, teachers, and campuses",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           <ShopProvider>
                           <HabitProvider>
                             <TeacherWorkspaceProvider>
+                            <TeacherPrefsProvider>
                             <ClassroomHierarchyProvider>
                               <TeacherTasksProvider>
                                 <RankProvider>
@@ -76,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                 </RankProvider>
                               </TeacherTasksProvider>
                             </ClassroomHierarchyProvider>
+                            </TeacherPrefsProvider>
                           </TeacherWorkspaceProvider>
                           </HabitProvider>
                           </ShopProvider>

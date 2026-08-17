@@ -22,9 +22,16 @@ export function FeedPost({ post }: { post: SchoolPost }) {
         <div className="flex items-center gap-3">
           <UserAvatar name={post.authorName ?? "Admin"} src={post.authorAvatar} size="md" profileId={post.authorId} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13.5px] font-semibold text-navy">
-              {post.authorName ?? "Administrator"}
-            </p>
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate text-[13.5px] font-semibold text-navy">
+                {post.authorName ?? "Administrator"}
+              </p>
+              {post.authorRole === "admin" && (
+                <span className="shrink-0 rounded border border-line px-1.5 py-0.5 text-[9.5px] font-medium uppercase tracking-[0.12em] text-muted">
+                  Administrator
+                </span>
+              )}
+            </div>
             <p className="text-[11.5px] text-muted">{formatDate(post.createdAt)}</p>
           </div>
         </div>
@@ -34,7 +41,7 @@ export function FeedPost({ post }: { post: SchoolPost }) {
           <span
             className={`rounded border px-2.5 py-1 text-[10.5px] font-medium tracking-[0.5px] ${
               isAnnouncement
-                ? "border-sealion text-gold"
+                ? "border-sealion text-gold-token"
                 : "border-line text-muted"
             }`}
           >
@@ -45,8 +52,12 @@ export function FeedPost({ post }: { post: SchoolPost }) {
           </span>
         </div>
 
-        {post.title && <p className="mt-3 text-base font-bold text-navy">{post.title}</p>}
-        <p className={`${post.title ? "mt-1.5" : "mt-3"} whitespace-pre-wrap text-[13px] leading-[1.6] text-muted`}>
+        {post.title && (
+          <p className="mt-3 break-words text-base font-bold text-navy">{post.title}</p>
+        )}
+        <p
+          className={`${post.title ? "mt-1.5" : "mt-3"} break-words whitespace-pre-wrap text-[13px] leading-[1.6] text-muted`}
+        >
           {post.body}
         </p>
 

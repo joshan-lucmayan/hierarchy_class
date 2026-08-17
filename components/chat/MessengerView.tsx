@@ -7,7 +7,8 @@ import { useSchoolProfiles } from "@/lib/useSchoolProfiles";
 import { useMyProfile } from "@/lib/useMyProfile";
 import type { ProfileRow } from "@/types/supabase";
 import { UserAvatar } from "@/components/ui/UserAvatar";
-import { ActionButton } from "@/components/ui/ActionButton";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -58,6 +59,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
   const [showArchived, setShowArchived] = useState(false);
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirming, setConfirming] = useState<"hide" | "block" | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const openingWith = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -171,7 +173,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
             type="button"
             onClick={() => setShowArchived((v) => !v)}
             className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
-              showArchived ? "border-gold bg-[var(--surface-strong)] text-navy" : "border-base bg-surface text-muted hover:border-gold"
+              showArchived ? "border-gold-token bg-[var(--surface-strong)] text-navy" : "border-base bg-surface text-muted hover:border-gold-soft"
             }`}
           >
             {showArchived ? "Inbox" : `Archived${archivedConversations.length > 0 ? ` (${archivedConversations.length})` : ""}`}
@@ -190,7 +192,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
           {loading ? (
             <p className="p-4 text-sm text-muted">Loading conversations...</p>
           ) : error ? (
-            <p className="p-4 text-sm text-red-500">{error}</p>
+            <p className="p-4 text-sm text-warn">{error}</p>
           ) : showingPeople ? (
             <div className="py-2">
               <p className="px-4 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-muted">People</p>
@@ -211,7 +213,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                         : ""}
                     </p>
                   </div>
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold">Message</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold-token">Message</span>
                 </button>
               ))}
             </div>
@@ -242,7 +244,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-xs text-muted">{c.lastMessage || "No messages yet"}</p>
                     {c.unread > 0 && (
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-on-accent">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold-token text-[10px] font-bold text-on-accent">
                         {c.unread}
                       </span>
                     )}
@@ -275,7 +277,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     type="button"
                     onClick={() => setMenuOpen((v) => !v)}
                     aria-label="Conversation options"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-base text-muted transition hover:border-gold hover:text-navy"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-base text-muted transition hover:border-gold-soft hover:text-navy"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="5" cy="12" r="1.8" />
@@ -315,12 +317,9 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                           type="button"
                           onClick={() => {
                             setMenuOpen(false);
-                            if (window.confirm("Hide this conversation? It will be removed from your inbox (the other person keeps their copy).")) {
-                              hideConversation(active.id);
-                              setActiveId(null);
-                            }
+                            setConfirming("hide");
                           }}
-                          className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 transition hover:bg-red-500/10"
+                          className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-warn transition hover-bg-warn-soft"
                         >
                           Delete conversation
                         </button>
@@ -338,11 +337,9 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                             type="button"
                             onClick={() => {
                               setMenuOpen(false);
-                              if (window.confirm(`Block ${active.name}? You won't receive messages from them and they can't message you.`)) {
-                                blockUser(active.otherId);
-                              }
+                              setConfirming("block");
                             }}
-                            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 transition hover:bg-red-500/10"
+                            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-warn transition hover-bg-warn-soft"
                           >
                             Block {active.name.split(" ")[0]}
                           </button>
@@ -355,7 +352,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
             </div>
 
             <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-5">
-              {actionError && <p className="rounded-[10px] border border-red-300 bg-red-500/5 px-3 py-2 text-xs text-red-600">{actionError}</p>}
+              {actionError && <p className="rounded-[10px] border border-warn-soft bg-warn-soft px-3 py-2 text-xs text-warn">{actionError}</p>}
               {active.messagesLoading ? (
                 <p className="text-center text-sm text-muted">Loading messages...</p>
               ) : active.messages.length === 0 ? (
@@ -365,7 +362,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
                     <span
                       className={`max-w-[65%] whitespace-pre-wrap break-words rounded-[10px] px-4 py-2.5 text-sm ${
-                        m.mine ? "bg-gold text-on-accent" : "bg-[var(--surface-strong)] text-navy"
+                        m.mine ? "bg-gold-token text-on-accent" : "bg-[var(--surface-strong)] text-navy"
                       }`}
                     >
                       {m.text}
@@ -380,7 +377,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
 
             <div className="border-t border-base p-4">
               {isBlocked ? (
-                <p className="rounded-full border border-red-300 bg-red-500/5 px-4 py-2.5 text-center text-xs font-semibold text-red-600">
+                <p className="rounded-full border border-warn-soft bg-warn-soft px-4 py-2.5 text-center text-xs font-semibold text-warn">
                   You&apos;ve blocked this user - unblock them to send messages.
                 </p>
               ) : (
@@ -397,10 +394,11 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     placeholder="Type a message..."
                     className="flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
                   />
-                  <ActionButton
-                    variant="navy"
+                  <Button
+                    variant="primary"
                     onClick={handleSend}
                     disabled={sending || !draft.trim()}
+                    loading={sending}
                     icon={
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 2L11 13" />
@@ -409,7 +407,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     }
                   >
                     {sending ? "Sending..." : "Send"}
-                  </ActionButton>
+                  </Button>
                 </div>
               )}
             </div>
@@ -420,7 +418,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
               <p className="text-sm text-muted">Loading directory...</p>
             ) : (
               <>
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold-soft text-gold-token">
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                   </svg>
@@ -434,6 +432,40 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
           </div>
         )}
       </div>
+
+      {confirming && active && (
+        <Modal
+          onClose={() => setConfirming(null)}
+          eyebrow={confirming === "hide" ? "Delete conversation" : "Block user"}
+          description={confirming === "hide" ? `Hide \"${active.name}\"?` : `Block ${active.name}?`}
+        >
+          <p className="mt-2 text-sm leading-6 text-muted">
+            {confirming === "hide"
+              ? "This removes the conversation from your inbox. The other person keeps their copy."
+              : "You won't receive messages from them and they can't message you. You can unblock anytime."}
+          </p>
+          <div className="mt-5 flex gap-2">
+            <Button
+              variant="danger"
+              className="flex-1"
+              onClick={() => {
+                if (confirming === "hide") {
+                  hideConversation(active.id);
+                  setActiveId(null);
+                } else {
+                  blockUser(active.otherId);
+                }
+                setConfirming(null);
+              }}
+            >
+              {confirming === "hide" ? "Delete conversation" : "Block"}
+            </Button>
+            <Button variant="outline" onClick={() => setConfirming(null)}>
+              Cancel
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

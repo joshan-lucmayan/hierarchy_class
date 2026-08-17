@@ -60,7 +60,7 @@ export default function LearningMaterialsPage() {
       {loading ? (
         <p className="text-sm text-muted">Loading materials...</p>
       ) : error ? (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-warn">{error}</p>
       ) : filtered.length === 0 ? (
         <p className="text-sm text-muted">No learning materials available for these filters yet.</p>
       ) : (
@@ -89,7 +89,7 @@ export default function LearningMaterialsPage() {
                   href={material.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover:bg-gold hover:text-on-accent"
+                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
                 >
                   Open resource -&gt;
                 </a>

@@ -54,14 +54,14 @@ export default function ResetPasswordPage() {
       <AuthCard>
           {status === "done" ? (
             <div className="animate-pop-in flex flex-col items-center gap-4 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold-soft text-gold-token">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path className="draw-check" d="M20 6L9 17l-5-5" />
                 </svg>
               </span>
               <h1 className="text-lg font-bold text-navy">Password updated</h1>
               <p className="text-sm text-muted">You can now sign in with your new password.</p>
-              <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent">
+              <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent">
                 Go to login
               </a>
             </div>
@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
                       placeholder="At least 8 characters"
                       disabled={status === "saving"}
                       className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-surface-50
-                        ${errors.password ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+                        ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
                     />
                     <button
                       type="button"
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
                       {showPassword ? "Hide" : "Show"}
                     </button>
                   </div>
-                  {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+                  {errors.password && <p className="text-xs text-warn">{errors.password}</p>}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -105,15 +105,15 @@ export default function ResetPasswordPage() {
                     placeholder="Repeat your new password"
                     disabled={status === "saving"}
                     className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-surface-50
-                      ${errors.confirm ? "border-red-400" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+                      ${errors.confirm ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
                   />
-                  {errors.confirm && <p className="text-xs text-red-500">{errors.confirm}</p>}
+                  {errors.confirm && <p className="text-xs text-warn">{errors.confirm}</p>}
                 </div>
 
                 {errors.form && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+                  <div className="rounded-lg border border-warn-soft bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
                     {errors.form}
-                    <a href="/forgot-password" className="mt-1 block font-semibold text-red-700 underline">
+                    <a href="/forgot-password" className="mt-1 block font-semibold text-warn underline">
                       Request a new link
                     </a>
                   </div>

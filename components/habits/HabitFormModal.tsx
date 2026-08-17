@@ -128,7 +128,7 @@ export function HabitFormModal({
               maxLength={60}
               className={fieldClass}
             />
-            {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-xs text-warn">{errors.name}</p>}
           </div>
 
           <div>
@@ -201,7 +201,7 @@ export function HabitFormModal({
                 placeholder="5"
                 className={fieldClass}
               />
-              {errors.targetValue && <p className="mt-1 text-xs text-red-500">{errors.targetValue}</p>}
+              {errors.targetValue && <p className="mt-1 text-xs text-warn">{errors.targetValue}</p>}
             </div>
             <div>
               <label className="mb-1.5 block text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint" htmlFor="habit-unit">
@@ -271,11 +271,11 @@ export function HabitFormModal({
                 );
               })}
             </div>
-            {errors.days && <p className="mt-1 text-xs text-red-500">{errors.days}</p>}
+            {errors.days && <p className="mt-1 text-xs text-warn">{errors.days}</p>}
           </div>
 
           {saveError && (
-            <p className="rounded-lg border border-red-300 bg-red-500/5 px-3 py-2 text-xs font-medium text-red-600">
+            <p className="rounded-lg border border-warn-soft bg-warn-soft px-3 py-2 text-xs font-medium text-warn">
               {saveError}
             </p>
           )}
@@ -285,7 +285,7 @@ export function HabitFormModal({
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="flex-1 rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold hover:text-on-accent disabled:opacity-60"
+              className="flex-1 rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
             >
               {saving ? "Saving..." : habit ? "Save changes" : "Create habit"}
             </button>

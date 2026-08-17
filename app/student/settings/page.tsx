@@ -53,7 +53,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="space-y-4 border-t border-base pt-8">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-red-600">Account</h2>
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-warn">Account</h2>
         <div className="divide-y divide-[var(--border)]">
           <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -64,7 +64,7 @@ export default function SettingsPage() {
               type="button"
               disabled={busy !== null}
               onClick={() => handleRequest("deactivation")}
-              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover:border-red-400 hover:text-red-600 disabled:opacity-50"
+              className="shrink-0 rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover-border-warn-soft hover-text-warn disabled:opacity-50"
             >
               {busy === "deactivation" ? "Submitting..." : "Deactivate account"}
             </button>
@@ -78,14 +78,14 @@ export default function SettingsPage() {
               type="button"
               disabled={busy !== null}
               onClick={() => handleRequest("deletion")}
-              className="shrink-0 rounded-full border border-red-300 bg-surface px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
+              className="shrink-0 rounded-full border border-warn-soft bg-surface px-4 py-2 text-xs font-semibold text-warn transition hover-bg-warn-soft disabled:opacity-50"
             >
               {busy === "deletion" ? "Submitting..." : "Request deletion"}
             </button>
           </div>
         </div>
-        {requestMessage && <p className="text-sm font-semibold text-emerald-600">{requestMessage}</p>}
-        {requestError && <p className="text-sm text-red-500">{requestError}</p>}
+        {requestMessage && <p className="text-sm font-semibold text-gold-token">{requestMessage}</p>}
+        {requestError && <p className="text-sm text-warn">{requestError}</p>}
       </section>
 
       <p className="text-center text-xs text-muted">Hierarchy Class · v{APP_VERSION}</p>

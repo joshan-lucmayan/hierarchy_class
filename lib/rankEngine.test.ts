@@ -1,10 +1,10 @@
 /**
  * rankEngine.test.ts - unit tests for the non-linear rank progression engine.
  *
- * PER-ENTRY ISOLATION (migration 049): each grade entry computes its own fill
- * independently from its own score and category weight share. There is no
- * running average and no composite S. Runs with the built-in Node test runner:
- *   node --test lib/rankEngine.test.ts
+ * COMPOSITE MODEL (migration 047): the bar moves by the power-curved weighted
+ * average of the active category percentages (S), not by per-entry weight
+ * shares - weights act at the composite level. Runs with the built-in Node
+ * test runner: node --test lib/rankEngine.test.ts
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -15,8 +15,8 @@ import {
   DEFAULT_RANK_CONFIG,
   createDefaultState,
   resolveConfig,
-  computeEntryPct,
-  computeWeightShare,
+  computeCategoryPercent,
+  computeComposite,
   computeAdjusted,
   computeFillChange,
   applyRankUpdate,
@@ -61,25 +61,24 @@ const approx = (actual: number, expected: number, tol = 0.01) =>
 // 1. Per-entry isolation: the entry's OWN pct and weight share
 // ---------------------------------------------------------------------------
 
-test("computeEntryPct is the single entry's earned/possible * 100 and may exceed 100", () => {
-  approx(computeEntryPct(40, 50), 80);
-  approx(computeEntryPct(50, 50), 100);
-  approx(computeEntryPct(58, 50), 116); // bonus credit
-  approx(computeEntryPct(0, 100), 0);
+test("computeCategoryPercent is a category's earned/possible * 100 and may exceed 100", () => {
+  approx(computeCategoryPercent([{ points_earned: 40, points_possible: 50 }])!, 80);
+  approx(computeCategoryPercent([{ points_earned: 50, points_possible: 50 }])!, 100);
+  approx(computeCategoryPercent([{ points_earned: 58, points_possible: 50 }])!, 116); // bonus credit
+  approx(computeCategoryPercent([{ points_earned: 0, points_possible: 100 }])!, 0);
 });
 
-test("computeWeightShare divides by ALL configured weights, not just active ones", () => {
+test("computeComposite weights the ACTIVE categories by the configured weights", () => {
   // Default weights { exam: 0.4, quiz: 0.2, activity: 0.25, participation: 0.15 } sum to 1.
-  approx(computeWeightShare(cfg.weights, "exam"), 0.4);
-  approx(computeWeightShare(cfg.weights, "quiz"), 0.2);
-  approx(computeWeightShare(cfg.weights, "activity"), 0.25);
-  approx(computeWeightShare(cfg.weights, "participation"), 0.15);
+  // All categories at 100 -> composite 100; a single active category -> its own pct.
+  approx(computeComposite({ quiz: 100, exam: 100, activity: 100, participation: 100 }, cfg.weights)!, 100);
+  approx(computeComposite({ quiz: null, exam: 100, activity: null, participation: null }, cfg.weights)!, 100);
 
-  // The share is fixed by the config - it does NOT change based on which
-  // categories have entries (that is the whole point of per-entry isolation).
-  const onlyQuiz = { quiz: 40, exam: 40, activity: 20, participation: 0 };
-  approx(computeWeightShare(onlyQuiz, "quiz"), 40 / 100);
-  approx(computeWeightShare(onlyQuiz, "exam"), 40 / 100);
+  // The blend is fixed by the config weights over the categories that have
+  // entries: quiz 100 + exam 0 -> (0.2*100 + 0.4*0) / (0.2+0.4) = 33.3333.
+  approx(computeComposite({ quiz: 100, exam: 0, activity: null, participation: null }, cfg.weights)!, 33.3333);
+  const allActive = { quiz: 40, exam: 40, activity: 20, participation: 0 };
+  approx(computeComposite(allActive, cfg.weights)!, 0.2 * 40 + 0.4 * 40 + 0.25 * 20 + 0.15 * 0);
 });
 
 test("computeAdjusted applies the power curve to the entry's own pct", () => {
@@ -154,53 +153,55 @@ test("validation flags pointsPossible that differs drastically from its peers", 
 });
 
 // ---------------------------------------------------------------------------
-// 4. fillChange: isolated, weight-scaled, zero at 50% quality
+// 4. fillChange: composite-driven, zero at 50% quality
 // ---------------------------------------------------------------------------
 
-test("fillChange is zero at 50% adjusted and scales with n and weightShare", () => {
-  assert.equal(computeFillChange(50, 3, 0.4), 0);
-  assert.equal(computeFillChange(50, 12, 0.4), 0);
-  approx(computeFillChange(100, 3, 0.4), 13.3333); // 1 * (100/3) * 0.4
-  approx(computeFillChange(100, 4, 0.4), 10);
-  approx(computeFillChange(100, 5, 0.4), 8);
-  approx(computeFillChange(100, 12, 0.4), 3.3333);
-  approx(computeFillChange(100, 3, 1), 33.3333); // full weight share
-  approx(computeFillChange(75, 4, 0.4), 5);
-  approx(computeFillChange(62.5, 5, 0.4), 2);
+test("fillChange is zero at 50% adjusted and scales with n", () => {
+  assert.equal(computeFillChange(50, 3), 0);
+  assert.equal(computeFillChange(50, 12), 0);
+  approx(computeFillChange(100, 3), 33.3333); // 1 * (100/3)
+  approx(computeFillChange(100, 4), 25);
+  approx(computeFillChange(100, 5), 20);
+  approx(computeFillChange(100, 12), 8.3333);
+  approx(computeFillChange(75, 4), 12.5);
+  approx(computeFillChange(62.5, 5), 5);
 });
 
-test("fill uses the entry's own capped pct through the power curve, scaled by weight share", () => {
-  // 116% quiz -> entry pct capped at 100 -> adjusted_capped 100 -> fill =
-  // 1 * (100/3) * weightShare(quiz 0.2) = 6.667.
+test("fill uses the composite through the power curve", () => {
+  // 116% quiz -> composite 116 -> adjusted_uncapped 130.62 -> capped 100 ->
+  // fill = 1 * (100/3) = 33.333.
   const st = state({ current_rank: "D", current_bar: 0 });
   const preview = previewRankUpdate({ state: st, periodEntries: [], config: cfg, category: "quiz", pointsEarned: 58, pointsPossible: 50 });
   approx(preview.adjusted_uncapped!, 130.63);
-  approx(preview.fillChange!, 6.6667);
+  approx(preview.fillChange!, 33.3333);
 
-  // 75% exam -> entry pct 75 -> adjusted 59.58 -> fill = (59.58-50)/50 * (100/4) * 0.4 = 1.916.
+  // 75% exam -> composite 75 -> adjusted 59.58 -> fill = (59.58-50)/50 * (100/4) = 4.791.
   const st2 = state({ current_rank: "C", current_bar: 0 });
   const p2 = previewRankUpdate({ state: st2, periodEntries: [], config: cfg, category: "exam", pointsEarned: 75, pointsPossible: 100 });
-  approx(p2.fillChange!, 1.9162);
+  approx(p2.fillChange!, 4.7907);
 });
 
-test("the weight config controls the fill: a perfect exam out-moves a perfect quiz by exactly its weight ratio", () => {
-  // Same 100% entry in different categories at the same tier: the fill scales
-  // by weightShare. exam 0.4 / quiz 0.2 = 2x.
+test("weights drive the composite: a perfect exam out-moves a perfect quiz by exactly its weight ratio", () => {
+  // Same 100% entries in different categories: the composite (and therefore
+  // the fill) scales by the configured weight ratio. exam 0.4 / quiz 0.2 = 2x.
   const st = state({ current_rank: "D", current_bar: 0 });
-  const quizFill = previewRankUpdate({
-    state: st, config: cfg, category: "quiz", pointsEarned: 50, pointsPossible: 50, periodEntries: [],
-  }).fillChange!;
-  const examFill = previewRankUpdate({
-    state: st, config: cfg, category: "exam", pointsEarned: 50, pointsPossible: 50, periodEntries: [],
-  }).fillChange!;
-  approx(quizFill, 6.6667);
-  approx(examFill, 13.3333);
-  approx(examFill / quizFill, 2, 0.001); // exactly 0.4/0.2
+  const quizS = previewRankUpdate({
+    state: st, config: cfg, category: "quiz", pointsEarned: 100, pointsPossible: 100,
+    periodEntries: entries([["exam", 0, 100]]),
+  }).S!;
+  const examS = previewRankUpdate({
+    state: st, config: cfg, category: "exam", pointsEarned: 100, pointsPossible: 100,
+    periodEntries: entries([["quiz", 0, 100]]),
+  }).S!;
+  approx(quizS, 33.3333);
+  approx(examS, 66.6667);
+  approx(examS / quizS, 2, 0.001); // exactly 0.4/0.2
 });
 
-test("per-entry isolation: other entries NEVER change this entry's fill", () => {
-  // The same 40/50 quiz has the exact same fill whether it's the first grade
-  // of the period or comes after a perfect 100% exam. Nothing blends.
+test("other entries change this entry's fill through the composite", () => {
+  // The same 40/50 quiz blends with whatever else is in the period: the bar
+  // moves by the composite (power-curved weighted average of category pcts).
+  // A perfect exam raises the blend; a bad quiz in the same category drags it.
   const st = state({ current_rank: "D", current_bar: 0 });
 
   const alone = previewRankUpdate({
@@ -217,8 +218,9 @@ test("per-entry isolation: other entries NEVER change this entry's fill", () => 
     periodEntries: entries([["quiz", 0, 100]]),
   }).fillChange!;
 
-  approx(alone, afterPerfectExam);
-  approx(alone, afterBadQuiz);
+  approx(alone, 11.2806); // S = 80 -> adjusted 66.93 -> fill 11.28
+  approx(afterPerfectExam, 25.5476); // S = 93.33 -> fill 25.55
+  approx(afterBadQuiz, -27.1581); // quiz category 26.67% -> drains the bar
 });
 
 // ---------------------------------------------------------------------------
@@ -226,8 +228,7 @@ test("per-entry isolation: other entries NEVER change this entry's fill", () => 
 // ---------------------------------------------------------------------------
 
 test("promotion requires new_bar >= 100 exactly and the next tier starts at exactly 0", () => {
-  // B tier n=5: fill = 0.4*(adjusted-50)*weightShare. With adjusted 100 and
-  // weightShare 1: fill 10. bar 90 -> 100.
+  // B tier n=5: with a fill of 10, bar 90 -> 100.
   const p = applyRankUpdate("B", 90, 10, cfg);
   assert.deepEqual(p, { newRank: "A", newBar: 0, promoted: true, demoted: false, cascade_tiers: 0 });
 
@@ -515,14 +516,14 @@ test("peak_rank_this_season only increases on promotion and survives later demot
   assert.equal(st.current_rank, "B");
   assert.equal(st.peak_rank_this_season, "B");
 
-  // Demotion: B (n=5) with a 0-quality QUIZ: entry pct 0 -> adjusted 0 ->
-  // fill = (0-50)/50 * (100/5) * 0.2 = -4 -> bar -4 -> overflow 4 -> C at bar 96.
+  // Demotion: B (n=5) with a 0-quality QUIZ: composite 0 -> adjusted 0 ->
+  // fill = (0-50)/50 * (100/5) = -20 -> bar -20 -> overflow 20 -> C at bar 80.
   // Peak stays B.
   st = { ...st, current_bar: 0 };
   const r3 = confirmAndApplyScoreEntry({ state: st, periodEntries: [], config: cfg, category: "quiz", pointsEarned: 0, pointsPossible: 100 });
   st = r3.state;
   assert.equal(st.current_rank, "C");
-  assert.equal(st.current_bar, 96);
+  assert.equal(st.current_bar, 80);
   assert.equal(st.peak_rank_this_season, "B");
 });
 
@@ -608,25 +609,28 @@ test("tier n values are configurable and affect fillChange", () => {
       { rank: "S++", next: "EX", n: 12 },
     ],
   });
-  // D's n is now 10: fill = 1 * (100/10) * 1 = 10 with full weight share.
-  approx(computeFillChange(100, custom.tiers.find((t) => t.rank === "D")!.n, 1), 10);
+  // D's n is now 10: fill = 1 * (100/10) = 10.
+  approx(computeFillChange(100, custom.tiers.find((t) => t.rank === "D")!.n), 10);
 });
 
-test("weights are configurable and drive the weight share", () => {
+test("weights are configurable and drive the composite", () => {
   const custom = resolveConfig({ weights: { exam: 1, quiz: 0, activity: 0, participation: 0 } });
-  approx(computeWeightShare(custom.weights, "exam"), 1);
-  approx(computeWeightShare(custom.weights, "quiz"), 0);
+  approx(computeComposite({ quiz: 100, exam: 100, activity: null, participation: null }, custom.weights)!, 100);
+  approx(computeComposite({ quiz: 100, exam: 0, activity: null, participation: null }, custom.weights)!, 0);
 
-  // Only-exam weight: a perfect exam fills the full bar amount, a quiz fills 0.
+  // Only-exam weight: a perfect exam fills the full bar amount; a category
+  // with zero weight is not counted - a period with only a zero-weight
+  // category has no composite and the pipeline stops (S and fillChange null).
   const st = state({ current_rank: "D", current_bar: 0 });
   const examFill = previewRankUpdate({
     state: st, config: custom, category: "exam", pointsEarned: 100, pointsPossible: 100, periodEntries: [],
   }).fillChange!;
-  const quizFill = previewRankUpdate({
+  const quizPreview = previewRankUpdate({
     state: st, config: custom, category: "quiz", pointsEarned: 100, pointsPossible: 100, periodEntries: [],
-  }).fillChange!;
+  });
   approx(examFill, 33.3333);
-  approx(quizFill, 0);
+  assert.equal(quizPreview.S, null);
+  assert.equal(quizPreview.fillChange, null);
 
   assert.throws(() => resolveConfig({ weights: { exam: 0.5, quiz: 0.5, activity: 0.5, participation: 0.5 } })); // sums to 2
   assert.throws(() => resolveConfig({ weights: { exam: 1.1, quiz: -0.1, activity: 0, participation: 0 } })); // negative + wrong sum
@@ -693,8 +697,8 @@ test("getSeasonHistory orders by season_end_date", () => {
 });
 
 test("full pipeline: per-entry accumulation, promotion is fill-first end to end", () => {
-  // D, bar 95. One perfect EXAM (weight 0.4, n=3) pushes the bar over 100
-  // (fill 13.33) -> promote to C at 0.
+  // D, bar 95. One perfect EXAM (n=3) pushes the bar over 100 (fill 33.33)
+  // -> promote to C at 0.
   let st = state({ current_rank: "D", current_bar: 95, peak_rank_this_season: "D" });
   let ents: RankPeriodEntry[] = [];
 
