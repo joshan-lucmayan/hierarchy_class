@@ -94,4 +94,3 @@ Full documentation lives in [`docs/`](docs/README.md): architecture, the backend
 ## Not yet implemented
 
 - Real payments for Florin Coin
-- School logos inside the school picker (the signup page shows the CSA campus logo)
