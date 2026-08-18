@@ -130,20 +130,24 @@ export function QuickSearchBar() {
   return (
     <div className="relative">
       <div className="group relative">
-        {/* Search icon: sized + contrasted to read clearly on the tile input
-            (was previously too small / low-contrast to notice). The input's
-            left padding accounts for the larger icon; group-focus-within
-            keeps the icon highlight in sync with the focused input. */}
+        {/* Search icon: magnifying glass using the muted token so it blends
+            with the placeholder text and feels like part of the search control.
+            On focus it lifts to --text (matching typed text), staying restrained
+            — no gold, no glow. Rounded caps + joins keep the handle and lens
+            crisp at 20 px. The handle starts at (16,16) — past the circle's
+            outer stroke edge — so it's never swallowed by the lens. */}
         <svg
-          className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted transition-colors group-focus-within:text-[var(--gold)]"
+          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-[var(--muted)] transition-colors group-focus-within:text-[var(--text)]"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.2"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           aria-hidden
         >
           <circle cx="11" cy="11" r="7" />
-          <path d="m21 21-4.3-4.3" />
+          <path d="M16 16L21 21" />
         </svg>
         <input
           value={query}
@@ -152,7 +156,7 @@ export function QuickSearchBar() {
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder="Search students and teachers"
-          className="w-full rounded-md border border-line bg-tile py-2.5 pl-11 pr-4 text-[13px] text-navy placeholder:text-faint outline-none transition focus:border-sealion"
+          className="w-full rounded-md border border-line bg-tile py-2.5 pl-11 pr-4 text-[13px] text-navy placeholder:text-[var(--muted)] outline-none transition focus:border-sealion"
         />
       </div>
 

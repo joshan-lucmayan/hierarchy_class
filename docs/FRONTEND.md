@@ -194,11 +194,11 @@ Why this design?
 - **Admin Ranks - the ladder as the hero (1.4.25).**
   `app/admin/ranks/page.tsx` treats the rank ladder as the visual centerpiece:
   a gold-haired `CornerFrame` "The ladder" band renders D → C → B → A → S → S+
-  → S++ → EX using the same rank identity tokens as the landing page ladder
-  and `RankDistribution` (`bg-rank-*` / `text-rankText-*` /
-  `border-rankBorder-*`, EX as the gold-token tile), each tier with its
-  product note (Fresh start … Extra) and the real season-reset rule (S and
-  above → C, A and below → D). Below it: live standings (rank position,
+  → S++ → EX through the shared `RankTriangle` emblem (rank identity in the
+  triangle, neutral letters below - the same visual language as the landing
+  page ladder and `RankDistribution`), each tier with its product note
+  (Fresh start … Extra) and the real season-reset rule (S and above → C, A
+  and below → D). Below it: live standings (rank position,
   `UserAvatar`, `RankBadge` + bar/EX score) and a season-control rail -
   Declare semester (`declare_semester`, shared `Button` + inputs), End season
   (`end_season_for_school`), and Season history (`get_school_season_history`

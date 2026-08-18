@@ -8,28 +8,19 @@ import type { Rank } from "@/lib/rankEngine";
  * One shared component across every role and surface (student/teacher/admin
  * ranks, profiles, search results, leaderboards, season history, dashboards).
  * The shape is deliberately clean: no letters inside the triangle - the rank
- * letter/name renders BELOW it. Colors mirror the existing rank token palette
- * in tailwind.config.ts (rank / rankBorder / rankText), so the hierarchy and
- * tier colors are unchanged.
+ * letter/name renders BELOW it (or beside it, in row contexts) as neutral
+ * typography. Rank identity lives in the triangle's fill/border, which mirror
+ * the rank token palette in tailwind.config.ts (rank / rankBorder), so the
+ * hierarchy and tier colors are unchanged.
  *
  * EX gets the "glory" treatment: a gold gradient fill, layered inner facets,
  * and a soft controlled glow (drop-shadows, never neon). When the glow is
  * reduced or disabled the triangle stays minimalist, exactly like the lower
  * tiers.
  */
-export const RANK_TEXT: Record<Rank, string> = {
-  D: "#a32d2d",
-  C: "#5f5e5a",
-  B: "#3b6d11",
-  A: "#185fa5",
-  S: "#141214",
-  "S+": "#141214",
-  "S++": "#9ea7b3",
-  EX: "#141214",
-};
 
 const RANK_FILL: Record<Rank, string> = {
-  D: "#fcebeb",
+  D: "#4a1f24",
   C: "#f1efe8",
   B: "#eaf3de",
   A: "#e6f1fb",
@@ -40,7 +31,7 @@ const RANK_FILL: Record<Rank, string> = {
 };
 
 const RANK_BORDER: Record<Rank, string> = {
-  D: "#f09595",
+  D: "#a05252",
   C: "#b4b2a9",
   B: "#97c459",
   A: "#85b7eb",
@@ -144,14 +135,7 @@ export function RankTriangle({
       </svg>
 
       {showLabel && (
-        <span
-          className="mt-1 rounded-[4px] border px-1 py-px font-display text-[9px] font-bold leading-tight tracking-[0.08em]"
-          style={{
-            color: RANK_TEXT[rank],
-            backgroundColor: isEx ? EX_GRADIENT.from : RANK_FILL[rank],
-            borderColor: isEx ? EX_GRADIENT.to : RANK_BORDER[rank],
-          }}
-        >
+        <span className="mt-1 text-[9px] font-bold leading-tight tracking-[0.08em] text-navy">
           {rank}
         </span>
       )}

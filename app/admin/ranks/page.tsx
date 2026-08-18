@@ -34,9 +34,9 @@ interface SeasonLog {
 }
 
 /**
- * The rank ladder identity - the same token set the landing page ladder and
- * RankDistribution use (bg-rank-* / text-rankText-* / border-rankBorder-*),
- * so the ladder reads as Hierarchy Class, not eight generic KPI tiles.
+ * The rank ladder identity - rendered through the shared RankTriangle emblem
+ * (rank identity in the triangle, neutral letters), the same visual language
+ * as the landing page ladder and RankDistribution.
  */
 const LADDER: { letter: Rank; note: string }[] = [
   { letter: "D", note: "Fresh start" },

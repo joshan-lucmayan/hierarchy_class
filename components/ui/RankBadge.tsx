@@ -8,9 +8,10 @@ import { RankTriangle } from "@/components/ui/RankTriangle";
  * engine (lib/rankEngine.ts + lib/rankStore.tsx).
  *
  * The rank is represented by the shared INVERTED-TRIANGLE emblem
- * (RankTriangle) - the same shape across students, teachers, and admins,
- * with the rank letter BELOW the triangle (never inside it). EX carries the
- * gold "glory" glow.
+ * (RankTriangle) - the same shape across students, teachers, and admins.
+ * The rank identity lives in the triangle; the rank letter is neutral
+ * typography beside it (never inside the triangle, never rank-colored).
+ * EX carries the gold "glory" glow.
  *
  * - Non-EX ranks: `bar` is the 0-100 progress toward the next rank; it renders
  *   as "N / 100" with a matching track fill.
@@ -34,6 +35,19 @@ const TRIANGLE_SIZES = {
   md: "md" as const,
   lg: "lg" as const,
 };
+
+/** Compact triangle emblem sizes for the detail rank row ([emblem] D RANK). */
+const EMBLEM_SIZES = {
+  sm: 12,
+  md: 16,
+  lg: 20,
+} as const;
+
+const RANK_LETTER_SIZES = {
+  sm: "text-lg",
+  md: "text-2xl",
+  lg: "text-[32px]",
+} as const;
 
 const PILL_SIZES = {
   sm: "px-2.5 py-1 text-[11px] gap-1.5",
@@ -61,8 +75,15 @@ export function RankBadge({ rank, bar, exScore, size = "md", className = "" }: R
 
   return (
     <div className={`flex flex-col items-center text-center ${className}`}>
-      {/* The inverted triangle is the hero; the letter sits below it. */}
-      <RankTriangle rank={rank} size={TRIANGLE_SIZES[size]} showLabel />
+      {/* Rank row: the triangle emblem carries the identity; the letter is
+          neutral typography beside it (never inside the triangle). */}
+      <span className="flex items-center gap-2.5">
+        <RankTriangle rank={rank} size={EMBLEM_SIZES[size]} showLabel={false} />
+        <span className={`font-extrabold leading-none tracking-[0.02em] text-navy ${RANK_LETTER_SIZES[size]}`}>
+          {rank}
+        </span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.3px] text-faint">Rank</span>
+      </span>
 
       <div className="mt-2.5 flex items-baseline gap-1">
         <span className="text-sm font-bold leading-none text-navy">{displayValue}</span>

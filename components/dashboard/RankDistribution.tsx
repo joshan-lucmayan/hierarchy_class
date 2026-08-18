@@ -7,25 +7,10 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Bar } from "@/components/ui/Bar";
 import { Chip } from "@/components/ui/Chip";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { RankTriangle } from "@/components/ui/RankTriangle";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 const TIERS: Rank[] = ["D", "C", "B", "A", "S", "S+", "S++", "EX"];
-
-/**
- * The tier's visual identity - the same token set the landing page's rank
- * ladder uses (bg-rank-* / text-rankText-* / border-rankBorder-*), so the
- * distribution reads as a progression ladder, not eight generic KPI tiles.
- */
-const TIER_STYLES: Record<Rank, { tile: string; letter: string }> = {
-  D: { tile: "border-rankBorder-d bg-rank-d", letter: "text-rankText-d" },
-  C: { tile: "border-rankBorder-c bg-rank-c", letter: "text-rankText-c" },
-  B: { tile: "border-rankBorder-b bg-rank-b", letter: "text-rankText-b" },
-  A: { tile: "border-rankBorder-a bg-rank-a", letter: "text-rankText-a" },
-  S: { tile: "border-rankBorder-s bg-rank-s", letter: "text-rankText-s" },
-  "S+": { tile: "border-rankBorder-s bg-rank-s", letter: "text-rankText-s" },
-  "S++": { tile: "border-rankBorder-splus bg-rank-splus", letter: "text-rankText-splus" },
-  EX: { tile: "border-gold-token bg-gold-token", letter: "text-on-accent" },
-};
 
 /**
  * Rank distribution card - the "where does the school stand in the hierarchy"
@@ -104,18 +89,17 @@ export function RankDistribution({
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
             {TIERS.map((tier, i) => {
               const count = stats.counts.get(tier) ?? 0;
-              const style = TIER_STYLES[tier];
               return (
                 <div
                   key={tier}
                   className="rounded-[8px] border bg-tile px-1 py-2.5 text-center"
                   title={`${tier}: ${count} student${count === 1 ? "" : "s"}`}
                 >
-                  <p
-                    className={`mx-auto flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold ${style.tile} ${style.letter}`}
-                  >
-                    {tier}
-                  </p>
+                  {/* Rank identity lives in the triangle; the letter stays neutral. */}
+                  <div className="flex flex-col items-center">
+                    <RankTriangle rank={tier} size={16} showLabel={false} />
+                    <span className="mt-1 text-[11px] font-bold text-navy">{tier}</span>
+                  </div>
                   <p className="mt-1.5 text-[12px] font-semibold tabular-nums text-navy">{count}</p>
                   <span className="mt-1.5 block h-0.5 w-full overflow-hidden rounded-full bg-line">
                     <span
