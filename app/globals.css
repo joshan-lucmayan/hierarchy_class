@@ -98,10 +98,33 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 * {
   border-color: var(--border);
+}
+
+/* Viewport + safe-area — modern units with 100vh fallback; env() is 0 on
+   desktop so no visible spacing change except on notched / home-indicator devices. */
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.px-safe {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 @keyframes fillbar {
@@ -633,4 +656,32 @@ body {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--faint);
+}
+
+/* ---------- Mobile input: prevent iOS zoom (16px minimum) ----------
+   Desktop stays at the designed text-sm (14px); only below 768px do
+   inputs bump to 16px so iOS does not auto-zoom on focus. No visual
+   change on desktop. */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  input[type="time"],
+  input:not([type]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Icon-only controls (close, bell, etc.) — give a 44px hit area on
+     touch without changing desktop sizing. */
+  button[aria-label] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

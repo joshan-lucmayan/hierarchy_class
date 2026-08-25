@@ -9,6 +9,7 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Music } from "@/components/profile/Music";
+import { HistoryTimeline } from "@/components/profile/HistoryTimeline";
 import { IconTrash, IconEye, IconPlus, IconMinus, IconX, IconCalendar, IconClock, IconSchool } from "@/components/ui/icons";
 
 /** Initial grid page size: 3 columns x 3 rows = 9 cards. */
@@ -183,7 +184,7 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
   const { achievements, loading, error, create, remove } = useAchievements(targetId);
   const isOwner = !viewer;
 
-  const [tab, setTab] = useState<"achievements" | "music" | "photos">("achievements");
+  const [tab, setTab] = useState<"achievements" | "music" | "photos" | "history">("achievements");
   const [postOpen, setPostOpen] = useState(false);
   const [details, setDetails] = useState<StudentAchievementRow | null>(null);
   const [viewing, setViewing] = useState<StudentAchievementRow | null>(null);
@@ -218,12 +219,13 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
     { key: "achievements" as const, label: "Achievements" },
     { key: "music" as const, label: "Music" },
     { key: "photos" as const, label: "Photos" },
+    { key: "history" as const, label: "History" },
   ];
 
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
       {/* Media-style tabs: ACHIEVEMENTS is the active/default tab. */}
-      <div className="mb-5 flex flex-wrap items-center gap-2 border-b border-base pb-4">
+      <div className="mb-5 flex flex-nowrap items-center gap-2 overflow-x-auto border-b border-base pb-4">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -244,6 +246,10 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
       {tab === "music" && <Music studentId={targetId} viewer={viewer} />}
       {tab === "photos" && (
         <p className="py-10 text-center text-sm text-muted">Photos aren&apos;t available yet.</p>
+      )}
+
+      {tab === "history" && (
+        <HistoryTimeline studentId={targetId} viewer={viewer} />
       )}
 
       {tab === "achievements" && (

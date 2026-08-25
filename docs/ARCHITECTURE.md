@@ -1,6 +1,6 @@
 # Hierarchy Class - Architecture
 
-**Version 1.7.67.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
+**Version 1.14.82.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).
@@ -43,7 +43,8 @@ hierarchy_class/
 │   ├── reset-password/      Password reset (recovery code exchange)
 │   ├── auth/callback/       OAuth/password recovery code exchange
 │   ├── auth/incomplete/     Safe state for a signed-in user with no profile
-│   ├── api/                 BACKEND - route handlers (e.g. feedback -> email)
+│   ├── api/                 BACKEND - route handlers (feedback -> email;
+│   │                        payments: PayMongo checkout + webhook)
 │   ├── actions/             Server actions (signup, etc.)
 │   ├── student/             Student pages: home, search, messages,
 │   │                        learning-materials, library, quiz, leaderboard,
@@ -76,7 +77,7 @@ hierarchy_class/
 ├── lib/                     SHARED LOGIC - data layer + helpers
 │   ├── supabase/            client.ts (browser), auth.ts (server reads),
 │   │                        serviceClient.ts (server-only, service-role for
-│   │                        account deletion + storage cleanup)
+│   │                        account deletion, storage cleanup, payments)
 │   ├── *Store.tsx           React context providers -> live Supabase data
 │   ├── use*.ts              Data hooks (profile, roster, enrollment,
 │   │                        schools, account requests)
@@ -87,7 +88,7 @@ hierarchy_class/
 │   └── weekUtils.ts         Date/week helpers
 │
 ├── database/                DATABASE - everything Postgres
-│   ├── migrations/          Numbered SQL migrations 001 -> 060 (see DATABASE.md)
+│   ├── migrations/          Numbered SQL migrations 001 -> 069 (see DATABASE.md)
 │   └── README.md            How to apply migrations
 │
 ├── types/                   TypeScript types (supabase.ts, school.ts, ...)

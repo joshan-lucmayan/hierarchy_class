@@ -161,7 +161,7 @@ export default function StudentProfilePage() {
           </Button>
         </div>
       )}
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.3fr]">
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.3fr] xl:grid-cols-[0.9fr_1.3fr]">
       <div className="relative">
       <CornerFrame className="relative space-y-6 overflow-hidden rounded-[10px] border border-base bg-surface p-5">
         {equippedProfileCard?.image_url && (

@@ -43,8 +43,10 @@ repo):
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project settings -> API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project settings -> API (anon/public key) |
-| `NEXT_PUBLIC_SITE_URL` | The deployment origin, e.g. `https://your-production-domain` - **required** as the base for email confirmation links and password recovery redirects |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase project settings -> API (service_role key) - **server-only**; used by account deletion, the signup duplicate-identifier check, and `scripts/provision-admin.mjs` |
+| `NEXT_PUBLIC_SITE_URL` | The deployment origin, e.g. `https://your-production-domain` - **required** as the base for email confirmation links, password recovery redirects, and GCash checkout redirect URLs |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase project settings -> API (service_role key) - **server-only**; used by account deletion, the signup duplicate-identifier check, payment server routes, and `scripts/provision-admin.mjs` |
+| `PAYMONGO_SECRET_KEY` | PayMongo Dashboard -> Developers (secret API key) - **server-only**; required for Florin top-ups (GCash via PayMongo). See [PAYMENTS.md](./PAYMENTS.md) |
+| `PAYMONGO_WEBHOOK_SECRET` | The signing secret of the registered PayMongo webhook endpoint - **server-only**; webhook deliveries fail signature verification without it. See [PAYMENTS.md](./PAYMENTS.md) |
 
 **Deployments:**
 

@@ -276,8 +276,8 @@ export default function StudentHabitsPage() {
         {habits.length === 0 ? (
           <p className="mt-3 text-sm text-muted">No habits yet - add one below.</p>
         ) : (
-          <div className="mt-3.5 overflow-x-auto">
-            <div className="min-w-[520px]">
+          <div className="mt-3.5 overflow-x-auto overscroll-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
+            <div className="min-w-[520px] max-[767px]:min-w-[520px]">
               <div className="grid grid-cols-[1.4fr_repeat(7,1fr)] items-center gap-1 px-1 pb-2">
                 <span />
                 {DAY_LETTERS.map((l, i) => (

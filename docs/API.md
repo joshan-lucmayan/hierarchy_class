@@ -18,6 +18,9 @@ three surfaces:
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/feedback` | POST | Sends the feedback/report form to email (Resend) |
+| `/api/payments/packages` | GET | Active Florin packages for logged-in users (server-authenticated) |
+| `/api/payments/create-checkout` | POST | Students only: validates a package from the DB, creates/reuses the pending transaction + PayMongo Checkout Session (GCash), returns `checkout_url` |
+| `/api/payments/webhook` | POST | PayMongo webhook (`checkout_session.payment.paid`): raw-body HMAC signature verification, provider data cross-checks, then service-role `complete_payment()` - see [PAYMENTS.md](./PAYMENTS.md) |
 | `/auth/callback` | GET | Exchanges the auth/recovery code for a session; routes password-reset flows |
 | `/actions/auth` | server action | `signUpWithProfile` (validated student/teacher signup: role, school eligibility, school-issued IDs, password policy; email confirmation required) and `resendSignupConfirmation` |
 | `/actions/account` | server action | Account lifecycle (`deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`) + restriction/appeals (`adminRestrictUser`, `adminUnrestrictUser`, `submitAppeal`, `resolveAppeal`). School-admin deactivation (`adminSetUserDeactivation`) was removed in v1.7.66 |
@@ -94,6 +97,12 @@ and validate the caller (participant, same school, role) before acting.
 | `purchase_shop_item(p_item_id)` | SECURITY DEFINER buy: caller must be a student, item active, not already owned, balance >= price; then deducts `florin_balances`, inserts a negative `florin_transaction`, and grants `shop_ownership` in one call. Returns the new balance |
 | `equip_shop_item(p_item_id, p_slot)` | Equips an OWNED item into `background`, `avatar_border`, or `profile_card` (validates ownership + type match, upserts `student_shop_loadout`) |
 | `unequip_shop_item(p_slot)` | Clears a slot back to the default |
+
+### Florin payments (migrations 067-069)
+
+| RPC | What it does |
+|---|---|
+| `complete_payment(p_transaction_id)` | The ONLY path that credits Florin for a purchase: SECURITY DEFINER with EXECUTE revoked from PUBLIC/authenticated/anon and granted to `service_role` only (the webhook's server client). Locks the transaction row FOR UPDATE, processes strictly `pending` rows (idempotent - duplicates return `already_processed`), marks the payment completed, upserts the balance credit, and inserts one ledger entry. Never callable from the browser - see [PAYMENTS.md](./PAYMENTS.md) |
 
 ---
 

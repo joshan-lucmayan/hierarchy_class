@@ -34,9 +34,19 @@ export function Modal({ onClose, eyebrow, description, children, maxWidth = "max
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain bg-black/50 p-4"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+      }}
+      onClick={onClose}
+    >
       <div
-        className={`animate-modal-in max-h-[90vh] w-full ${maxWidth} overflow-y-auto rounded-[10px] border border-base bg-surface p-6`}
+        className={`animate-modal-in max-h-[90vh] w-full ${maxWidth} overflow-y-auto overscroll-contain rounded-[10px] border border-base bg-surface p-6`}
+        style={{ maxHeight: "min(90vh, 90dvh)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {(eyebrow || description) && (
@@ -54,7 +64,7 @@ export function Modal({ onClose, eyebrow, description, children, maxWidth = "max
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="shrink-0 text-muted transition hover:text-navy"
+              className="flex h-11 w-11 shrink-0 items-center justify-center -mr-2 -mt-1 touch-manipulation text-muted transition hover:text-navy max-[767px]:h-11 max-[767px]:w-11"
             >
               <IconX size={14} />
             </button>

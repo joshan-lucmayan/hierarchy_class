@@ -1434,7 +1434,7 @@ export default function AdminHomePage() {
         /* EDIT MODE - the same CSS Grid as view mode, with arrange chrome. */
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={gridPlacements.map((w) => w.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-12 gap-4 auto-rows-[15rem]">
+            <div className="grid grid-cols-12 gap-4 auto-rows-[auto] md:auto-rows-[15rem]">
               {gridPlacements.map((w) => {
                 const def = ADMIN_WIDGET_BY_ID[w.id];
                 if (!def) return null;
@@ -1478,7 +1478,7 @@ export default function AdminHomePage() {
         /* THE ADMIN'S DASHBOARD - a static CSS Grid with the same fixed row
            model as Teacher Home (auto-rows-[15rem]): `tall` always spans 2
            rows + gap, cards contain their content (internal scroll). */
-        <div className="grid grid-cols-12 gap-4 auto-rows-[15rem]">
+        <div className="grid grid-cols-12 gap-4 auto-rows-[auto] md:auto-rows-[15rem]">
           {prefs.widgets.map(renderViewCard)}
         </div>
       )}

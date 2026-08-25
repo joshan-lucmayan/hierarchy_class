@@ -1,0 +1,43 @@
+{
+  "packageId": "com.hierarchyclass.app",
+  "host": "hierarchy-class.vercel.app",
+  "name": "Hierarchy Class",
+  "launcherName": "Hierarchy Class",
+  "display": "standalone",
+  "themeColor": "#0f0f11",
+  "navigationColor": "#0f0f11",
+  "backgroundColor": "#0f0f11",
+  "startUrl": "/",
+  "iconUrl": "https://hierarchy-class.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://hierarchy-class.vercel.app/icons/maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "enableNotifications": false,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap",
+  "webManifestUrl": "https://hierarchy-class.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://hierarchy-class.vercel.app/",
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": [],
+  "appVersion": "1.14.82",
+  "appVersionCode": 11482,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "packageVersion": "1.14.82",
+  "webApkSigningEnabled": false,
+  "monochromeIconUrl": "https://hierarchy-class.vercel.app/icons/icon-512.png"
+}

@@ -36,9 +36,9 @@ const VARIANTS = {
 } as const;
 
 const SIZES = {
-  sm: "px-3.5 py-1.5 text-xs gap-1.5",
-  md: "px-5 py-2.5 text-sm gap-2",
-  lg: "px-6 py-3 text-sm gap-2",
+  sm: "px-3.5 py-1.5 text-xs gap-1.5 max-[767px]:min-h-[44px] max-[767px]:px-4 max-[767px]:py-2.5",
+  md: "px-5 py-2.5 text-sm gap-2 max-[767px]:min-h-[44px]",
+  lg: "px-6 py-3 text-sm gap-2 max-[767px]:min-h-[44px]",
 } as const;
 
 const SHAPES = {
@@ -65,7 +65,7 @@ export function Button({
       onClick={(e) => onClick?.(e)}
       disabled={disabled || loading}
       title={title}
-      className={`inline-flex items-center justify-center font-semibold transition duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 ${SHAPES[shape]} ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-semibold touch-manipulation transition duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 ${SHAPES[shape]} ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
     >
       {loading ? (
         <span aria-hidden className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />

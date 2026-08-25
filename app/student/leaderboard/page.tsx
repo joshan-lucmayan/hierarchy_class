@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
   const loading = studentsLoading || ranksLoading;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+    <div className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr] xl:grid-cols-[1.4fr_0.8fr]">
       <section className="space-y-6">
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Leaderboard</p>

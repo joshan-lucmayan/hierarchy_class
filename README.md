@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastination, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.7.67`
+**Current version:** `1.14.82`
 
 ---
 
@@ -48,6 +48,7 @@ Teacher and Admin Home pages are personal command centers built from widgets - e
 - **Library** with barcode (camera or USB scanner) ISBN lookup and a borrow flow.
 - **Quiz engine**, **learning materials** with private storage, **Florin** currency balances.
 - **Florin shop & wardrobe** - students buy decorative page backgrounds, profile card backgrounds, and avatar borders. Purchases and equipping run through SECURITY DEFINER RPCs (no client-side minting).
+- **Florin top-ups with GCash** - students buy Florin packs through PayMongo Hosted Checkout (GCash). The success redirect never credits anything: the verified server-side webhook is the payment authority, completion is idempotent, and package pricing is database-authoritative. See [`docs/PAYMENTS.md`](docs/PAYMENTS.md).
 - **Midnight & Rose themes** - pick either from any role's settings; applied before first paint and remembered per browser.
 - **Inverted-triangle rank emblem** - one shared rank visual across every role and surface; the letter/name sits below the triangle, and EX carries a gold "glory" glow.
 - **Feedback with attachments** - bug reports and feedback can include screenshots/files, stored privately in the `feedback` bucket and reviewed by school admins (signed links in the developer email).
@@ -93,4 +94,5 @@ Full documentation lives in [`docs/`](docs/README.md): architecture, the backend
 
 ## Not yet implemented
 
-- Real payments for Florin Coin
+- PayMongo sandbox end-to-end verification for Florin top-ups (implementation complete and locally verified - the runbook lives in [`docs/PAYMENTS.md`](docs/PAYMENTS.md))
+- School logos inside the school picker (the signup page shows the CSA campus logo)

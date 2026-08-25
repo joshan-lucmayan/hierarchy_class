@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { QuizProvider } from "@/lib/quizStore";
 import { ChatProvider } from "@/lib/chatStore";
@@ -17,17 +17,41 @@ import { StoriesProvider } from "@/lib/storiesStore";
 import { SchoolFeedProvider } from "@/lib/schoolFeedStore";
 import { MaterialsProvider } from "@/lib/materialsStore";
 import { RankProvider } from "@/lib/rankStore";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { IOSInstallHint } from "@/components/pwa/IOSInstallHint";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#e9eaed" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f0f11" },
+  ],
+};
 
 export const metadata: Metadata = {
   title: "Hierarchy Class",
   description: "Make school feel like a game worth playing - gamified academic tracking for students, teachers, and campuses",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Hierarchy Class",
+    statusBarStyle: "default",
+  },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
       { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
       { url: "/favicon-64x64.png", type: "image/png", sizes: "64x64" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+      { url: "/icons/apple-touch-icon-180.png", sizes: "180x180" },
+    ],
   },
 };
 
@@ -91,6 +115,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </StoriesProvider>
             </SchoolFeedProvider>
           </MaterialsProvider>
+        <ServiceWorkerRegistration />
+        <InstallPrompt />
+        <IOSInstallHint />
       </body>
     </html>
   );

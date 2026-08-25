@@ -190,6 +190,45 @@ export type FlorinTransactionRow = {
   created_at: string;
 };
 
+// Payment system types
+export interface FlorinPackageRow {
+  id: string;
+  name: string;
+  florin_amount: number;
+  price_php: number;
+  currency: string;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface PaymentTransactionRow {
+  id: string;
+  student_id: string;
+  school_id: string;
+  package_id: string;
+  florin_amount: number;
+  amount_php: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
+  provider: string;
+  provider_session_id: string | null;
+  provider_payment_id: string | null;
+  reference_number: string;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  failure_reason: string | null;
+}
+
+export interface ProcessedWebhookEventRow {
+  id: string;
+  provider: string;
+  event_id: string;
+  transaction_id: string | null;
+  processed_at: string;
+}
+
 
 export interface ProgramRow {
   id: string;
@@ -376,6 +415,38 @@ export type FlorinTransactionInsert = {
   student_id: string;
   amount: number;
   reason?: string | null;
+};
+
+// Payment system insert types
+export type FlorinPackageInsert = {
+  id: string;
+  name: string;
+  florin_amount: number;
+  price_php: number;
+  currency?: string;
+  active?: boolean;
+  sort_order?: number;
+};
+
+export type PaymentTransactionInsert = {
+  student_id: string;
+  school_id: string;
+  package_id: string;
+  florin_amount: number;
+  amount_php: number;
+  currency?: string;
+  status?: 'pending' | 'completed' | 'failed' | 'cancelled' | 'expired';
+  provider?: string;
+  provider_session_id?: string | null;
+  provider_payment_id?: string | null;
+  reference_number: string;
+  failure_reason?: string | null;
+};
+
+export type ProcessedWebhookEventInsert = {
+  provider: string;
+  event_id: string;
+  transaction_id?: string | null;
 };
 
 
@@ -720,6 +791,31 @@ export interface Database {
         Insert: FlorinTransactionInsert;
         Update: Partial<Omit<FlorinTransactionRow, "id">> & {
           id?: string;
+        };
+      };
+      florin_packages: {
+        Row: FlorinPackageRow;
+        Insert: FlorinPackageInsert;
+        Update: Partial<Omit<FlorinPackageRow, "id" | "created_at">> & {
+          id?: string;
+          created_at?: string;
+        };
+      };
+      payment_transactions: {
+        Row: PaymentTransactionRow;
+        Insert: PaymentTransactionInsert;
+        Update: Partial<Omit<PaymentTransactionRow, "id" | "created_at" | "updated_at">> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      processed_webhook_events: {
+        Row: ProcessedWebhookEventRow;
+        Insert: ProcessedWebhookEventInsert;
+        Update: Partial<Omit<ProcessedWebhookEventRow, "id" | "processed_at">> & {
+          id?: string;
+          processed_at?: string;
         };
       };
       programs: {

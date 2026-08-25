@@ -308,7 +308,7 @@ export default function LibraryPage() {
                     </div>
                   </div>
 
-                  <div className="mt-2 max-h-[480px] space-y-2 overflow-y-auto pr-1">
+                  <div className="mt-2 max-h-[55vh] max-h-[55dvh] space-y-2 overflow-y-auto overscroll-contain pr-1 md:max-h-[480px]" style={{ maxHeight: "min(55vh, 55dvh, 480px)" }}>
                     {pageBooks.map((book) => {
                       const chip = bookStatusChip(book, book.borrowedBy === profile?.id, "student");
                       return (
@@ -356,7 +356,7 @@ export default function LibraryPage() {
                   />
                 </div>
               ) : (
-                <div className="mt-3 max-h-[480px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
+                <div className="mt-3 max-h-[55vh] max-h-[55dvh] divide-y divide-[var(--border)] overflow-y-auto overscroll-contain pr-1 md:max-h-[480px]" style={{ maxHeight: "min(55vh, 55dvh, 480px)" }}>
                   {myActiveBooks.map((book) => (
                     <button
                       key={book.id}
@@ -399,7 +399,7 @@ export default function LibraryPage() {
                 />
               </div>
             ) : (
-              <div className="mt-3 max-h-[320px] divide-y divide-[var(--border)] overflow-y-auto pr-1">
+              <div className="mt-3 max-h-[40vh] max-h-[40dvh] divide-y divide-[var(--border)] overflow-y-auto overscroll-contain pr-1 md:max-h-[320px]" style={{ maxHeight: "min(40vh, 40dvh, 320px)" }}>
                 {myHistory.map((record) => (
                   <div key={record.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                     <div className="min-w-0">

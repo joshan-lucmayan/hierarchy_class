@@ -12,6 +12,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { IconBack, IconChevronRight, IconPlus, IconX, IconCheck, IconTask, IconUser } from "@/components/ui/icons";
+import { useOnline } from "@/lib/useOnline";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
 
 type Step = "programs" | "sections" | "courses" | "students";
 const TODAY = new Date().toISOString().split("T")[0];
@@ -106,6 +108,7 @@ export default function TeacherClassroomPage() {
     setGradeLabel("");
   }, [selectedCourse, getCourseRankWeights]);
 
+  const isOnline = useOnline();
   const weightsTotal = useMemo(
     () =>
       categoryDrafts.reduce((acc, c) => acc + (Number.isFinite(Number(c.weight)) ? Number(c.weight) : 0), 0),
@@ -133,6 +136,10 @@ export default function TeacherClassroomPage() {
   }
 
   async function handleSaveWeights() {
+    if (!isOnline) {
+      setWeightsMsg({ kind: "err", text: "You’re offline — connect to save categories. Nothing was saved." });
+      return;
+    }
     if (!selectedCourse) return;
     if (categoryDrafts.length === 0) {
       setWeightsMsg({ kind: "err", text: "Add at least one category before saving." });
@@ -173,6 +180,10 @@ export default function TeacherClassroomPage() {
   }
 
   async function handleSubmitGrades() {
+    if (!isOnline) {
+      setSubmitError("You’re offline — connect to submit grades. Your scores are still in the fields and weren’t sent.");
+      return;
+    }
     if (!selectedCourse) return;
     setSubmitError(null);
     const entries = students
@@ -361,6 +372,7 @@ export default function TeacherClassroomPage() {
             Back
           </Button>
           {breadcrumb && <p className="font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">{breadcrumb}</p>}
+          {!isOnline && <OfflineBanner message="You’re offline — grade submission needs a connection. Scores stay in the fields until you’re back online." />}
 
           {/* Category editor - add / remove / edit per course */}
           <CornerFrame className="p-5">
@@ -376,35 +388,36 @@ export default function TeacherClassroomPage() {
             </p>
             <div className="mt-4 space-y-2">
               {categoryDrafts.map((c, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     value={c.label}
                     onChange={(e) => updateDraft(i, { label: e.target.value })}
                     placeholder="Category label (e.g. Quiz)"
-                    className="flex-1 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                    className="flex-1 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold max-[767px]:py-2.5"
                   />
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 sm:shrink-0">
                     <input
                       type="number"
                       min={0}
                       max={100}
+                      inputMode="numeric"
                       value={c.weight}
                       onChange={(e) => updateDraft(i, { weight: e.target.value })}
-                      className="w-20 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-right text-sm text-navy outline-none focus:border-gold"
+                      className="w-20 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-right text-sm text-navy outline-none focus:border-gold max-[767px]:min-h-[44px] max-[767px]:py-2.5"
                     />
                     <span className="text-xs text-muted">%</span>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      shape="square"
+                      icon={<IconX size={13} />}
+                      title="Remove category"
+                      onClick={() => removeDraft(i)}
+                      className="!px-2.5 max-[767px]:min-h-[44px] max-[767px]:min-w-[44px]"
+                    >
+                      <span className="sr-only">Remove category</span>
+                    </Button>
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    shape="square"
-                    icon={<IconX size={13} />}
-                    title="Remove category"
-                    onClick={() => removeDraft(i)}
-                    className="!px-2.5"
-                  >
-                    <span className="sr-only">Remove category</span>
-                  </Button>
                 </div>
               ))}
             </div>
@@ -529,19 +542,23 @@ export default function TeacherClassroomPage() {
                             <input
                               type="number"
                               min="0"
+                              step="any"
+                              inputMode="decimal"
                               value={scoreInputs[std.id] ?? ""}
                               onChange={(e) => setScoreInputs((prev) => ({ ...prev, [std.id]: e.target.value }))}
                               placeholder="Score"
-                              className="w-24 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-gold"
+                              className="w-24 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-gold max-[767px]:min-h-[44px] max-[767px]:py-2.5 max-[767px]:w-28"
                             />
                             <span className="text-xs text-muted">/</span>
                             <input
                               type="number"
                               min="1"
+                              step="any"
+                              inputMode="decimal"
                               value={maxInputs[std.id] ?? "100"}
                               onChange={(e) => setMaxInputs((prev) => ({ ...prev, [std.id]: e.target.value }))}
                               placeholder="out of"
-                              className="w-20 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-gold"
+                              className="w-20 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-gold max-[767px]:min-h-[44px] max-[767px]:py-2.5"
                             />
                           </div>
                         </div>

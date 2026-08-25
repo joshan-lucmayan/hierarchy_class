@@ -25,16 +25,16 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen text-[var(--text)]">
+    <div className="relative min-h-screen text-[var(--text)]" style={{ minHeight: "100dvh" }}>
       {role === "student" && <PageBackdrop />}
       <SideNav role={role} brandHref={brandHref} />
       <div
         style={{ ["--sidebar-gap" as string]: "100px" }}
-        className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-24 xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-6"
+        className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
       >
         <SiteHeader href={brandHref} showFlorin={role === "student"} />
         <main
-          className={`flex-1 p-6 pb-24 xl:p-8 xl:pb-8 ${role === "student" ? "glass-cards" : ""}`}
+          className={`flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:p-6 sm:pb-[calc(6rem+env(safe-area-inset-bottom))] xl:p-8 xl:pb-8 ${role === "student" ? "glass-cards" : ""}`}
         >
           {children}
         </main>

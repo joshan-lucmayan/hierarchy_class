@@ -17,25 +17,28 @@ export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: b
   const schoolName = schools[0]?.name;
 
   return (
-    <header className="mb-6 flex items-center justify-between border-b border-base pb-4">
-      <div className="min-w-0 xl:hidden">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-base pb-4">
+      <div className="min-w-0 shrink-0 xl:hidden">
         <BrandMark href={href} />
       </div>
-      <p className="hidden min-w-0 truncate text-sm font-medium text-muted xl:block">
+      <p className="hidden min-w-0 flex-1 truncate text-sm font-medium text-muted xl:block">
         {schoolName ? `${schoolName} · Hierarchy Class` : "Hierarchy Class"}
       </p>
 
-      <div className="relative flex shrink-0 items-center gap-2">
+      <div className="relative flex min-w-0 shrink-0 items-center gap-2">
         {showFlorin && (
           <button
             type="button"
             onClick={() => setBuyOpen(true)}
             title="Buy Florin"
-            className="flex items-center gap-2 rounded-md border border-line bg-tile px-2.5 py-1.5 text-[13px] font-semibold text-navy transition hover:border-sealion"
+            className="flex max-w-[160px] items-center gap-1.5 rounded-md border border-line bg-tile px-2.5 py-1.5 text-[13px] font-semibold text-navy transition hover:border-sealion max-[767px]:min-h-[44px] sm:max-w-none sm:gap-2"
           >
             <CoinIcon size={18} />
-            <span>{balance.toLocaleString()} Florin</span>
-            <span className="text-[12px] text-faint">+</span>
+            <span className="truncate">
+              <span className="sm:hidden">{balance.toLocaleString()}</span>
+              <span className="hidden sm:inline">{balance.toLocaleString()} Florin</span>
+            </span>
+            <span className="shrink-0 text-[12px] text-faint">+</span>
           </button>
         )}
         <NotificationBell />

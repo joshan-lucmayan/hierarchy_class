@@ -51,7 +51,7 @@ export function NotificationBell() {
         type="button"
         onClick={handleOpen}
         aria-label="Notifications"
-        className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-tile text-muted transition hover:border-sealion"
+        className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-tile text-muted transition hover:border-sealion max-[767px]:h-11 max-[767px]:w-11"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -63,7 +63,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-40 mt-2 w-80 rounded-[10px] border border-base bg-surface p-2 shadow-xl">
+        <div className="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-1rem)] rounded-[10px] border border-base bg-surface p-2 shadow-xl max-[640px]:fixed max-[640px]:inset-x-4 max-[640px]:left-4 max-[640px]:right-4 max-[640px]:top-[64px] max-[640px]:w-auto max-[640px]:max-w-none">
           <div className="flex items-center justify-between gap-2 px-3 py-2">
             <p className="text-xs font-bold uppercase tracking-wide text-navy">Notifications</p>
             <div className="flex items-center gap-1">
@@ -96,7 +96,7 @@ export function NotificationBell() {
           ) : notifications.length === 0 ? (
             <p className="px-3 py-4 text-sm text-muted">You&apos;re all caught up.</p>
           ) : (
-            <div className="max-h-96 space-y-1 overflow-y-auto">
+            <div className="max-h-96 max-h-[60vh] max-h-[60dvh] space-y-1 overflow-y-auto overscroll-contain" style={{ maxHeight: "min(24rem, 60dvh)" }}>
               {notifications.map((n) => {
                 const body = (
                   <>

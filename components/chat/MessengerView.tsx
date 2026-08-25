@@ -9,6 +9,20 @@ import type { ProfileRow } from "@/types/supabase";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { useOnline } from "@/lib/useOnline";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const upd = () => setIsMobile(mq.matches);
+    upd();
+    mq.addEventListener("change", upd);
+    return () => mq.removeEventListener("change", upd);
+  }, []);
+  return isMobile;
+}
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student",
@@ -64,18 +78,21 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
   const openingWith = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messageCountRef = useRef(0);
+  const isMobile = useIsMobile();
+  const isOnline = useOnline();
 
   const list = showArchived ? archivedConversations : conversations;
 
   // Open the most recent conversation once loaded (when not deep-linked).
+  // On mobile keep the list visible - don't auto-open a convo.
   useEffect(() => {
-    if (!activeId && list.length > 0 && !withId) {
+    if (!activeId && list.length > 0 && !withId && !isMobile) {
       const first = list[0];
       setActiveId(first.id);
       openConversation(first.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list.length, withId]);
+  }, [list.length, withId, isMobile]);
 
   // ?with=<profileId> - create/find the conversation and open it. The ref
   // guards against StrictMode double-invoking this effect (which previously
@@ -157,16 +174,23 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
 
   async function handleSend() {
     if (!active || !draft.trim() || sending || isBlocked) return;
+    if (!isOnline) {
+      setActionError("You’re offline — connect to send messages. Your draft is still here.");
+      return;
+    }
     setSending(true);
     const ok = await sendMessage(active.id, draft);
     setSending(false);
     if (ok) setDraft("");
+    else if (!navigator.onLine) setActionError("You’re offline — message wasn’t sent.");
   }
 
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-[520px] overflow-hidden rounded-[10px] border border-base">
+    <div className="flex h-[calc(100vh-220px)] max-h-[calc(100dvh-140px)] min-h-[400px] overflow-hidden rounded-[10px] border border-base max-[767px]:h-[calc(100dvh-140px)] max-[767px]:min-h-[400px] md:min-h-[520px] md:h-[calc(100vh-220px)]">
       {/* Left column: conversation list / search */}
-      <div className="flex w-full max-w-[300px] shrink-0 flex-col border-r border-base">
+      <div
+        className={`flex shrink-0 flex-col border-base max-[767px]:w-full max-[767px]:border-r-0 md:w-[300px] md:max-w-[300px] md:border-r ${isMobile ? (active ? "hidden" : "flex w-full") : "flex w-full max-w-[300px]"}`}
+      >
         <div className="flex items-center justify-between border-b border-base p-4">
           <p className="text-sm font-bold uppercase tracking-wide text-navy">Messages</p>
           <button
@@ -257,10 +281,25 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
       </div>
 
       {/* Right column: conversation */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div
+        className={`min-w-0 flex-1 flex-col ${isMobile ? (active ? "flex" : "hidden") : "flex"} ${isMobile && active ? "w-full" : ""}`}
+      >
         {active ? (
           <>
             <div className="flex items-center gap-3 border-b border-base p-4">
+              {isMobile && (
+                <button
+                  type="button"
+                  onClick={() => setActiveId(null)}
+                  aria-label="Back to conversations"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-base bg-surface text-muted transition hover:border-gold-soft hover:text-navy md:hidden"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5" />
+                    <path d="M12 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              )}
               <UserAvatar name={active.name} src={active.avatarUrl} size="lg" profileId={active.otherId} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-navy">{active.name}</p>
@@ -412,7 +451,8 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
               )}
             </div>
 
-            <div className="border-t border-base p-4">
+            <div className="border-t border-base p-4 pb-[max(1rem,env(safe-area-inset-bottom))] max-[767px]:pb-[max(1rem,env(safe-area-inset-bottom))]">
+              {!isOnline && <OfflineBanner message="You’re offline — messages need a connection. Your draft is saved." />}
               {isBlocked ? (
                 <p className="rounded-full border border-warn-soft bg-warn-soft px-4 py-2.5 text-center text-xs font-semibold text-warn">
                   You&apos;ve blocked this user - unblock them to send messages.
@@ -430,6 +470,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     }}
                     placeholder="Type a message..."
                     className="flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                    enterKeyHint="send"
                   />
                   <Button
                     variant="primary"

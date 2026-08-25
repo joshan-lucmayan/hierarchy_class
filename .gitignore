@@ -24,3 +24,14 @@ next-env.d.ts
 .scrt.txt
 *.key
 supabase/.temp/
+
+# Android signing and build
+*.jks
+*.keystore
+android/app/build/
+android/app/release/
+android/.gradle/
+android/debug.keystore
+android/build/
+android/*.apk
+android/*.aab

@@ -35,7 +35,7 @@ export default function StudentHomePage() {
 
       <h1 className="section-label mb-3">Latest School Feed</h1>
 
-      <div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
         <section className="space-y-4">
           {feedLoading ? (
             <p className="text-sm text-muted">Loading announcements...</p>

@@ -86,6 +86,15 @@ raw grade rows.
   to admin, or edit admin rows - enforced by the `protect_profile_columns`
   BEFORE UPDATE trigger plus the `profiles_admin_update` RLS policy (service
   role is the only exception, used by developer provisioning).
+- **Payments cannot be completed from the browser.** Florin top-ups
+  (GCash via PayMongo) credit only through `complete_payment()`, a SECURITY
+  DEFINER RPC with EXECUTE revoked from PUBLIC/authenticated/anon and granted
+  solely to `service_role`. The webhook route verifies PayMongo's HMAC-SHA256
+  signature over the raw body (timing-safe comparison) before parsing, then
+  cross-checks reference number, checkout session id, amount, currency, and
+  payment status before completing anything. Row locking plus a pending-only
+  gate make completion idempotent - duplicate or replayed webhooks can never
+  double-credit. Full details: [PAYMENTS.md](./PAYMENTS.md).
 
 ## 4. Client-side hardening
 
@@ -104,7 +113,9 @@ raw grade rows.
   same-school admins can read objects back. The developer email gets signed,
   expiring links - files are never public.
 - **No client-side Florin minting** - balance write policies were removed
-  until a verified payment flow exists.
+  (migration 022) and money movement happens only inside guarded RPCs:
+  `purchase_shop_item` debits, and the payment webhook's `complete_payment`
+  credits (see [PAYMENTS.md](./PAYMENTS.md)).
 - **Theme/UX is not a security boundary** - the Midnight/Rose theme and
   cosmetic states never gate data.
 

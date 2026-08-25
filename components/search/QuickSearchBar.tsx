@@ -99,7 +99,7 @@ export function QuickSearchBar() {
       <button
         type="button"
         onClick={() => goToPerson(person)}
-        className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)]"
+        className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-[var(--surface-strong)] max-[767px]:min-h-[44px] max-[767px]:py-3"
       >
         <UserAvatar name={person.full_name} src={person.avatar_url} size="md" profileId={person.id} />
         <span className="min-w-0 flex-1">
@@ -167,7 +167,7 @@ export function QuickSearchBar() {
           {!hasResults ? (
             <p className="px-4 py-3 text-sm text-muted">No matching profiles found.</p>
           ) : (
-            <div className="max-h-96 overflow-y-auto py-1.5">
+            <div className="max-h-96 max-h-[60vh] max-h-[60dvh] overflow-y-auto overscroll-contain py-1.5" style={{ maxHeight: "min(24rem, 60dvh)" }}>
               {studentResults.length > 0 && (
                 <>
                   <p className="px-4 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-faint">

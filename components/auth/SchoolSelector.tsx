@@ -96,7 +96,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
 
         {isOpen && (
           <div
-            className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-[10px] border border-base bg-surface"
+            className="absolute z-10 mt-1.5 w-full overflow-hidden rounded-[10px] border border-base bg-surface max-h-[50vh] max-h-[50dvh]"
             style={{ animation: "fadeUp 0.25s ease both" }}
           >
             <div className="border-b border-base p-2">
@@ -110,7 +110,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
               />
             </div>
 
-            <ul className="max-h-56 overflow-y-auto py-1">
+            <ul className="max-h-56 max-h-[40vh] max-h-[40dvh] overflow-y-auto overscroll-contain py-1" style={{ maxHeight: "min(14rem, 40dvh)" }}>
               {filtered.length === 0 && (
                 <li className="px-3.5 py-3 text-sm text-faint">No schools found</li>
               )}

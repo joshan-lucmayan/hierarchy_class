@@ -979,11 +979,13 @@ flat token dashboard look, but built on the same tokens and fonts):
    `equip_shop_item`, `unequip_shop_item`) so a student can never mint coins
    or equip items they don't own. `ShopProvider` keeps a school-wide loadout
    map (`decorColorOf`, `profileCardOf`) so each user's decorations follow
-   them across the app. The shop page has no balance of its own - the Florin
-   pill in the header (next to the notification bell) shows the balance and
-   opens the **Buy Florin** top-up modal (`FlorinPurchaseModal`, not wired to
-   payments yet); the profile pencil (on the avatar) opens the photo/name
-   editor.
+    them across the app. The shop page has no balance of its own - the Florin
+    pill in the header (next to the notification bell) shows the balance and
+    opens the **Buy Florin** top-up modal (`FlorinPurchaseModal`): packages
+    load from `/api/payments/packages`, and selecting one creates a PayMongo
+    GCash checkout server-side and redirects to it - the webhook completes
+    the purchase (see [PAYMENTS.md](./PAYMENTS.md)); the profile pencil (on
+    the avatar) opens the photo/name editor.
 8. **Academic info (admin)** - Admin -> Students -> Academic info picks
    education level -> program -> year/level (or **None** to clear); saving
    auto-enrolls the student in that year's courses via `autoEnrollInSection`

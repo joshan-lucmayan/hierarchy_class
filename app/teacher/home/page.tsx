@@ -275,6 +275,9 @@ export default function TeacherHomePage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  // Touch devices need no extra sensor — PointerSensor covers touch + mouse.
+  // Keeping KeyboardSensor for a11y; touch drag is via pointer events.
+
   /** Enter edit mode with the saved layout as the working draft. */
   function startEditing() {
     setDraft(prefs.widgets);
@@ -951,7 +954,7 @@ export default function TeacherHomePage() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={gridPlacements.map((w) => w.id)} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-12 gap-4 auto-rows-[15rem]">
+            <div className="grid grid-cols-12 gap-4 auto-rows-[auto] md:auto-rows-[15rem]">
               {gridPlacements.map((w) => {
                 const def = WIDGET_BY_ID[w.id];
                 if (!def) return null;
@@ -998,7 +1001,7 @@ export default function TeacherHomePage() {
            fixed row height, `tall` always spans 2 rows + gap and visibly
            grows, for every widget, in every layout. Cards contain their
            content (overflow-hidden + internal scroll in view mode). */
-        <div className="grid grid-cols-12 gap-4 auto-rows-[15rem]">
+        <div className="grid grid-cols-12 gap-4 auto-rows-[auto] md:auto-rows-[15rem]">
           {prefs.widgets.map(renderViewCard)}
         </div>
       )}

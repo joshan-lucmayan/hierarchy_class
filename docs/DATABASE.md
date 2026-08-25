@@ -65,6 +65,16 @@ migration index. Migrations live in `database/migrations/` - see
 | `teacher_dashboard_prefs` | Teacher Home customization: which widgets appear and how they're arranged (layout JSONB `{widgets:[{id,size,tall,order}]}`) - presentation-only, own-row RLS |
 | `admin_dashboard_prefs` | Admin Home customization, same model as teacher (migration 055) - presentation-only, own-row RLS |
 
+### Payments (GCash via PayMongo - migrations 067-069)
+
+| Table | Purpose |
+|---|---|
+| `florin_packages` | Authoritative package catalog (server-validated; the client never sets price or Florin amount): `id` text key, `name`, `florin_amount`, `price_php`, `currency`, `active`, `sort_order`. Seeded: 50/39.00, 120/79.00, 300/179.00, 650/349.00. Authenticated read only |
+| `payment_transactions` | One row per purchase attempt: student + school FKs, **package/florin/amount/currency snapshots** taken at checkout, status CHECK (`pending`/`completed`/`failed`/`cancelled`/`expired`), provider (`paymongo`) session + payment ids, unique internal `reference_number`, timestamps + `failure_reason`. RLS: student reads own, admin reads same-school, **no client write policies**; a partial unique index allows at most one pending transaction per student |
+| `processed_webhook_events` | Webhook deduplication ledger with `UNIQUE (provider, event_id)`; written only after safe completion so retries stay crash-safe. RLS enabled with zero policies - no browser access, service-role only |
+
+Full flow and security model: [PAYMENTS.md](./PAYMENTS.md).
+
 ### Admin-only reference tables
 
 `programs`, `sections`, `courses`, `course_enrollments`, `banner_config` are
@@ -227,6 +237,10 @@ All files live in `database/migrations/`.
 | 063 | **Fix `send_chat_message`** - 060 rewrote it against a `participant_id`/`other_user_id` schema that does not exist (all message sends failed with `42703`); restored the real `user_a_id`/`user_b_id` logic (025 semantics: other side revived from archive, `deleted_at` untouched) and kept the 060 notification with the `?with=<sender>` link |
 | 064 | **Fix storage owner policies** - feedback + myday owner write/update/delete compared folder 2 to `auth.uid()` but client paths use the profile id (broken since 059's `profiles.id != auth.uid()` fix); now resolve the caller's profile id; fixes feedback uploads and pre-existing story image uploads |
 | 065 | **Feedback owner read** - reporters can read (and the Storage API can delete) their own feedback attachments; admin read unchanged |
+| 066 | **Rank history student read** - `rank_history_school_read` tightened: students read only their own `rank_history_log` rows (needed by the student-facing History feature); admins/teachers keep school-wide read |
+| 067 | **GCash payment system:** `florin_packages` (server-authoritative catalog, seeded 50/39.00, 120/79.00, 300/179.00, 650/349.00), `payment_transactions` (full lifecycle with package/amount snapshots + five-state CHECK), `processed_webhook_events` (`UNIQUE (provider, event_id)` dedup); RLS: authenticated package reads, student-own + school-scoped admin transaction reads, no client writes anywhere |
+| 068 | **`complete_payment(p_transaction_id)` SECURITY DEFINER RPC** - locks the row FOR UPDATE, processes only `pending` transactions (idempotent, terminal states final), completes the payment, credits `florin_balances`, and inserts the ledger entry; EXECUTE revoked from authenticated/anon and granted to `service_role` only |
+| 069 | **Payment hardening:** `complete_payment` re-issued with an explicit `REVOKE ... FROM PUBLIC` (Postgres grants PUBLIC EXECUTE on new functions by default) and a balance **upsert** so a missing `florin_balances` row can never swallow a paid credit; partial unique index `(student_id) WHERE status = 'pending'` caps open checkouts at one per student |
 | 047 | ~~Restore composite bar fill~~ **SUPERSEDED by 049** - 045's weight-dominant experiment was briefly reverted, then permanently replaced by per-entry isolation (049) |
 | 046 | Period baseline: `student_rank_state` gains `period_start_rank/bar/ex_score/peak` (captured when the grading period is adopted); `revert_grade_rank_feed` now recomputes order-independently from the baseline + all remaining current-period entries, so bulk-clearing all grades (admin → clear course data) collapses the state to the baseline (D/0 for a fresh student) instead of leaving a stale bar residue; old-period deletions keep the anchor + replay path |
 

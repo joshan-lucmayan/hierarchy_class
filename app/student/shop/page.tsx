@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useShop, type ShopItem } from "@/lib/shopStore";
 import { CoinIcon } from "@/components/ui/CoinIcon";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { PaymentHistory } from "@/components/student/PaymentHistory";
 
 function ActionButton({ item, owned, busy, onBuy }: { item: ShopItem; owned: boolean; busy: boolean; onBuy: () => void }) {
   if (!owned) {
@@ -251,6 +252,11 @@ export default function ShopPage() {
           </p>
         </>
       )}
+
+      {/* Payment History Section */}
+      <section className="mt-8 pt-8 border-t border-base">
+        <PaymentHistory />
+      </section>
 
     </div>
   );

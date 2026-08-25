@@ -16,7 +16,6 @@ interface FlorinContextValue {
   transactions: FlorinTransaction[];
   loading: boolean;
   error: string | null;
-  addFlorin: (amount: number, reason?: string) => Promise<void>;
   refetch: () => void;
 }
 
@@ -89,31 +88,8 @@ export function FlorinProvider({ children }: { children: React.ReactNode }) {
 
   const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
-  const addFlorin = useCallback(
-    async (amount: number, reason?: string) => {
-      if (!profile) return;
-      const supabase = createClient();
-
-      await (supabase.from("florin_transactions") as any).insert({
-        school_id: profile.school_id,
-        student_id: profile.id,
-        amount,
-        reason: reason ?? null,
-      });
-
-      const newBalance = balance + amount;
-      await (supabase.from("florin_balances") as any)
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq("student_id", profile.id);
-
-      setBalance(newBalance);
-      refetch();
-    },
-    [profile, balance, refetch]
-  );
-
   return (
-    <FlorinContext.Provider value={{ balance, transactions, loading, error, addFlorin, refetch }}>
+    <FlorinContext.Provider value={{ balance, transactions, loading, error, refetch }}>
       {children}
     </FlorinContext.Provider>
   );
