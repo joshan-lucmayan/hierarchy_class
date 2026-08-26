@@ -11,12 +11,12 @@ const pkgVersion = JSON.parse(
 test("APK release metadata matches the distributed artifact contract", () => {
   assert.equal(APK_RELEASE.packageName, "com.hierarchyclass.app");
   assert.equal(APK_RELEASE.version, pkgVersion, "APK version must track package.json");
-  assert.equal(APK_RELEASE.versionCode, 11587);
+  assert.equal(APK_RELEASE.versionCode, 11590);
   assert.equal(APK_RELEASE.sizeBytes, 1142956);
 });
 
 test("download URL is versioned and served from the public downloads path", () => {
-  assert.equal(apkDownloadUrl(), `/downloads/hierarchy-class-v1.15.87.apk`);
+  assert.equal(apkDownloadUrl(), `/downloads/hierarchy-class-v1.15.90.apk`);
   assert.match(apkDownloadUrl(), /^\/downloads\/hierarchy-class-v\d+\.\d+\.\d+\.apk$/);
   assert.equal(APK_RELEASE.fileName, apkDownloadUrl().split("/").pop());
 });

@@ -1,7 +1,7 @@
 # Android — Trusted Web Activity (TWA) for Hierarchy Class
 
 > Source PWA: `public/manifest.json` + `public/sw.js` (vanilla, no Workbox)
-> Package: `com.hierarchyclass.app` — `versionName 1.15.87` — `versionCode 11587`
+> Package: `com.hierarchyclass.app` — `versionName 1.15.90` — `versionCode 11590`
 
 ## Architecture
 
@@ -26,7 +26,7 @@ Rank authority stays server-side (Supabase RPC `approve_grade_submission` etc.).
 
 ## Versioning
 
-App version is single source: `package.json` `version: "1.15.87"` → `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11587` (`major*10000 + minor*100 + patch`). Bump `package.json` version and `android/twa-manifest.json` together — plus the generated `android/app/build.gradle` `versionCode`/`versionName` (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
+App version is single source: `package.json` `version: "1.15.90"` → `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11590` (`major*10000 + minor*100 + patch`). Bump `package.json` version and `android/twa-manifest.json` together — plus the generated `android/app/build.gradle` `versionCode`/`versionName` (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
 
 ## Icon source
 
@@ -51,9 +51,9 @@ cd android && JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleDebug --n
 cd android && bubblewrap build --manifest twa-manifest.json
 ```
 
-**Production artifacts (2026-08-26, v1.15.87, `www.hierarchyclass.com` config):**
+**Production artifacts (2026-08-26, v1.15.90, `www.hierarchyclass.com` config):**
 
-- `android/app/build/outputs/apk/debug/app-debug.apk` — 5,052,528 B (badging: `com.hierarchyclass.app`, versionCode 11587, versionName 1.15.87)
+- `android/app/build/outputs/apk/debug/app-debug.apk` — 5,052,528 B (badging: `com.hierarchyclass.app`, versionCode 11590, versionName 1.15.90)
 - `android/app-release-signed.apk` — 1,142,956 B (`apksigner verify` v1+v2+v3 OK; cert SHA-256 `8c95e7dc38449b4bd682d358986e4b606400dbe19c29ba60e155e31eef51e846`)
 - `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) — 1,253,380 B (valid AAB: BundleConfig.pb, base/manifest, dex, resources.pb)
 

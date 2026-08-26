@@ -336,7 +336,7 @@ export default function AdminSettingsPage() {
       {/* ============================================================ */}
       <CornerFrame className="p-5">
         <h3 className="section-label">Your account</h3>
-        <p className="mt-1.5 text-xs leading-5 text-muted">
+        <p className="mt-3 text-xs leading-5 text-muted">
           Account changes for administrators must be handled by the Hierarchy Class developer. Please contact the
           developer for assistance.
         </p>

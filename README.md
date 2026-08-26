@@ -2,9 +2,9 @@
 
 **Make school feel like a game worth playing.**
 
-Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastination, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
+Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastinate, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.15.87`
+**Current version:** `1.15.90`
 
 ---
 
@@ -24,23 +24,32 @@ Students can personalize their profile (bio, hobbies, tags, favorite subject, pr
 
 Each admin account is scoped to exactly **one school**.
 
-## Customizable Home dashboards
+## Device support
 
-Teacher and Admin Home pages are personal command centers built from widgets - empty by default, so each user arranges what matters to them. Customization lives in **Settings -> Home Dashboard -> Customize Home** (there is no Customize button on the Home pages themselves).
+| Role | Phone (< 768px) | Tablet (768px+) | Desktop (1280px+) |
+|---|---|---|---|
+| **Student** | Supported | Supported | Supported |
+| **Teacher** | Blocked (device-warning) | Supported | Supported |
+| **Admin** | Blocked (device-warning) | Supported | Supported |
 
-- Pick from the app's real widgets (classes, grading status, schedule, lesson plans, notes, tasks for teachers; school snapshot, academic/hierarchy health, attention center, grade pipeline, enrollment health, teacher workload, pending grades, account requests, teacher tasks, recent activity, school feed & announcements for admins).
-- Drag to reorder, drag card edges to resize (width cycles small/medium/large/full, height toggles tall), remove, or add.
-- Start from a developer-created **preset** (loaded as a draft you can still modify) or build from scratch. Cancel discards a session; Clear Home empties the dashboard.
-- Layouts persist per user (`teacher_dashboard_prefs` / `admin_dashboard_prefs`), are presentation-only, and never touch the underlying data - removing a widget never deletes a grade, post, or task. Teacher Workspace (`/teacher/workspace`) remains the place for detailed teaching work.
+- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop.
+- **Teacher** and **Admin** see a dedicated device-warning screen on phone-sized viewports (< 768px) with a clear message to continue on a larger screen. The user remains authenticated; the warning is a UI layer only.
+- The 768px breakpoint (`md:` in Tailwind) cleanly separates phone from tablet. Resizing or rotating the device updates the view instantly.
+
+## Student navigation
+
+- **Phone / Tablet** (< 1280px): Hamburger button in the header opens a full-height slide-in drawer containing the profile card, stat widgets, navigation links, and logout.
+- **Desktop** (1280px+): Fixed icon-rail sidebar on the left with the same navigation links and logout.
+- The student BottomNav has been removed. All student navigation flows through the drawer (mobile/tablet) or sidebar (desktop).
 
 ## Key features
 
-- **Non-linear rank engine** - category percentages accumulate per grading period, compress through a power curve (`Adjusted = 100·(S/100)^k`), and move a fill-first rank bar from **D** up through **C · B · A · S · S+ · S++** and into the open-ended **EX** tier. Every knob (weights, `k`, tier lengths, EX step, season reset map) is configurable per school.
+- **Non-linear rank engine** - category percentages accumulate per grading period, compress through a power curve (`Adjusted = 100 (S/100)^k`), and move a fill-first rank bar from **D** up through **C B A S S+ S++** and into the open-ended **EX** tier. Every knob (weights, `k`, tier lengths, EX step, season reset map) is configurable per school.
 - **Live ranks & leaderboard** - realtime across the app, with validate -> preview -> confirm and an audit log on every write.
 - **Grade approval queue** - teacher submissions go to admins as pending; only approved grades count toward stats.
 - **Messaging** - one shared chat across all three roles with unread badges, archive, per-user delete, and blocking.
 - **School feed & announcements** (admin-created posts carry an "Administrator" badge), **MyDay stories**, **notifications**.
-- **Student achievements** - post certificates (title, school year, date awarded, school) with a raw image upload (public `certificates` bucket, owner-folder RLS, 10 MB cap); the profile shows a title-only 3×3 grid that opens a detail modal and a full-screen certificate viewer. Other students see a read-only version.
+- **Student achievements** - post certificates (title, school year, date awarded, school) with a raw image upload (public `certificates` bucket, owner-folder RLS, 10 MB cap); the profile shows a title-only 3x3 grid that opens a detail modal and a full-screen certificate viewer. Other students see a read-only version.
 - **Student music** - post music by link (YouTube / Spotify / Apple Music / SoundCloud / Vimeo): the app resolves title, artist, and album cover server-side via keyless oEmbed / iTunes lookup (Spotify upgrades to the Web API when server-only env vars are set) and links out to the original track.
 - **Habit tracker** - default and custom habits with goal types, scheduled days, streaks, pause/resume/archive, and a history calendar. Entries are one per (habit, day) at the database level; habits never touch the rank engine or grades.
 - **Account lifecycle** - students and teachers can deactivate their own account (reversible, nothing is deleted) and reactivate it from the sign-in flow with a welcome-back notification. School admins cannot deactivate other users. For suspicious accounts, an admin can apply a temporary **restriction** (`profiles.restricted_at`): the user can still sign in but only reaches `/auth/restricted`, where they can submit an **appeal** that the admin reviews. Permanent deletion is admin-approved: the account and personal data are removed while school-required academic records are preserved and anonymized (migration 058), and user storage objects are cleaned up via a server-only service-role client. Admins have no in-app deactivate/delete controls for their own account - account changes for administrators go through the developer.
@@ -56,11 +65,28 @@ Teacher and Admin Home pages are personal command centers built from widgets - e
 
 ## Tech stack
 
-- **Framework:** Next.js 14 (App Router) · **Language:** TypeScript
+- **Framework:** Next.js 14 (App Router) - **Language:** TypeScript
 - **Styling:** Tailwind CSS with theme tokens (Midnight + Rose)
 - **Backend / Auth / Database:** Supabase - Postgres, Row-Level Security, Auth, Realtime, Storage
-- **Charts:** Recharts · **Barcode:** `html5-qrcode` + HID scanner input
+- **Charts:** Recharts - **Barcode:** `html5-qrcode` + HID scanner input
 - **Hosting:** Vercel
+
+## PWA / installation
+
+- The app can be installed as a **Progressive Web App (PWA)** where supported. Browsers that support the Web App Manifest and service worker will show an install prompt.
+- An **Android TWA (Trusted Web Activity)** exists as a native wrapper: package `com.hierarchyclass.app`, built with Bubblewrap. It renders the web app in a Chrome Custom Tab with no native UI overhead.
+- **Production domain:** `https://www.hierarchyclass.com/`
+
+## Update system
+
+The in-app update system detects new deployments without forced reloads:
+
+- On mount and when the browser tab returns to focus, the app checks for a newer build by comparing `NEXT_PUBLIC_APP_VERSION` against the live deployment.
+- If a newer build is detected, a non-intrusive prompt appears.
+- **"Later"** dismisses the prompt for that specific detected build. A newer deployment will prompt again.
+- **"Update"** performs a controlled reload to pick up the new build.
+- No automatic forced reload without user consent.
+- Works across browser, PWA, and TWA contexts.
 
 ## Getting started
 

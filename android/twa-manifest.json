@@ -31,13 +31,13 @@
   "minSdkVersion": 21,
   "orientation": "default",
   "fingerprints": [],
-  "appVersion": "1.15.87",
-  "appVersionCode": 11587,
+  "appVersion": "1.15.90",
+  "appVersionCode": 11590,
   "signingKey": {
     "path": "./android.keystore",
     "alias": "android"
   },
-  "packageVersion": "1.15.87",
+  "packageVersion": "1.15.90",
   "webApkSigningEnabled": false,
   "monochromeIconUrl": "https://www.hierarchyclass.com/icons/icon-512.png"
 }

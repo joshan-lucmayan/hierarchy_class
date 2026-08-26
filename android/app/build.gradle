@@ -57,8 +57,8 @@ android {
         applicationId "com.hierarchyclass.app"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode 11587
-        versionName "1.15.87"
+        versionCode 11590
+        versionName "1.15.90"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

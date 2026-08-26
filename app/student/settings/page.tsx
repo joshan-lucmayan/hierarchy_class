@@ -76,7 +76,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="space-y-4 border-t border-base pt-8">
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-warn">Account</h2>
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-navy">Account</h2>
         <div className="divide-y divide-[var(--border)]">
           <div className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>

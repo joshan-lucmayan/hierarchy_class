@@ -63,7 +63,7 @@ export function SideNav({ role, brandHref }: { role: Role; brandHref: string }) 
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-30 hidden h-screen w-16 shrink-0 flex-col items-center border-r border-base bg-[var(--kettle)] py-5 xl:flex">
+    <aside className={`fixed left-0 top-0 z-30 hidden h-screen w-16 shrink-0 flex-col items-center border-r border-base bg-[var(--kettle)] py-5 ${role === "student" ? "xl:flex" : "md:flex"}`}>
       <div className="mb-6 flex justify-center">
         <Link href={brandHref} title="Hierarchy Class" aria-label="Hierarchy Class" className="flex items-center justify-center">
           <CrownMark height={40} />

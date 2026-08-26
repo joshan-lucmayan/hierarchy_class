@@ -17,7 +17,7 @@ export function TeacherBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-base bg-surface xl:hidden"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-base bg-surface md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="flex items-center gap-1 overflow-x-auto overscroll-contain px-2 py-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">

@@ -1,29 +1,17 @@
 "use client";
 
-import { useMyProfile } from "@/lib/useMyProfile";
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
-import { useRankStore } from "@/lib/rankStore";
-import { useShop } from "@/lib/shopStore";
-import { RankBadge } from "@/components/ui/RankBadge";
-import { UserAvatar } from "@/components/ui/UserAvatar";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { StoriesRail } from "@/components/feed/StoriesRail";
 import { QuickSearchBar } from "@/components/search/QuickSearchBar";
-import SubjectStats from "@/components/dashboard/SubjectStats";
+import { ProfileRankCard } from "@/components/student/ProfileRankCard";
 import HabitTracker from "@/components/dashboard/HabitTracker";
 import WeeklyProgress from "@/components/dashboard/WeeklyProgress";
+import SubjectStats from "@/components/dashboard/SubjectStats";
 import WeakestSubjectCard from "@/components/dashboard/WeakestSubjectCard";
 
 export default function StudentHomePage() {
-  const { profile, loading, error } = useMyProfile();
-  const { rankOf } = useRankStore();
-  const { equippedProfileCard } = useShop();
   const { posts, loading: feedLoading, error: feedError } = useSchoolFeed();
-
-  const myRank = profile ? rankOf(profile.id) : null;
-  const displayRank = myRank?.current_rank ?? "D";
-  const rankBar = myRank && myRank.current_rank !== "EX" ? myRank.current_bar : null;
-  const rankExScore = myRank?.current_rank === "EX" ? myRank.ex_score : null;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -31,33 +19,11 @@ export default function StudentHomePage() {
         <QuickSearchBar />
       </div>
 
-      {/* Compact identity summary — phones only; the full rank card lives in
-          the aside below (and as the desktop right column at lg+). */}
-      <div className="flex items-center gap-3 lg:hidden">
-        <UserAvatar
-          name={profile?.full_name}
-          src={profile?.avatar_url}
-          size="md"
-          profileId={profile?.id}
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[13.5px] font-bold text-navy">
-            {profile?.full_name ?? "Student"}
-          </p>
-          <p className="truncate text-[11px] text-muted">
-            {[profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ") || "—"}
-          </p>
-        </div>
-        {!loading && !error && (
-          <RankBadge rank={displayRank} bar={rankBar} exScore={rankExScore} />
-        )}
-      </div>
-
       <StoriesRail />
 
       <h1 className="section-label mb-3">Latest School Feed</h1>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
+      <div className="grid gap-4 sm:gap-5 xl:grid-cols-[1.6fr_1fr]">
         <section className="space-y-4">
           {feedLoading ? (
             <p className="text-sm text-muted">Loading announcements...</p>
@@ -74,55 +40,13 @@ export default function StudentHomePage() {
           )}
         </section>
 
-        {/* Mobile (Facebook-model): feed first, then rank card → habits →
-            weekly progress → subject stats → weakest subject. At lg+ every
-            order resets so the original two-column layout is untouched. */}
-        <aside className="flex flex-col space-y-4">
-          {/* Profile / rank card */}
-          <div className="relative order-1 overflow-hidden rounded-[10px] border border-base bg-surface p-3.5 sm:p-5 lg:order-none">
-            {equippedProfileCard?.image_url && (
-              <>
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${equippedProfileCard.image_url})` }}
-                />
-                <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--surface)_var(--art-tint),transparent)]" />
-              </>
-            )}
-            <div className="relative flex flex-col items-center text-center">
-              {loading ? (
-                <p className="text-sm text-muted">Loading...</p>
-              ) : error ? (
-                <p className="text-sm text-warn">{error}</p>
-              ) : (
-                <>
-                  <UserAvatar
-                    name={profile?.full_name}
-                    src={profile?.avatar_url}
-                    size="xl"
-                    className="border-2 border-surface"
-                    profileId={profile?.id}
-                  />
-                  <p className="font-display mt-3 text-[19px] font-bold text-navy">
-                    {profile?.full_name ?? "Student"}
-                  </p>
-                  <p className="mt-0.5 text-[12.5px] text-muted">
-                    {[profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ")}
-                  </p>
-
-                  <div className="mt-3">
-                    <RankBadge
-                      rank={displayRank}
-                      size="lg"
-                      bar={rankBar}
-                      exScore={rankExScore}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
+        {/* Desktop-only right column (xl+, SideNav layout) - identical DOM
+            shape to the original (same wrapper divs and order classes) so the
+            fractional-pixel layout is unchanged. Below xl these cards live in
+            the MobileDrawer instead, so the phone/tablet body is just search,
+            stories, and feed. */}
+        <aside className="hidden flex-col space-y-4 xl:flex">
+          <ProfileRankCard />
           <div className="order-5 lg:order-none">
             <WeakestSubjectCard />
           </div>
