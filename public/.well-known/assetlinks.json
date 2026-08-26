@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.hierarchyclass.app",
-      "sha256_cert_fingerprints": ["8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46"]
+      "sha256_cert_fingerprints": [
+        "8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46",
+        "B6:7B:34:DB:95:E0:97:C2:75:93:4C:04:34:55:22:FD:E8:A4:31:C1:84:69:CE:9B:52:9C:39:70:E8:10:C2:69"
+      ]
     }
   }
 ]
