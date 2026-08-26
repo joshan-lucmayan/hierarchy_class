@@ -23,6 +23,8 @@ import { InstallPromptCapture } from "@/components/pwa/InstallPrompt";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#e9eaed" },

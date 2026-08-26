@@ -142,7 +142,16 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
   }, [isProcessing, onClose]);
   
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={handleClose}>
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+      }}
+      onClick={handleClose}
+    >
       <div
         className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7"
         onClick={(e) => e.stopPropagation()}
@@ -165,7 +174,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
         )}
         
         {/* Package grid */}
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {loadingPackages ? (
             // Loading skeleton
             <>
@@ -211,7 +220,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={handleClose}
           disabled={isProcessing}
-          className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover:bg-gold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-5 w-full rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
         >
           {isProcessing ? 'Processing...' : 'Close'}
         </button>

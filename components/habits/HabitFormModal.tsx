@@ -95,7 +95,13 @@ export function HabitFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+      }}
       onClick={(e) => {
         // This modal can render inside the detail modal - stop the click from
         // bubbling to the detail backdrop and closing both at once.
@@ -105,6 +111,7 @@ export function HabitFormModal({
     >
       <div
         className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[10px] border border-base bg-surface p-6"
+        style={{ maxHeight: "min(90vh, 90dvh)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-1 h-1 w-10 rounded-full bg-gold" />

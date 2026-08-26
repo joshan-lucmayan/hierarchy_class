@@ -82,7 +82,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
               profileId={person.id}
             />
             {/* Name + Message button on the SAME line - the action aligns with the name. */}
-            <div className="mt-3 flex w-full items-center justify-center gap-3">
+            <div className="mt-3 flex w-full flex-wrap items-center justify-center gap-3">
               <div className="min-w-0 text-center">
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   <h2 className="truncate text-xl font-bold text-navy">{person.full_name}</h2>
@@ -152,7 +152,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
             </div>
           )}
 
-          <div className="mt-5 flex items-center justify-center gap-2">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             {isStudent && !isSelf && (
               <button
                 type="button"

@@ -55,7 +55,7 @@ export function ThemePicker() {
               active ? "border-gold bg-gold/10" : "border-base bg-[var(--surface-strong)] hover:border-sealion"
             }`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <p className="text-[13.5px] font-bold text-navy">{t.name}</p>
             {active && (
               <span className="rounded-full bg-gold px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-on-accent">

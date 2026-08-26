@@ -162,7 +162,7 @@ export default function StudentProfilePage() {
         </div>
       )}
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.3fr] xl:grid-cols-[0.9fr_1.3fr]">
-      <div className="relative">
+      <div className="relative min-w-0">
       <CornerFrame className="relative space-y-6 overflow-hidden rounded-[10px] border border-base bg-surface p-5">
         {equippedProfileCard?.image_url && (
           <>
@@ -201,7 +201,7 @@ export default function StudentProfilePage() {
           </div>
           <div>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <h1 className="text-3xl font-bold text-navy">{profile.full_name}</h1>
+              <h1 className="text-2xl font-bold text-navy sm:text-3xl">{profile.full_name}</h1>
               {!enrollmentLoading && <EnrolledBadge status={enrollment} size="sm" />}
             </div>
             <p className="mt-2 text-sm text-muted">
@@ -282,7 +282,7 @@ export default function StudentProfilePage() {
       )}
       </div>
 
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         {!viewAs && <Wardrobe />}
 
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
@@ -475,7 +475,16 @@ export default function StudentProfilePage() {
       )}
 
       {editOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditOpen(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          style={{
+            paddingTop: "max(1rem, env(safe-area-inset-top))",
+            paddingRight: "max(1rem, env(safe-area-inset-right))",
+            paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+            paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          }}
+          onClick={() => setEditOpen(false)}
+        >
           <div
             className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7"
             onClick={(e) => e.stopPropagation()}

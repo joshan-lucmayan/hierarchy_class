@@ -94,9 +94,19 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
       : "Save";
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+      }}
+      onClick={onClose}
+    >
       <div
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[10px] border border-base bg-surface p-6"
+        style={{ maxHeight: "min(90vh, 90dvh)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
@@ -264,8 +274,8 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
             </button>
           )}
           {confirmingDelete ? (
-            <span className="ml-auto flex items-center gap-2">
-              <span className="text-[11.5px] text-muted">Delete forever? History goes with it.</span>
+            <span className="ml-auto flex flex-wrap items-center gap-2">
+              <span className="text-[11.5px] text-muted">Delete forever?</span>
               <button
                 type="button"
                 onClick={() => run(async () => {
@@ -287,7 +297,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
               </button>
             </span>
           ) : confirmingArchive ? (
-            <span className="ml-auto flex items-center gap-2">
+            <span className="ml-auto flex flex-wrap items-center gap-2">
               <span className="text-[11.5px] text-muted">Archive this habit?</span>
               <button
                 type="button"

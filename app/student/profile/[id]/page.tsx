@@ -313,7 +313,16 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
   const [selected, setSelected] = useState(COIN_PACKAGES[1].coins);
   const [sent, setSent] = useState(false);
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+      }}
+      onClick={onClose}
+    >
       <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7" onClick={(e) => e.stopPropagation()}>
         {sent ? (
           <div className="text-center">
@@ -340,7 +349,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Coin Charisma</p>
             <h2 className="mt-2 text-xl font-bold text-navy">Send charisma to {person.full_name.split(" ")[0]}</h2>
             <p className="mt-2 text-sm text-muted">Choose a coin package to boost their charisma stat.</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {COIN_PACKAGES.map((pkg) => (
                 <button
                   key={pkg.coins}

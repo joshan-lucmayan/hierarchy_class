@@ -1,6 +1,6 @@
 # Android — Hierarchy Class PWA & Trusted Web Activity
 
-> **Package:** `com.hierarchyclass.app` — **Version:** `1.15.90` (`versionCode 11590`) — **Source:** `package.json:version`
+> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`) — **Web:** `1.15.92` (`package.json:version`; the TWA shell trails the web version and is rebuilt only for native changes)
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -123,7 +123,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:4` `1.15.90` → `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). Single source: bump `package.json` and `android/twa-manifest.json` together; `versionCode` must always increase for Play.
+**Version:** `package.json:version` (`1.15.92`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
 
 **Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 
@@ -254,7 +254,7 @@ File: `public/.well-known/assetlinks.json:1-11` → `https://YOUR_DOMAIN/.well-k
 
 ## 6. Development & Versioning
 
-- Single version source `package.json:version` → `android/twa-manifest.json:appVersion` + `appVersionCode` (`major*10000+minor*100+patch`). Example `1.15.90 → 11590`. Bump both (plus the generated `android/app/build.gradle` while manual sync is in effect).
+- Single version source is `package.json:version` (web release). At a native release it flows to `android/twa-manifest.json:appVersion` + `appVersionCode` (`major*10000+minor*100+patch`; example `1.15.90 → 11590`) plus the generated `android/app/build.gradle` while manual sync is in effect. Web-only releases leave the Android artifacts and `lib/apkRelease.ts` at the last audited shell build.
 - No competing version systems.
 - Icon generation: `public/icon.svg` → `sharp` (already `sharp@0.34.5` via `allowScripts`) → `node scripts/generate-pwa-icons.mjs` or manual `sharp` resize (see `android/README.md`). Compressed via `build` hashing for static, but icons are `CacheFirst` 30d via SW.
 

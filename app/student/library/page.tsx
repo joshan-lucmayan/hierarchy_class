@@ -155,7 +155,7 @@ export default function LibraryPage() {
             {/* ======================================================== */}
             {/* CATALOG - primary discovery surface                      */}
             {/* ======================================================== */}
-            <CornerFrame className="p-5">
+            <CornerFrame className="min-w-0 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="section-label">Catalog</h3>
                 <Chip variant="gold">
@@ -203,37 +203,39 @@ export default function LibraryPage() {
                     {label} ({statusCounts[value]})
                   </button>
                 ))}
-                <label className="ml-auto flex items-center gap-2">
-                  <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Genre</span>
-                  <select
-                    value={genreFilter}
-                    onChange={(e) => {
-                      setGenreFilter(e.target.value);
-                      setPage(1);
-                    }}
-                    className="rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold"
-                  >
-                    {genres.map((genre) => (
-                      <option key={genre} value={genre}>{genre}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex items-center gap-2">
-                  <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Sort</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => {
-                      setSortBy(e.target.value as typeof sortBy);
-                      setPage(1);
-                    }}
-                    className="rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold"
-                  >
-                    <option value="title-asc">Title A-Z</option>
-                    <option value="title-desc">Title Z-A</option>
-                    <option value="author-asc">Author A-Z</option>
-                    <option value="author-desc">Author Z-A</option>
-                  </select>
-                </label>
+                <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
+                  <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-initial">
+                    <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Genre</span>
+                    <select
+                      value={genreFilter}
+                      onChange={(e) => {
+                        setGenreFilter(e.target.value);
+                        setPage(1);
+                      }}
+                      className="min-w-0 flex-1 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold sm:flex-initial"
+                    >
+                      {genres.map((genre) => (
+                        <option key={genre} value={genre}>{genre}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-initial">
+                    <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Sort</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => {
+                        setSortBy(e.target.value as typeof sortBy);
+                        setPage(1);
+                      }}
+                      className="min-w-0 flex-1 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold sm:flex-initial"
+                    >
+                      <option value="title-asc">Title A-Z</option>
+                      <option value="title-desc">Title Z-A</option>
+                      <option value="author-asc">Author A-Z</option>
+                      <option value="author-desc">Author Z-A</option>
+                    </select>
+                  </label>
+                </div>
               </div>
 
               {books.length === 0 ? (
@@ -342,7 +344,7 @@ export default function LibraryPage() {
             {/* ======================================================== */}
             {/* MY REQUESTS & LOANS                                       */}
             {/* ======================================================== */}
-            <CornerFrame className="p-5">
+            <CornerFrame className="min-w-0 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="section-label">My requests &amp; loans</h3>
                 <Chip variant={myActiveBooks.length > 0 ? "warn" : "neutral"}>{myActiveBooks.length}</Chip>

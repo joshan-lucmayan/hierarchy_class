@@ -82,7 +82,7 @@ export function BookDetailModal({
       <div className="mt-4 flex flex-col gap-4 sm:flex-row">
         <BookCover book={book} size="lg" />
         <div className="min-w-0">
-          <h2 className="font-display text-2xl font-bold text-navy">{book.title}</h2>
+          <h2 className="line-clamp-2 font-display text-2xl font-bold text-navy">{book.title}</h2>
           <p className="mt-1 text-sm text-muted">by {book.author}</p>
           {book.isbn && (
             <p className="mt-1 font-mono-ui text-[10px] font-medium uppercase tracking-[0.12em] text-muted">

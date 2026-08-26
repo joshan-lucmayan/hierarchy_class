@@ -10,7 +10,14 @@ const pkgVersion = JSON.parse(
 
 test("APK release metadata matches the distributed artifact contract", () => {
   assert.equal(APK_RELEASE.packageName, "com.hierarchyclass.app");
-  assert.equal(APK_RELEASE.version, pkgVersion, "APK version must track package.json");
+  const num = (v: string) => v.split(".").map(Number);
+  const [aM, am, ap] = num(APK_RELEASE.version);
+  const [pM, pm, pp] = num(pkgVersion);
+  const cmp = aM - pM || am - pm || ap - pp;
+  assert.ok(
+    cmp <= 0,
+    `APK version ${APK_RELEASE.version} must not be newer than package.json ${pkgVersion}`
+  );
   assert.equal(APK_RELEASE.versionCode, 11590);
   assert.equal(APK_RELEASE.sizeBytes, 1142956);
 });

@@ -356,7 +356,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // removed to avoid duplicate notifications.
       return true;
     },
-    [profile, conversations]
+    [profile]
   );
 
   const openConversation = useCallback(

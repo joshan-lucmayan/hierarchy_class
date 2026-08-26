@@ -50,7 +50,7 @@ function StudentCard({
           {student.favorite_subject && <span className="text-xs text-muted">{student.favorite_subject}</span>}
         </div>
       </div>
-      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold">
+      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-gold">
         {isFriend ? "Friend" : "View profile"}
       </span>
     </button>
@@ -73,7 +73,7 @@ function StaffCard({
         <p className="text-sm font-semibold text-navy">{person.full_name}</p>
         <p className="text-xs font-semibold uppercase tracking-wide text-gold">{roleLabel}</p>
       </div>
-      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold">View profile</span>
+      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-gold">View profile</span>
     </button>
   );
 }

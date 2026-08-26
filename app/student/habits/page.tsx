@@ -458,7 +458,7 @@ export default function StudentHabitsPage() {
                     </span>
                   </span>
                   {confirming ? (
-                    <span className="flex shrink-0 items-center gap-2">
+                    <span className="flex shrink-0 flex-wrap items-center gap-2">
                       <span className="text-[11.5px] text-muted">Delete forever?</span>
                       <button
                         type="button"

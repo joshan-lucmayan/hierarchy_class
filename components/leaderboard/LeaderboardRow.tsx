@@ -37,7 +37,14 @@ export function LeaderboardRow({
         </p>
       </div>
       {student.rank ? (
-        <RankBadge rank={student.rank} size="md" />
+        <span className="flex shrink-0 items-center">
+          <span className="min-[420px]:hidden">
+            <RankBadge rank={student.rank} size="xs" />
+          </span>
+          <span className="hidden min-[420px]:inline-flex">
+            <RankBadge rank={student.rank} size="md" />
+          </span>
+        </span>
       ) : (
         <span className="shrink-0 text-[11px] text-muted">No rank yet</span>
       )}

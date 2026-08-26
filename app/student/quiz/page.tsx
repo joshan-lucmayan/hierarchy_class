@@ -130,7 +130,7 @@ export default function StudentQuizPage() {
     return (
       <div className="mx-auto max-w-xl py-10 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz complete</p>
-        <p className="mt-3 text-5xl font-bold text-navy">{result.score} / {result.total}</p>
+        <p className="mt-3 text-3xl font-bold text-navy sm:text-5xl">{result.score} / {result.total}</p>
         <p className="mt-2 text-sm text-muted">+{bonus} pts added toward your rank</p>
         <button
           type="button"

@@ -112,7 +112,7 @@ export function HabitHistoryView({
               </option>
             ))}
           </select>
-          <div className="flex items-center gap-1 rounded-[8px] border border-line bg-tile p-0.5">
+          <div className="flex flex-wrap items-center gap-1 rounded-[8px] border border-line bg-tile p-0.5">
             {RANGES.map((r) => (
               <button
                 key={r.key}

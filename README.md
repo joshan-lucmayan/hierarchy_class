@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastinate, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.15.90`
+**Current version:** `1.15.92`
 
 ---
 
@@ -32,7 +32,7 @@ Each admin account is scoped to exactly **one school**.
 | **Teacher** | Blocked (device-warning) | Supported | Supported |
 | **Admin** | Blocked (device-warning) | Supported | Supported |
 
-- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop.
+- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop. Verified on real browsers from **320px** through 1440px (no horizontal overflow; compact rank badges and wrapping theme cards under 420px); internal scrollers are used intentionally for wide tables/toolbars.
 - **Teacher** and **Admin** see a dedicated device-warning screen on phone-sized viewports (< 768px) with a clear message to continue on a larger screen. The user remains authenticated; the warning is a UI layer only.
 - The 768px breakpoint (`md:` in Tailwind) cleanly separates phone from tablet. Resizing or rotating the device updates the view instantly.
 

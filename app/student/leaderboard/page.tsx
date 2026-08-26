@@ -51,7 +51,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr] xl:grid-cols-[1.4fr_0.8fr]">
-      <section className="space-y-6">
+      <section className="min-w-0 space-y-6">
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Leaderboard</p>
           <h1 className="mt-2 text-3xl font-bold text-navy">School rankings</h1>
@@ -103,7 +103,7 @@ export default function LeaderboardPage() {
         </div>
       </section>
 
-      <CornerFrame className="h-fit rounded-[10px] border border-base bg-surface p-5">
+      <CornerFrame className="h-fit min-w-0 rounded-[10px] border border-base bg-surface p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-navy">Rank quick view</p>
         <div className="mt-4 space-y-4 text-sm text-muted">
           <p>

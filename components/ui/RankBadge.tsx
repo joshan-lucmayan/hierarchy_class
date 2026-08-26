@@ -26,11 +26,12 @@ interface RankBadgeProps {
   bar?: number | null;
   /** Open-ended EX score - replaces the bar when rank === "EX". */
   exScore?: number | null;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }
 
 const TRIANGLE_SIZES = {
+  xs: "sm" as const,
   sm: "sm" as const,
   md: "md" as const,
   lg: "lg" as const,
@@ -38,18 +39,21 @@ const TRIANGLE_SIZES = {
 
 /** Compact triangle emblem sizes for the detail rank row ([emblem] D RANK). */
 const EMBLEM_SIZES = {
+  xs: 12,
   sm: 12,
   md: 16,
   lg: 20,
 } as const;
 
 const RANK_LETTER_SIZES = {
+  xs: "text-lg",
   sm: "text-lg",
   md: "text-2xl",
   lg: "text-[32px]",
 } as const;
 
 const PILL_SIZES = {
+  xs: "px-2 py-[3px] text-[10.5px] gap-1",
   sm: "px-2.5 py-1 text-[11px] gap-1.5",
   md: "px-3 py-[6px] text-[13.5px] gap-2",
   lg: "px-3.5 py-[7px] text-[15.5px] gap-2",
@@ -65,7 +69,10 @@ export function RankBadge({ rank, bar, exScore, size = "md", className = "" }: R
     return (
       <span className={`inline-flex items-center rounded-md border border-line bg-tile ${PILL_SIZES[size]}`}>
         <RankTriangle rank={rank} size={TRIANGLE_SIZES[size]} showLabel={false} />
-        <span className="font-extrabold tracking-[0.3px] text-navy">{rank} Rank</span>
+        <span className="font-extrabold tracking-[0.3px] text-navy">
+          {rank}
+          {size === "xs" ? "" : " Rank"}
+        </span>
       </span>
     );
   }
