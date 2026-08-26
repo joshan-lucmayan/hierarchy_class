@@ -18,8 +18,7 @@ import { SchoolFeedProvider } from "@/lib/schoolFeedStore";
 import { MaterialsProvider } from "@/lib/materialsStore";
 import { RankProvider } from "@/lib/rankStore";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
-import { InstallPrompt } from "@/components/pwa/InstallPrompt";
-import { IOSInstallHint } from "@/components/pwa/IOSInstallHint";
+import { InstallPromptCapture } from "@/components/pwa/InstallPrompt";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -116,8 +115,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </SchoolFeedProvider>
           </MaterialsProvider>
         <ServiceWorkerRegistration />
-        <InstallPrompt />
-        <IOSInstallHint />
+        <InstallPromptCapture />
+        {/* IOSInstallHint intentionally unmounted: automatic install UI is
+            disabled app-wide. Future /download pages will offer install
+            options explicitly (see components/pwa/IOSInstallHint.tsx). */}
       </body>
     </html>
   );

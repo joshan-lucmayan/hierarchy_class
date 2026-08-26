@@ -35,7 +35,7 @@ export default function SubjectStats() {
   }, [rows]);
 
   return (
-    <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
+    <CornerFrame className="rounded-[10px] border border-base bg-surface p-3.5 sm:p-5">
       <h2 className="section-label">
         Subject Stats
       </h2>

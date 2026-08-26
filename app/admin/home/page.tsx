@@ -112,7 +112,7 @@ function Skeleton({ className = "" }: { className?: string }) {
 
 function CardSkeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`animate-pulse rounded-[10px] border border-base bg-surface p-5 ${className}`}>
+    <div className={`animate-pulse rounded-[10px] border border-base bg-surface p-3.5 sm:p-5 ${className}`}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-3 w-28" />
         <Skeleton className="h-4 w-12 rounded-full" />
@@ -736,7 +736,7 @@ export default function AdminHomePage() {
         return (
           <div className="min-h-full">
             {rankLoading ? (
-              <CardSkeleton className="min-h-full p-5" />
+              <CardSkeleton className="min-h-full p-3.5 sm:p-5" />
             ) : (
               <>
                 <RankDistribution ranks={schoolRanks} title="Hierarchy Health" nameOf={nameOf} />
@@ -1268,7 +1268,7 @@ export default function AdminHomePage() {
         ) : (
           <CornerFrame
             tone={w.id === "attention-center" ? "warn" : "default"}
-            className="h-full min-h-full overflow-hidden p-5"
+            className="h-full min-h-full overflow-hidden p-3.5 sm:p-5"
           >
             {/* The card is a fixed viewport; taller content scrolls inside it. */}
             <div className="h-full overflow-y-auto">{renderWidget(w.id)}</div>
@@ -1400,17 +1400,17 @@ export default function AdminHomePage() {
         /* Full-page skeleton on first load - never flash zeros. */
         <div className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-            <CardSkeleton className="p-5" />
-            <CardSkeleton className="p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            <CardSkeleton className="p-5" />
-            <CardSkeleton className="p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
           </div>
           <div className="grid gap-4 xl:grid-cols-3">
-            <CardSkeleton className="p-5" />
-            <CardSkeleton className="p-5" />
-            <CardSkeleton className="p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
           </div>
         </div>
       ) : editing && gridPlacements.length === 0 ? (

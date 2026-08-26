@@ -17,7 +17,7 @@ export function FeedPost({ post }: { post: SchoolPost }) {
 
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface">
-      <div className="p-5">
+      <div className="p-3.5 sm:p-5">
         {/* Author row */}
         <div className="flex items-center gap-3">
           <UserAvatar name={post.authorName ?? "Admin"} src={post.authorAvatar} size="md" profileId={post.authorId} />

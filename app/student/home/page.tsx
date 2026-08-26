@@ -26,16 +26,38 @@ export default function StudentHomePage() {
   const rankExScore = myRank?.current_rank === "EX" ? myRank.ex_score : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="mx-auto w-full max-w-md xl:mx-0">
         <QuickSearchBar />
+      </div>
+
+      {/* Compact identity summary — phones only; the full rank card lives in
+          the aside below (and as the desktop right column at lg+). */}
+      <div className="flex items-center gap-3 lg:hidden">
+        <UserAvatar
+          name={profile?.full_name}
+          src={profile?.avatar_url}
+          size="md"
+          profileId={profile?.id}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13.5px] font-bold text-navy">
+            {profile?.full_name ?? "Student"}
+          </p>
+          <p className="truncate text-[11px] text-muted">
+            {[profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ") || "—"}
+          </p>
+        </div>
+        {!loading && !error && (
+          <RankBadge rank={displayRank} bar={rankBar} exScore={rankExScore} />
+        )}
       </div>
 
       <StoriesRail />
 
       <h1 className="section-label mb-3">Latest School Feed</h1>
 
-      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
+      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1.5fr_1fr] xl:grid-cols-[1.6fr_1fr]">
         <section className="space-y-4">
           {feedLoading ? (
             <p className="text-sm text-muted">Loading announcements...</p>
@@ -52,9 +74,12 @@ export default function StudentHomePage() {
           )}
         </section>
 
-        <aside className="space-y-4">
+        {/* Mobile (Facebook-model): feed first, then rank card → habits →
+            weekly progress → subject stats → weakest subject. At lg+ every
+            order resets so the original two-column layout is untouched. */}
+        <aside className="flex flex-col space-y-4">
           {/* Profile / rank card */}
-          <div className="relative overflow-hidden rounded-[10px] border border-base bg-surface p-5">
+          <div className="relative order-1 overflow-hidden rounded-[10px] border border-base bg-surface p-3.5 sm:p-5 lg:order-none">
             {equippedProfileCard?.image_url && (
               <>
                 <div
@@ -98,10 +123,18 @@ export default function StudentHomePage() {
             </div>
           </div>
 
-          <WeakestSubjectCard />
-          <SubjectStats />
-          <HabitTracker />
-          <WeeklyProgress />
+          <div className="order-5 lg:order-none">
+            <WeakestSubjectCard />
+          </div>
+          <div className="order-4 lg:order-none">
+            <SubjectStats />
+          </div>
+          <div className="order-2 lg:order-none">
+            <HabitTracker />
+          </div>
+          <div className="order-3 lg:order-none">
+            <WeeklyProgress />
+          </div>
         </aside>
       </div>
     </div>

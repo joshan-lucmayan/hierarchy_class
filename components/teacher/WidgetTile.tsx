@@ -373,7 +373,7 @@ export function WidgetTile({
           </button>
         </div>
         {/* Content is inert while arranging - no accidental navigation. */}
-        <div className="pointer-events-none min-h-0 select-none p-5">{children}</div>
+        <div className="pointer-events-none min-h-0 select-none p-3.5 sm:p-5">{children}</div>
 
         {/* Size hint while editing, so the current span is obvious. */}
         <span className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-full border border-line bg-surface px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-faint">

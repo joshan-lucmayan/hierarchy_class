@@ -30,7 +30,7 @@ export function AppShell({
       <SideNav role={role} brandHref={brandHref} />
       <div
         style={{ ["--sidebar-gap" as string]: "100px" }}
-        className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-6 py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+        className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 sm:pb-[calc(6rem+env(safe-area-inset-bottom))] xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
       >
         <SiteHeader href={brandHref} showFlorin={role === "student"} />
         <main

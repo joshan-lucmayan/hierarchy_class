@@ -47,7 +47,7 @@ export default function WeakestSubjectCard() {
   const courseName = courses.find((c) => c.id === weakest?.courseId)?.name ?? "Course";
 
   return (
-    <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
+    <CornerFrame className="rounded-[10px] border border-base bg-surface p-3.5 sm:p-5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="section-label">
           Weakest Subject

@@ -38,7 +38,7 @@ export default function HabitTracker() {
   }
 
   return (
-    <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
+    <CornerFrame className="rounded-[10px] border border-base bg-surface p-3.5 sm:p-5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="section-label">Habit Tracker</h2>
         <Link

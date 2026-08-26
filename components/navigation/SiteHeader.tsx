@@ -17,7 +17,10 @@ export function SiteHeader({ href, showFlorin }: { href?: string; showFlorin?: b
   const schoolName = schools[0]?.name;
 
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-base pb-4">
+    <header
+      className="max-xl:sticky max-xl:top-0 z-30 -mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-base bg-surface px-4 pb-3 pt-3 sm:-mx-6 sm:mb-6 sm:px-6 xl:mx-0 xl:px-0"
+      style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+    >
       <div className="min-w-0 shrink-0 xl:hidden">
         <BrandMark href={href} />
       </div>

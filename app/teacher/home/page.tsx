@@ -611,7 +611,7 @@ export default function TeacherHomePage() {
 
       case "my-students":
         return rankLoading ? (
-          <CardSkeleton className="min-h-full p-5" />
+          <CardSkeleton className="min-h-full p-3.5 sm:p-5" />
         ) : (
           <RankDistribution
             ranks={myRanks}
@@ -627,7 +627,7 @@ export default function TeacherHomePage() {
             {feedLoading ? (
               <div className="space-y-4">
                 {[0, 1].map((i) => (
-                  <div key={i} className="animate-pulse rounded-[10px] border border-base bg-surface p-5">
+                  <div key={i} className="animate-pulse rounded-[10px] border border-base bg-surface p-3.5 sm:p-5">
                     <Skeleton className="h-3 w-24" />
                     <Skeleton className="mt-3 h-4 w-full" />
                     <Skeleton className="mt-2 h-4 w-2/3" />
@@ -809,7 +809,7 @@ export default function TeacherHomePage() {
         ) : (
           <CornerFrame
             tone={w.id === "students-attention" ? "warn" : "default"}
-            className="h-full min-h-full overflow-hidden p-5"
+            className="h-full min-h-full overflow-hidden p-3.5 sm:p-5"
           >
             {/* The card is a fixed viewport; taller content scrolls inside it. */}
             <div className="h-full overflow-y-auto">{renderWidget(w.id)}</div>
@@ -926,10 +926,10 @@ export default function TeacherHomePage() {
               <Skeleton key={i} className="h-16" />
             ))}
           </div>
-          <CardSkeleton className="p-5" />
+          <CardSkeleton className="p-3.5 sm:p-5" />
           <div className="grid gap-4 xl:grid-cols-2">
-            <CardSkeleton className="p-5" />
-            <CardSkeleton className="p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
+            <CardSkeleton className="p-3.5 sm:p-5" />
           </div>
         </div>
       ) : editing && gridPlacements.length === 0 ? (

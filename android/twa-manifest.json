@@ -31,13 +31,13 @@
   "minSdkVersion": 21,
   "orientation": "default",
   "fingerprints": [],
-  "appVersion": "1.14.82",
-  "appVersionCode": 11482,
+  "appVersion": "1.14.83",
+  "appVersionCode": 11483,
   "signingKey": {
     "path": "./android.keystore",
     "alias": "android"
   },
-  "packageVersion": "1.14.82",
+  "packageVersion": "1.14.83",
   "webApkSigningEnabled": false,
   "monochromeIconUrl": "https://hierarchy-class.vercel.app/icons/icon-512.png"
 }
