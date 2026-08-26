@@ -121,4 +121,3 @@ Full documentation lives in [`docs/`](docs/README.md): architecture, the backend
 ## Not yet implemented
 
 - PayMongo sandbox end-to-end verification for Florin top-ups (implementation complete and locally verified - the runbook lives in [`docs/PAYMENTS.md`](docs/PAYMENTS.md))
-- School logos inside the school picker (the signup page shows the CSA campus logo)
