@@ -22,7 +22,7 @@ plugins {
 
 def twaManifest = [
     applicationId: 'com.hierarchyclass.app',
-    hostName: 'hierarchy-class.vercel.app', // The domain being opened in the TWA.
+    hostName: 'www.hierarchyclass.com', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'Hierarchy Class', // The application name.
     launcherName: 'Hierarchy Class', // The name shown on the Android Launcher.
@@ -57,8 +57,8 @@ android {
         applicationId "com.hierarchyclass.app"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode 11483
-        versionName "1.14.83"
+        versionCode 11487
+        versionName "1.14.87"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -76,12 +76,12 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'https://hierarchy-class.vercel.app/manifest.json'
+            resValue "string", "webManifestUrl", 'https://www.hierarchyclass.com/manifest.json'
         
 
         
             // This is used by Meta Quest.
-            resValue "string", "fullScopeUrl", 'https://hierarchy-class.vercel.app/'
+            resValue "string", "fullScopeUrl", 'https://www.hierarchyclass.com/'
         
 
         

@@ -1,4 +1,5 @@
 /**
- * Single source of truth for the app version.
+ * Single source of truth for the user-visible app version.
+ * Keep in sync with package.json when bumping releases.
  */
-export const APP_VERSION = "1.7.67";
+export const APP_VERSION = "1.14.87";

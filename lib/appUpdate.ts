@@ -65,52 +65,85 @@ export interface UpdateDecision {
 
 /**
  * Decide whether the global update prompt should be visible right now.
- * - A waiting service worker always counts as an available update (the browser
- *   only installs a new worker when /sw.js changed).
+ * - A waiting service worker counts as an available update (the browser only
+ *   installs a new worker when /sw.js changed).
  * - Otherwise a remote build different from ours means a new deployment shipped.
- * - Dismissal is remembered PER detected build; a later build prompts again.
- * - If we already applied an update for this build this session, stay quiet
- *   (prevents loops when the version endpoint briefly lags behind the deploy).
+ * - Dismissal is remembered PER detected build (or under the stable "sw"
+ *   identity for pure service-worker signals); a later build prompts again.
+ * - If we already applied an update involving either side of this comparison
+ *   within this session, stay quiet (prevents loops when /api/version lags a
+ *   deploy in either direction).
  */
 export function decideUpdate(input: UpdateDecisionInput): UpdateDecision {
   const { remoteBuild, currentBuild, waitingWorker, hasController, dismissalStore, guardStore } =
     input;
 
-  if (waitingWorker && hasController) {
-    // The waiting worker's own identity isn't directly readable here, but a
-    // waiting worker only exists because a new deploy changed sw.js — treat it
-    // as its own version signal and ignore stale dismissals from older builds.
-    return { show: true, reason: "waiting-worker" };
+  const current = normalizeBuild(currentBuild);
+  if (!current) {
+    return { show: false, reason: "missing-build-info" };
   }
 
   const remote = normalizeBuild(remoteBuild);
-  const current = normalizeBuild(currentBuild);
-  if (!remote || !current || remote === current) {
+
+  // Deployment matches us (or no usable remote info yet) → quiet. This also
+  // covers first install: fresh HTML always matches its own deployment.
+  if (remote !== null && remote === current) {
     return { show: false, reason: "no-change" };
   }
 
-  if (guardStore.getItem(appliedKey(current))) {
-    // We already reloaded for this deploy within this session. Stay quiet so
-    // a lagging /api/version response can never cause a reload loop.
+  // Stable identity for pure-SW signals where /api/version hasn't answered yet.
+  const dismissalId = remote ?? "sw";
+
+  // Reload-loop guard: stay quiet if this session already applied an update
+  // involving either the build we came from OR the build being reported.
+  // (Protects against a lagging endpoint flip-flopping in either direction.)
+  if (
+    guardStore.getItem(appliedKey(current)) ||
+    (remote !== null && guardStore.getItem(appliedKey(remote)))
+  ) {
     return { show: false, reason: "already-applied-this-session" };
   }
 
-  if (dismissalStore.getItem(dismissedKey(remote))) {
+  // Per-build dismissal applies to both signal types.
+  if (dismissalStore.getItem(dismissedKey(dismissalId))) {
     return { show: false, reason: "dismissed-for-this-version" };
+  }
+
+  if (waitingWorker && hasController) {
+    return { show: true, reason: "waiting-worker" };
+  }
+
+  // Version-only path requires a usable remote build to prompt against.
+  if (!remote) {
+    return { show: false, reason: "missing-build-info" };
   }
 
   return { show: true, reason: "new-build" };
 }
 
 /**
- * Called by the Update button BEFORE any reload happens. Marks the update as
- * intentionally requested so the controllerchange listener knows this reload
- * is user-approved, and records the applied-from build so we never loop.
+ * Called by the Update button BEFORE any reload happens.
+ * - updatingKey(currentBuild): consumed by controllerchange → one reload.
+ * - appliedKey(currentBuild): hides further prompting for this session even
+ *   if the reload lands mid-deploy.
+ * - appliedKey(detectedRemoteBuild): pins the build we were PROMPTED from, so
+ *   a lagging endpoint serving that same old build right after the reload
+ *   cannot re-trigger the prompt (no flip-flop loops).
  */
-export function markIntentionalUpdate(build: string | null, store: KeyValueStore): void {
-  if (normalizeBuild(build)) {
-    store.setItem(appliedKey(build as string), String(Date.now()));
-    store.setItem(updatingKey(build as string), String(Date.now()));
+export function markIntentionalUpdate(
+  currentBuild: string | null,
+  detectedRemoteBuild: string | null,
+  store: KeyValueStore
+): void {
+  const cur = normalizeBuild(currentBuild);
+  const rem = normalizeBuild(detectedRemoteBuild);
+  const now = String(Date.now());
+  if (cur) {
+    store.setItem(appliedKey(cur), now);
+    store.setItem(updatingKey(cur), now);
+  }
+  if (rem && rem !== cur) {
+    store.setItem(appliedKey(rem), now);
   }
 }
 

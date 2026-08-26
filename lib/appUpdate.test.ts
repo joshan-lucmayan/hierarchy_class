@@ -5,6 +5,7 @@ import {
   consumeUpdatingFlag,
   decideUpdate,
   dismissedKey,
+  updatingKey,
   markIntentionalUpdate,
   normalizeBuild,
   type KeyValueStore,
@@ -36,9 +37,16 @@ test("no update available → notification hidden", () => {
 });
 
 test("waiting service worker → notification appears", () => {
-  const d = decideUpdate({ ...BASE, waitingWorker: true });
+  // Pure-SW signal: /api/version hasn't reported yet (remote null).
+  const d = decideUpdate({ ...BASE, remoteBuild: null, waitingWorker: true });
   assert.equal(d.show, true);
   assert.equal(d.reason, "waiting-worker");
+});
+
+test("waiting worker with endpoint agreeing up-to-date stays quiet until it catches up", () => {
+  const d = decideUpdate({ ...BASE, waitingWorker: true });
+  assert.equal(d.show, false);
+  assert.equal(d.reason, "no-change");
 });
 
 test("new deployment build → notification appears", () => {
@@ -71,7 +79,7 @@ test("clicking Update triggers exactly one activation/reload sequence", () => {
   const guardStore = memStore();
   // First click sets the flag; controllerchange consumes it → reload once.
   assert.equal(consumeUpdatingFlag("v1", guardStore), false);
-  markIntentionalUpdate("v1", guardStore);
+  markIntentionalUpdate("v1", null, guardStore);
   assert.equal(consumeUpdatingFlag("v1", guardStore), true);
   // Flag consumed → second controllerchange must NOT reload again.
   assert.equal(consumeUpdatingFlag("v1", guardStore), false);
@@ -79,7 +87,7 @@ test("clicking Update triggers exactly one activation/reload sequence", () => {
 
 test("reload guard prevents infinite loops when /api/version lags a deploy", () => {
   const guardStore = memStore();
-  markIntentionalUpdate("old-build", guardStore);
+  markIntentionalUpdate("old-build", null, guardStore);
   const d = decideUpdate({
     ...BASE,
     currentBuild: "old-build",
@@ -95,6 +103,61 @@ test("first install (no controller yet) with waiting worker does not prompt as u
   // A brand-new visitor has nothing to update FROM.
   assert.equal(d.show, false);
   assert.equal(d.reason, "no-change");
+});
+
+
+test("waiting-worker update respects per-version dismissal (no re-prompt loop)", () => {
+  const dismissalStore = memStore();
+  // Remote known: dismissal keyed by the detected build.
+  dismissalStore.setItem(dismissedKey("abc123"), String(Date.now()));
+  let d = decideUpdate({
+    ...BASE,
+    remoteBuild: "abc123",
+    waitingWorker: true,
+    dismissalStore,
+  });
+  assert.equal(d.show, false);
+  assert.equal(d.reason, "dismissed-for-this-version");
+
+  // Pure-SW signal (remote unknown): dismissed under the stable "sw" identity.
+  const ds2 = memStore();
+  ds2.setItem(dismissedKey("sw"), String(Date.now()));
+  d = decideUpdate({ ...BASE, remoteBuild: null, waitingWorker: true, dismissalStore: ds2 });
+  assert.equal(d.show, false);
+});
+
+test("a later deployment after dismissing a waiting-worker update prompts again", () => {
+  const dismissalStore = memStore();
+  dismissalStore.setItem(dismissedKey("abc123"), String(Date.now()));
+  const d = decideUpdate({
+    ...BASE,
+    remoteBuild: "def456",
+    waitingWorker: true,
+    dismissalStore,
+  });
+  assert.equal(d.show, true);
+});
+
+test("stale server reporting the PREVIOUS build after an applied reload cannot re-prompt", () => {
+  const guardStore = memStore();
+  // User updated from build-a; endpoint briefly still reports build-a.
+  markIntentionalUpdate("build-b", "build-a", guardStore);
+  const d = decideUpdate({
+    ...BASE,
+    currentBuild: "build-b",
+    remoteBuild: "build-a",
+    guardStore,
+  });
+  assert.equal(d.show, false);
+  assert.equal(d.reason, "already-applied-this-session");
+});
+
+test("markIntentionalUpdate pins BOTH the current and the detected remote build", () => {
+  const guardStore = memStore();
+  markIntentionalUpdate("cur", "rem", guardStore);
+  assert.ok(guardStore.getItem(appliedKey("cur")));
+  assert.ok(guardStore.getItem(appliedKey("rem")));
+  assert.ok(guardStore.getItem(updatingKey("cur")));
 });
 
 test("missing/unusable build info never prompts", () => {

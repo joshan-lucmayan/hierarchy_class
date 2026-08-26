@@ -1,6 +1,6 @@
 # Android — Hierarchy Class PWA & Trusted Web Activity
 
-> **Package:** `com.hierarchyclass.app` — **Version:** `1.14.83` (`versionCode 11483`) — **Source:** `package.json:version`
+> **Package:** `com.hierarchyclass.app` — **Version:** `1.14.87` (`versionCode 11487`) — **Source:** `package.json:version`
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -11,7 +11,7 @@ This document is the single source for Android delivery, offline architecture, a
 
 ```
 Next.js 14.2.5 App Router (React 18, Tailwind)
-  ↓  HTTPS production deployment (https://hierarchy-class.vercel.app)
+  ↓  HTTPS production deployment (https://www.hierarchyclass.com)
   ↓  PWA manifest (public/manifest.json) + Service Worker (public/sw.js, CACHE_STATIC hc-static-v1)
   ↓  Trusted Web Activity (Bubblewrap, android/twa-manifest.json)
   ↓  Android APK (debug) / AAB (Play Store release)
@@ -123,9 +123,9 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:4` `1.14.83` → `android/twa-manifest.json` `appVersion:1.14.83` `appVersionCode:11483` (`major*10000 + minor*100 + patch`). Single source: bump `package.json` and `android/twa-manifest.json` together; `versionCode` must always increase for Play.
+**Version:** `package.json:4` `1.14.87` → `android/twa-manifest.json` `appVersion:1.14.87` `appVersionCode:11487` (`major*10000 + minor*100 + patch`). Single source: bump `package.json` and `android/twa-manifest.json` together; `versionCode` must always increase for Play.
 
-**Host:** `hierarchy-class.vercel.app` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
+**Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 
 **Icons:** `public/icons/icon-512.png` (any), `maskable-512.png` (maskable, 51px padding on #0f0f11).
 
@@ -199,19 +199,19 @@ cd android && JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleDebug --n
 bubblewrap build --manifest twa-manifest.json
 ```
 
-> **Note (2026-08-26):** step 2 (`bubblewrap update`) could NOT be run against production yet because Vercel still serves 404 for `manifest.json` + icons (deployment pending). Instead, the already-generated project was **explicitly synced**: the loopback host baked into generated files at generation time was replaced with `hierarchy-class.vercel.app` in exactly three places — `android/app/build.gradle` (`hostName`, `webManifestUrl`, `fullScopeUrl`) and `android/app/src/main/res/values/strings.xml` (`assetStatements` site). After a real deployment, run `bubblewrap update` to regenerate canonically.
+> **Canonical regeneration (2026-08-26):** with the production domain live, `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` was run against `https://www.hierarchyclass.com/manifest.json` — the project is generated canonically (no manual patching).
 >
 > **Gotcha:** `bubblewrap build` compares the manifest's SHA-1 against `android/manifest-checksum.txt`; write it WITHOUT trailing newline: `printf '%s' "$(sha1sum twa-manifest.json | awk '{print $1}')" > manifest-checksum.txt` (from `android/`). A trailing newline makes build prompt interactively.
 
-### Production artifacts (2026-08-26, v1.14.83, hierarchy-class.vercel.app config)
+### Production artifacts (2026-08-26, v1.14.87, www.hierarchyclass.com config)
 
 | Artifact | Path | Size | Verified |
 |---|---|---|---|
-| Debug APK | `android/app/build/outputs/apk/debug/app-debug.apk` | 5,052,547 B | badging: `com.hierarchyclass.app`, versionCode 11483, versionName 1.14.83; resources contain only `hierarchy-class.vercel.app` URLs |
-| Signed release APK | `android/app-release-signed.apk` | 1,142,956 B | apksigner v1+v2+v3 verified; cert SHA-256 matches keystore; resources point at production host |
-| Signed release AAB | `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) | 1,253,378 B | valid AAB (BundleConfig.pb, base/manifest, dex, resources.pb) |
+| Debug APK | `android/app/build/outputs/apk/debug/app-debug.apk` | 5,052,528 B | badging: `com.hierarchyclass.app`, versionCode 11487, versionName 1.14.87; resources contain only `www.hierarchyclass.com` URLs |
+| Signed release APK | `android/app-release-signed.apk` | 1,142,956 B | apksigner v1+v2+v3 verified; cert SHA-256 matches keystore AND the fingerprint served at `https://www.hierarchyclass.com/.well-known/assetlinks.json`; resources point at production host |
+| Signed release AAB | `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) | 1,253,380 B | valid AAB (BundleConfig.pb, base/manifest, dex, resources.pb) |
 
-These builds use the real `hierarchy-class.vercel.app` configuration. They remain **untested on a physical device** — see Testing.
+These builds use the real `www.hierarchyclass.com` configuration. They remain **untested on a physical device** — see Testing.
 
 ### Signing — CURRENT STATE
 
@@ -254,7 +254,7 @@ File: `public/.well-known/assetlinks.json:1-11` → `https://YOUR_DOMAIN/.well-k
 
 ## 6. Development & Versioning
 
-- Single version source `package.json:version` → `android/twa-manifest.json:appVersion` + `appVersionCode` (`major*10000+minor*100+patch`). Example `1.14.83 → 11483`. Bump both (plus the generated `android/app/build.gradle` while manual sync is in effect).
+- Single version source `package.json:version` → `android/twa-manifest.json:appVersion` + `appVersionCode` (`major*10000+minor*100+patch`). Example `1.14.87 → 11487`. Bump both (plus the generated `android/app/build.gradle` while manual sync is in effect).
 - No competing version systems.
 - Icon generation: `public/icon.svg` → `sharp` (already `sharp@0.34.5` via `allowScripts`) → `node scripts/generate-pwa-icons.mjs` or manual `sharp` resize (see `android/README.md`). Compressed via `build` hashing for static, but icons are `CacheFirst` 30d via SW.
 
@@ -275,6 +275,19 @@ No physical device claimed. Local browser verification at 320/360/375/390/412 po
 
 ### Android / installed PWA / packaged
 
+**TWA physical verification procedure (www.hierarchyclass.com build, 2026-08-26):**
+
+1. **Uninstall** any previously installed Hierarchy Class app (old builds target other hosts — their verification state is irrelevant and can confuse results).
+2. Install the new APK: `adb install android/app/build/outputs/apk/debug/app-debug.apk` (or copy `app-release-signed.apk` to the phone and open it; enable "install unknown apps" for the file manager if prompted).
+3. Launch **Hierarchy Class** from the launcher.
+4. ✅ EXPECT: app opens directly on `https://www.hierarchyclass.com/` with **no URL/address bar** (verified TWA). ❌ If a Chrome bar is visible: open `chrome://digital-asset-links` (or `adb shell pm verify-app-links --re-verify com.hierarchyclass.app`) and re-check; confirm the phone can reach `https://www.hierarchyclass.com/.well-known/assetlinks.json`.
+5. Navigate internally (Home → Leaderboard → Shop → back) — must stay fullscreen, no bar, no browser chrome.
+6. External links (e.g. PayMongo GCash checkout) are expected to open in a Custom Tab/browser — that is correct TWA behavior for off-scope URLs.
+7. Login + signup: school selector must show "CSA - College of Saint Amateil"; login lands on the role home.
+8. Service worker: DevTools remote debugging (`chrome://inspect`) → Application → Service Workers shows `sw.js` activated+running.
+9. Update system: after the NEXT deployment, keep the app open ~15 min or background/foreground it → "New version available" appears above the bottom nav → **Update** reloads exactly once into the new version; **Later** hides it until the following deploy.
+10. Regression: chat send, grade entry, offline airplane mode → `/offline`, payments sandbox flow.
+
 Physical Android not claimed in this env. QA checklist (reproducible on HTTPS staging):
 
 Android 320-412 portrait/landscape: install banner (`beforeinstallprompt` → `InstallPrompt` banner) → tap Install → home screen icon (maskable 512 with safe area) → standalone (no URL bar when `assetlinks` verified, else Custom Tabs) → safe-area insets (`AppShell` bottom calc, `BottomNav` `env(safe-area)`, `Modal` `max(1rem,env)`) → BottomNav scroll → keyboard (chat `inputMode` etc.) → login (Supabase) → student/teacher/admin nav → chat send → classroom grade enter/submit → rank view (Leaderboard `live`) → `OfflineBanner` on airplane → `/offline` → reconnect → update banner → Play billing not verified live (GCash redirect requires Custom Tabs external browser; `FlorinPurchaseModal` uses `window.location.href` → in TWA should open Custom Tab and return via `window.location.href` — needs physical device).
@@ -286,8 +299,8 @@ Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, ad
 ## 8. Known Risks & Limitations
 
 - ~~**Middleware `assetlinks.json` exclusion missing `.well-known`**~~ **FIXED**: `middleware.ts:104` matcher now includes `\.well-known` in the negative lookahead — verified `/.well-known/assetlinks.json`, `/manifest.json`, `/sw.js` are exempt from auth/role routing while `/student/*`, `/api/*` still match. No further middleware change needed.
-- **Vercel deployment pending (as of 2026-08-26):** production `https://hierarchy-class.vercel.app/` serves the app (`/` → 200) but returns 404 for `/manifest.json`, `/sw.js`, `/.well-known/assetlinks.json`, and icons — the deployed build predates the PWA/TWA work. The repository files are correct locally; **commit + deploy to Vercel is required** before Digital Asset Links can verify on device. Until then a built TWA opens in Custom Tabs mode.
-- **Generated project synced manually once:** `bubblewrap update` could not fetch the production manifest (404s above), so loopback values baked into generated files were replaced with the production host by hand (3 spots, see Build section). After deployment, run `bubblewrap update --manifest android/twa-manifest.json --directory android` to regenerate canonically.
+- ~~**Vercel deployment pending**~~ **RESOLVED (2026-08-26)**: production is now `https://www.hierarchyclass.com/` — `/`, `/manifest.json`, `/sw.js`, `/.well-known/assetlinks.json` (correct fingerprint), icons and `/api/version` all return 200. The apex `hierarchyclass.com` has NO DNS record; only the `www` host exists, which is why the TWA host is `www.hierarchyclass.com`.
+- **Physical device verification pending:** the new-domain APK was built and every automated check passes (host inside artifacts, signature ↔ assetlinks match), but the address-bar-free TWA experience must still be confirmed on a real Android phone (see Testing).
 - **Payment in TWA not physically verified:** `FlorinPurchaseModal:119` `window.location.href = checkout_url` → PayMongo hosted checkout (GCash). In TWA, external checkout should open Custom Tab (fallbackType `customtabs` in manifest) and return to `start_url`. Existing `paymentGuard.test.ts` + `paymongo.test.ts` pass, but live redirect on installed TWA needs device test.
 
 ---
@@ -301,7 +314,7 @@ Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, ad
 
 | Format | What it is | How users get it |
 |---|---|---|
-| Normal website | `https://hierarchy-class.vercel.app` in a browser tab; full UI, no install | Any browser |
+| Normal website | `https://www.hierarchyclass.com` in a browser tab; full UI, no install | Any browser |
 | PWA (manifest + SW) | Same site with `manifest.json` + service worker: installable, offline shell, icons | Chrome desktop/Android shows install affordances |
 | Installed PWA | PWA launched from home screen / desktop via WebAPK-lite or shortcut; standalone window | "Install app" from browser menu (`InstallPrompt.tsx` banner) |
 | TWA APK | Android app wrapping the live site in Trusted Web Activity (no browser UI); fullscreen when Digital Asset Links verify; falls back to Custom Tabs otherwise | Sideload `app-release-signed.apk` now; later distribution |

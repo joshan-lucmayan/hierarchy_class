@@ -1,12 +1,12 @@
 # Android — Trusted Web Activity (TWA) for Hierarchy Class
 
 > Source PWA: `public/manifest.json` + `public/sw.js` (vanilla, no Workbox)
-> Package: `com.hierarchyclass.app` — `versionName 1.14.83` — `versionCode 11483`
+> Package: `com.hierarchyclass.app` — `versionName 1.14.87` — `versionCode 11487`
 
 ## Architecture
 
 ```
-Next.js 14.2.5 (App Router) → HTTPS production (https://hierarchy-class.vercel.app)
+Next.js 14.2.5 (App Router) → HTTPS production (https://www.hierarchyclass.com)
   → PWA manifest (public/manifest.json) + SW (public/sw.js, CACHE_STATIC hc-static-v1)
   → Trusted Web Activity (Bubblewrap) → Android APK / AAB (Play Store)
 ```
@@ -26,7 +26,7 @@ Rank authority stays server-side (Supabase RPC `approve_grade_submission` etc.).
 
 ## Versioning
 
-App version is single source: `package.json` `version: "1.14.83"` → `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11483` (`major*10000 + minor*100 + patch`). Bump `package.json` version and `android/twa-manifest.json` together — plus the generated `android/app/build.gradle` `versionCode`/`versionName` (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
+App version is single source: `package.json` `version: "1.14.87"` → `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11487` (`major*10000 + minor*100 + patch`). Bump `package.json` version and `android/twa-manifest.json` together — plus the generated `android/app/build.gradle` `versionCode`/`versionName` (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
 
 ## Icon source
 
@@ -51,20 +51,20 @@ cd android && JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleDebug --n
 cd android && bubblewrap build --manifest twa-manifest.json
 ```
 
-**Production artifacts (2026-08-26, v1.14.83, `hierarchy-class.vercel.app` config):**
+**Production artifacts (2026-08-26, v1.14.87, `www.hierarchyclass.com` config):**
 
-- `android/app/build/outputs/apk/debug/app-debug.apk` — 5,052,547 B (badging: `com.hierarchyclass.app`, versionCode 11483, versionName 1.14.83)
+- `android/app/build/outputs/apk/debug/app-debug.apk` — 5,052,528 B (badging: `com.hierarchyclass.app`, versionCode 11487, versionName 1.14.87)
 - `android/app-release-signed.apk` — 1,142,956 B (`apksigner verify` v1+v2+v3 OK; cert SHA-256 `8c95e7dc38449b4bd682d358986e4b606400dbe19c29ba60e155e31eef51e846`)
-- `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) — 1,253,378 B (valid AAB: BundleConfig.pb, base/manifest, dex, resources.pb)
+- `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) — 1,253,380 B (valid AAB: BundleConfig.pb, base/manifest, dex, resources.pb)
 
-**Deployment caveat:** the generated project was synced to the production host by hand because Vercel still served 404 for `/manifest.json` + icons when this build was made (`bubblewrap update` needs those live). Loopback values were replaced in exactly 3 spots: `android/app/build.gradle` (`hostName`, `webManifestUrl`, `fullScopeUrl`) and `android/app/src/main/res/values/strings.xml` (`assetStatements`). After deploying the updated repo to Vercel, run a canonical regeneration:
+**Canonical regeneration (2026-08-26):** the project was regenerated with `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` directly against the live production manifest — no manual patching. Re-run this exact command whenever `twa-manifest.json` changes and the domain is reachable:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 cd .. && bubblewrap update --manifest android/twa-manifest.json --directory android --skipVersionUpgrade && cd android
 ```
 
-then rebuild. Also re-verify `https://hierarchy-class.vercel.app/.well-known/assetlinks.json` returns the real fingerprint (HTTP 200, valid JSON).
+Re-verify `https://www.hierarchyclass.com/.well-known/assetlinks.json` returns the real fingerprint (HTTP 200, valid JSON).
 
 ## Rebuilding after a version bump
 
@@ -81,7 +81,7 @@ then rebuild. Also re-verify `https://hierarchy-class.vercel.app/.well-known/ass
 
 ## Digital Asset Links
 
-File: `public/.well-known/assetlinks.json` → served at `https://hierarchy-class.vercel.app/.well-known/assetlinks.json`
+File: `public/.well-known/assetlinks.json` → served at `https://www.hierarchyclass.com/.well-known/assetlinks.json`
 
 **Current state (2026-08-26):** contains the VERIFIED fingerprint of the existing keystore — placeholder removed:
 
@@ -103,7 +103,7 @@ File: `public/.well-known/assetlinks.json` → served at `https://hierarchy-clas
 **Verify it (after deploying to Vercel):**
 
 ```bash
-curl -s https://hierarchy-class.vercel.app/.well-known/assetlinks.json   # must be HTTP 200, valid JSON, no redirect
+curl -s https://www.hierarchyclass.com/.well-known/assetlinks.json   # must be HTTP 200, valid JSON, no redirect
 # statement generator/checker:
 # https://developers.google.com/digital-asset-links/tools/generator
 ```

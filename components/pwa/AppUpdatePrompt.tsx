@@ -15,11 +15,14 @@ import { Button } from "@/components/ui/Button";
 export function AppUpdatePrompt({
   open,
   busy,
+  note,
   onUpdate,
   onDismiss,
 }: {
   open: boolean;
   busy: boolean;
+  /** Optional inline status (e.g. offline notice). */
+  note?: string;
   onUpdate: () => void;
   onDismiss: () => void;
 }) {
@@ -40,6 +43,11 @@ export function AppUpdatePrompt({
         <p id="hc-update-desc" className="mt-0.5 text-xs text-muted">
           Hierarchy Class has been updated. Refresh to get the latest changes.
         </p>
+        {note && (
+          <p role="status" className="mt-1 text-[11px] font-medium text-warn">
+            {note}
+          </p>
+        )}
       </div>
       <div className="flex shrink-0 gap-2">
         <Button variant="outline" size="sm" onClick={onDismiss} disabled={busy}>

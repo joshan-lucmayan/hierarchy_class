@@ -87,7 +87,7 @@ const safeSession: Pick<Storage, "getItem" | "setItem" | "removeItem"> = {
 export function ServiceWorkerRegistration() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [detectedBuild, setDetectedBuild] = useState<string | null>(null);
+  const [offlineNote, setOfflineNote] = useState(false);
 
   const waitingWorkerRef = useRef<ServiceWorker | null>(null);
   const remoteBuildRef = useRef<string | null>(null);
@@ -106,7 +106,6 @@ export function ServiceWorkerRegistration() {
       });
       if (decision.show) {
         remoteBuildRef.current = remoteBuild;
-        setDetectedBuild(remoteBuild ?? `sw-${Date.now()}`);
         setOpen(true);
       }
     },
@@ -169,6 +168,11 @@ export function ServiceWorkerRegistration() {
         );
         if (build === null) return;
         remoteBuildRef.current = build;
+        if (build === currentBuild) {
+          // We are up to date — clear any transient pure-SW dismissal so a
+          // FUTURE waiting worker can prompt again (stale-key sweep).
+          safeLocal.removeItem(dismissedKey("sw"));
+        }
         evaluate(build, checkWaitingWorker(), !!navigator.serviceWorker.controller);
       } catch {
         // Offline or endpoint unavailable — SW detection still covers updates.
@@ -206,8 +210,14 @@ export function ServiceWorkerRegistration() {
 
   function handleUpdate() {
     if (busy) return;
+    // Offline: never start an update sequence we cannot complete, and never
+    // leave the button stuck claiming an update is in progress.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setOfflineNote(true);
+      return;
+    }
     setBusy(true);
-    markIntentionalUpdate(currentBuild, safeSession);
+    markIntentionalUpdate(currentBuild, remoteBuildRef.current, safeSession);
     const waiting = waitingWorkerRef.current;
     if (waiting) {
       // New worker activates via SKIP_WAITING → controllerchange fires →
@@ -230,13 +240,25 @@ export function ServiceWorkerRegistration() {
   }
 
   function handleDismiss() {
-    const key = remoteBuildRef.current;
     setOpen(false);
-    if (normalizeBuild(key)) {
-      // Remember dismissal FOR THIS BUILD only — a newer deployment prompts again.
-      safeLocal.setItem(dismissedKey(key as string), String(Date.now()));
-    }
+    // Remember dismissal FOR THIS DETECTED BUILD only — a newer deployment
+    // prompts again. Pure-SW signals (remote unknown yet) dismiss under the
+    // stable "sw" identity; that key is swept once /api/version confirms we
+    // are up to date, so it never blocks future updates.
+    const id = normalizeBuild(remoteBuildRef.current) ?? "sw";
+    safeLocal.setItem(dismissedKey(id), String(Date.now()));
   }
 
-  return <AppUpdatePrompt open={open} busy={busy} onUpdate={handleUpdate} onDismiss={handleDismiss} />;
+  return (
+    <AppUpdatePrompt
+      open={open}
+      busy={busy}
+      note={offlineNote ? "You're offline — reconnect to update." : undefined}
+      onUpdate={handleUpdate}
+      onDismiss={() => {
+        setOfflineNote(false);
+        handleDismiss();
+      }}
+    />
+  );
 }
