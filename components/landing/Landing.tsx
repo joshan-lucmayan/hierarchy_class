@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useState } from "react";
 import { CrownMark } from "@/components/ui/CrownMark";
 import { RankTriangle } from "@/components/ui/RankTriangle";
@@ -7,6 +9,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { AuthTabs } from "@/components/auth/AuthTabs";
 import { LandingBackground } from "./Background";
 import { APP_VERSION } from "@/lib/version";
+import { usePlatformContext } from "@/lib/usePlatformContext";
 
 const GITHUB_URL = "https://github.com/joshan-lucmayan";
 
@@ -71,6 +74,9 @@ const SPARKLES = [
 ];
 
 function Hero() {
+  // Install/download CTA is only meaningful in normal browsers — never
+  // inside the installed Android TWA or a standalone PWA.
+  const { ready, installedLike } = usePlatformContext();
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
@@ -168,6 +174,15 @@ function Hero() {
         >
           See how it works
         </button>
+        {/* Hidden inside the installed TWA/PWA — those users already have the app. */}
+        {ready && !installedLike && (
+          <a
+            href="/download"
+            className="rounded-lg border border-[rgba(158,167,179,0.35)] px-7 py-3.5 text-[13.5px] font-medium text-[var(--gold)] transition hover:border-[var(--gold)] hover:text-white"
+          >
+            Get the app
+          </a>
+        )}
       </div>
 
       <div
@@ -506,6 +521,7 @@ function Footer() {
           <a href="#home" className="text-[var(--muted)] transition hover:text-[#eceef1]">Home</a>
           <a href="#roles" className="text-[var(--muted)] transition hover:text-[#eceef1]">Roles</a>
           <a href="#features" className="text-[var(--muted)] transition hover:text-[#eceef1]">Features</a>
+          <Link href="/download" className="text-[var(--muted)] transition hover:text-[#eceef1]">Download</Link>
           <a href="#ranks" className="text-[var(--muted)] transition hover:text-[#eceef1]">Ranks</a>
           <a href="/terms" className="text-[var(--muted)] transition hover:text-[#eceef1]">Terms and Conditions</a>
           <a href="/privacy" className="text-[var(--muted)] transition hover:text-[#eceef1]">Privacy Policy</a>
