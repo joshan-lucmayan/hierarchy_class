@@ -1,6 +1,6 @@
 # Android — Hierarchy Class PWA & Trusted Web Activity
 
-> **Package:** `com.hierarchyclass.app` — **Version:** `1.14.87` (`versionCode 11487`) — **Source:** `package.json:version`
+> **Package:** `com.hierarchyclass.app` — **Version:** `1.15.87` (`versionCode 11587`) — **Source:** `package.json:version`
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -123,7 +123,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:4` `1.14.87` → `android/twa-manifest.json` `appVersion:1.14.87` `appVersionCode:11487` (`major*10000 + minor*100 + patch`). Single source: bump `package.json` and `android/twa-manifest.json` together; `versionCode` must always increase for Play.
+**Version:** `package.json:4` `1.15.87` → `android/twa-manifest.json` `appVersion:1.15.87` `appVersionCode:11587` (`major*10000 + minor*100 + patch`). Single source: bump `package.json` and `android/twa-manifest.json` together; `versionCode` must always increase for Play.
 
 **Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 
@@ -203,11 +203,11 @@ bubblewrap build --manifest twa-manifest.json
 >
 > **Gotcha:** `bubblewrap build` compares the manifest's SHA-1 against `android/manifest-checksum.txt`; write it WITHOUT trailing newline: `printf '%s' "$(sha1sum twa-manifest.json | awk '{print $1}')" > manifest-checksum.txt` (from `android/`). A trailing newline makes build prompt interactively.
 
-### Production artifacts (2026-08-26, v1.14.87, www.hierarchyclass.com config)
+### Production artifacts (2026-08-26, v1.15.87, www.hierarchyclass.com config)
 
 | Artifact | Path | Size | Verified |
 |---|---|---|---|
-| Debug APK | `android/app/build/outputs/apk/debug/app-debug.apk` | 5,052,528 B | badging: `com.hierarchyclass.app`, versionCode 11487, versionName 1.14.87; resources contain only `www.hierarchyclass.com` URLs |
+| Debug APK | `android/app/build/outputs/apk/debug/app-debug.apk` | 5,052,528 B | badging: `com.hierarchyclass.app`, versionCode 11587, versionName 1.15.87; resources contain only `www.hierarchyclass.com` URLs |
 | Signed release APK | `android/app-release-signed.apk` | 1,142,956 B | apksigner v1+v2+v3 verified; cert SHA-256 matches keystore AND the fingerprint served at `https://www.hierarchyclass.com/.well-known/assetlinks.json`; resources point at production host |
 | Signed release AAB | `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) | 1,253,380 B | valid AAB (BundleConfig.pb, base/manifest, dex, resources.pb) |
 
@@ -254,7 +254,7 @@ File: `public/.well-known/assetlinks.json:1-11` → `https://YOUR_DOMAIN/.well-k
 
 ## 6. Development & Versioning
 
-- Single version source `package.json:version` → `android/twa-manifest.json:appVersion` + `appVersionCode` (`major*10000+minor*100+patch`). Example `1.14.87 → 11487`. Bump both (plus the generated `android/app/build.gradle` while manual sync is in effect).
+- Single version source `package.json:version` → `android/twa-manifest.json:appVersion` + `appVersionCode` (`major*10000+minor*100+patch`). Example `1.15.87 → 11587`. Bump both (plus the generated `android/app/build.gradle` while manual sync is in effect).
 - No competing version systems.
 - Icon generation: `public/icon.svg` → `sharp` (already `sharp@0.34.5` via `allowScripts`) → `node scripts/generate-pwa-icons.mjs` or manual `sharp` resize (see `android/README.md`). Compressed via `build` hashing for static, but icons are `CacheFirst` 30d via SW.
 
