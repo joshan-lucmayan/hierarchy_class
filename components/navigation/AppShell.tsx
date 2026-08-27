@@ -36,13 +36,14 @@ function bottomPaddingFor(role: Role): { shell: string; main: string } {
 
 // Tailwind JIT requires complete class strings — no dynamic interpolation.
 // Student desktop pivot at xl (1280px); Teacher/Admin at md (768px).
+// Student phone (android < md) is full-bleed: no outer px/py so header/card/feed are edge-to-edge.
 const SHELL_CLASSES = {
-  xl: "relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-4 sm:px-6 sm:py-6 xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
+  xl: "relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-4 sm:px-6 sm:py-6 max-md:px-0 max-md:py-0 max-md:pt-0 xl:pl-[var(--sidebar-gap)] xl:pr-10 xl:pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
   md: "relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col px-4 py-4 sm:px-6 sm:py-6 md:pl-[var(--sidebar-gap)] md:pr-10 md:pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
 } as const;
 
 const MAIN_CLASSES = {
-  xl: "flex-1 p-4 sm:p-6 xl:p-8 xl:pb-8",
+  xl: "flex-1 p-4 sm:p-6 max-md:p-0 max-md:pt-0 xl:p-8 xl:pb-8",
   md: "flex-1 p-4 sm:p-6 md:p-8 md:pb-8",
 } as const;
 

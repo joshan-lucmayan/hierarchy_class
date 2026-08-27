@@ -3,8 +3,8 @@
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { StoriesRail } from "@/components/feed/StoriesRail";
-import { QuickSearchBar } from "@/components/search/QuickSearchBar";
 import { ProfileRankCard } from "@/components/student/ProfileRankCard";
+import { ProfileHeroCard } from "@/components/student/ProfileHeroCard";
 import HabitTracker from "@/components/dashboard/HabitTracker";
 import WeeklyProgress from "@/components/dashboard/WeeklyProgress";
 import SubjectStats from "@/components/dashboard/SubjectStats";
@@ -14,14 +14,20 @@ export default function StudentHomePage() {
   const { posts, loading: feedLoading, error: feedError } = useSchoolFeed();
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="mx-auto w-full max-w-md xl:mx-0">
-        <QuickSearchBar />
+    <div className="space-y-4 sm:space-y-6 pt-0 md:pt-5">
+      {/* Phone: MyDay just above profile card — restored left, adjusted down. */}
+      <div className="block space-y-4 md:hidden">
+        <div className="px-4 pt-3">
+          <StoriesRail />
+        </div>
+        <ProfileHeroCard />
       </div>
 
-      <StoriesRail />
+      <div className="hidden md:block">
+        <StoriesRail />
+      </div>
 
-      <h1 className="section-label mb-3">Latest School Feed</h1>
+      <h1 className="section-label mb-3 mt-8">Latest School Feed</h1>
 
       <div className="grid gap-4 sm:gap-5 xl:grid-cols-[1.6fr_1fr]">
         <section className="space-y-4">

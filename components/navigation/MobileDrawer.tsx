@@ -7,11 +7,6 @@ import { usePathname } from "next/navigation";
 import { STUDENT_NAV_ITEMS } from "@/components/navigation/navItems";
 import { MessagesBadge } from "@/components/navigation/MessagesBadge";
 import { IconX } from "@/components/ui/icons";
-import { ProfileRankCard } from "@/components/student/ProfileRankCard";
-import HabitTracker from "@/components/dashboard/HabitTracker";
-import WeeklyProgress from "@/components/dashboard/WeeklyProgress";
-import SubjectStats from "@/components/dashboard/SubjectStats";
-import WeakestSubjectCard from "@/components/dashboard/WeakestSubjectCard";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 
 /**
@@ -140,17 +135,6 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
             paddingRight: "max(1rem, env(safe-area-inset-right))",
           }}
         >
-          <ProfileRankCard />
-
-          <div className="mt-4 space-y-4">
-            <HabitTracker />
-            <WeeklyProgress />
-            <SubjectStats />
-            <WeakestSubjectCard />
-          </div>
-
-          <div className="my-4 border-t border-base" />
-
           <nav aria-label="Student sections" className="space-y-1">
             {STUDENT_NAV_ITEMS.map((item) => {
               const active = item.href ? pathname.startsWith(item.href) : false;

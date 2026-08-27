@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastinate, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.15.92`
+**Current version:** `1.16.94`
 
 ---
 
@@ -32,15 +32,16 @@ Each admin account is scoped to exactly **one school**.
 | **Teacher** | Blocked (device-warning) | Supported | Supported |
 | **Admin** | Blocked (device-warning) | Supported | Supported |
 
-- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop. Verified on real browsers from **320px** through 1440px (no horizontal overflow; compact rank badges and wrapping theme cards under 420px); internal scrollers are used intentionally for wide tables/toolbars.
+- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop. On Android phones (< 768px) the Home screen shows the student identity + rank as a prominent card directly below the header, followed by search, stories, and the school feed — reusing the existing `ProfileRankCard` without redesigning colors, typography, or rank visuals. Verified on real browsers from **320px** through 1440px (no horizontal overflow; compact rank badges and wrapping theme cards under 420px); internal scrollers are used intentionally for wide tables/toolbars.
 - **Teacher** and **Admin** see a dedicated device-warning screen on phone-sized viewports (< 768px) with a clear message to continue on a larger screen. The user remains authenticated; the warning is a UI layer only.
-- The 768px breakpoint (`md:` in Tailwind) cleanly separates phone from tablet. Resizing or rotating the device updates the view instantly.
+- The 768px breakpoint (`md:` in Tailwind) cleanly separates phone from tablet. The phone layout stacks the Home content for natural one-hand use; tablet (768px+) keeps the existing desktop/tablet arrangement. Resizing or rotating the device updates the view instantly.
 
 ## Student navigation
 
-- **Phone / Tablet** (< 1280px): Hamburger button in the header opens a full-height slide-in drawer containing the profile card, stat widgets, navigation links, and logout.
-- **Desktop** (1280px+): Fixed icon-rail sidebar on the left with the same navigation links and logout.
-- The student BottomNav has been removed. All student navigation flows through the drawer (mobile/tablet) or sidebar (desktop).
+- **Phone** (< 768px): Hamburger button in the header opens the drawer (navigation links + logout). The identity/rank card lives prominently on Home itself, so the Home hierarchy is Header → Rank Card → Search/Stories/Feed.
+- **Tablet** (768px–1279px): Hamburger + drawer containing the profile card, stat widgets, navigation links, and logout — same as before.
+- **Desktop** (1280px+): Fixed icon-rail sidebar on the left with the same navigation links and logout. The rank card appears in the right column of Home.
+- The student BottomNav has been removed. All student navigation flows through the drawer (phone/tablet) or sidebar (desktop).
 
 ## Key features
 

@@ -1,6 +1,6 @@
 # Android — Hierarchy Class PWA & Trusted Web Activity
 
-> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`) — **Web:** `1.15.92` (`package.json:version`; the TWA shell trails the web version and is rebuilt only for native changes)
+> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`) — **Web:** `1.16.94` (`package.json:version`; the TWA shell trails the web version and is rebuilt only for native changes)
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -123,7 +123,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:version` (`1.15.92`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
+**Version:** `package.json:version` (`1.16.94`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
 
 **Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 

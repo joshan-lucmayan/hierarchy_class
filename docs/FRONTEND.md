@@ -116,10 +116,10 @@ Layout:
   placement (left-4, vertically centered, `pl-11` input) and was made
   clearly visible in v1.7.66 (18px, thicker stroke, `--muted` color, gold on
   focus) - it was low-contrast in the Rose theme before.
-- **Content** - a two-column grid on the student home: the left column is
+- **Content** - on desktop the student home is a two-column grid: the left column is
   the school feed (StoriesRail + feed posts), the right column stacks the
   five cards in a fixed order: **Profile/rank card → Weakest Subject →
-  Subject Stats → Habit Tracker → Weekly Progress** (16px gap between).
+  Subject Stats → Habit Tracker → Weekly Progress** (16px gap between). On Android phones (< 768px, `md:hidden`) the identity/rank card appears prominently directly below the header as the first card on Home, reusing the existing `ProfileRankCard` (same avatar, name, level, `RankBadge` bar/EX score, and equipped profile-card background), followed by search, stories, and the feed; the right column is hidden and its stat widgets remain accessible via the drawer. Tablet (768px+) keeps the previous layout.
 
 Why this design?
 

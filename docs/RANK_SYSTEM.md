@@ -1,6 +1,6 @@
 # Hierarchy Class - The Rank System
 
-**Version 1.15.92.** This document explains how ranks work in Hierarchy
+**Version 1.16.94.** This document explains how ranks work in Hierarchy
 Class, from a student's perspective and from a teacher/admin perspective.
 It covers the ranks, the exact math behind the progress bar, how grades
 move it, how seasons reset it, and where everything lives.

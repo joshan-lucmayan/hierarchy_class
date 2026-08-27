@@ -1,6 +1,6 @@
 {
   "name": "hierarchy-class",
-  "version": "1.15.92",
+  "version": "1.16.94",
   "private": true,
   "scripts": {
     "dev": "next dev",

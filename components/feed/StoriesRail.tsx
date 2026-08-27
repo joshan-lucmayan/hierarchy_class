@@ -33,7 +33,7 @@ export function StoriesRail() {
   }, [stories, profile?.id]);
 
   const myStory = grouped.find((s) => s.userId === profile?.id) ?? null;
-  const myStoryViews = myStory ? viewers[myStory.id]?.length ?? 0 : 0;
+  // View count intentionally not shown on Home (per design); viewer modal still tracks viewers internally.
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -89,13 +89,28 @@ export function StoriesRail() {
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-2">
+          {/* Your stories — single circle, first position. Tap to view if you have a story, otherwise to add. */}
           <div className="flex shrink-0 flex-col items-center gap-1.5">
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-gold p-[2px] transition active:scale-95"
+              onClick={() => {
+                if (myStory) {
+                  const idx = grouped.findIndex((s) => s.id === myStory.id);
+                  if (idx >= 0) setOpenIndex(idx);
+                } else {
+                  fileInputRef.current?.click();
+                }
+              }}
+              aria-label={myStory ? "View your story" : "Add story"}
+              className={`flex h-16 w-16 items-center justify-center rounded-full p-[2px] transition active:scale-95 ${
+                myStory ? "bg-[var(--surface-strong)]" : "border-2 border-dashed border-gold"
+              }`}
             >
-              <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-navy text-lg font-bold text-gold">
+              <span
+                className={`flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 ${
+                  myStory ? "border-gold bg-navy" : "border-surface bg-navy text-lg font-bold text-gold"
+                }`}
+              >
                 {myStory ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={myStory.imageUrl} alt="My story" className="h-full w-full object-cover" />
@@ -104,8 +119,8 @@ export function StoriesRail() {
                 )}
               </span>
             </button>
-            <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">
-              {myStory ? (myStoryViews > 0 ? `${myStoryViews} views` : "My Day") : "Add story"}
+            <span className="max-w-[80px] truncate text-center text-[11px] font-medium text-muted">
+              {myStory ? "Your stories" : "Add story"}
             </span>
             <input
               ref={fileInputRef}
@@ -116,9 +131,9 @@ export function StoriesRail() {
             />
           </div>
 
-          {grouped.map((story) => {
-            const isMine = story.userId === profile?.id;
-            return (
+          {grouped
+            .filter((s) => s.userId !== profile?.id)
+            .map((story) => (
               <button
                 key={story.id}
                 type="button"
@@ -131,11 +146,10 @@ export function StoriesRail() {
                   </span>
                 </span>
                 <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">
-                  {isMine ? "My Day" : (story.authorName ?? "Someone").split(" ")[0]}
+                  {(story.authorName ?? "Someone").split(" ")[0]}
                 </span>
               </button>
-            );
-          })}
+            ))}
         </div>
       )}
 

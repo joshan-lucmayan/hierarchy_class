@@ -152,16 +152,16 @@ export default function StudentQuizPage() {
       ) : (
         <div className="divide-y divide-[var(--border)]">
           {available.map((quiz) => (
-            <div key={quiz.id} className="flex items-center justify-between gap-4 py-5">
-              <div>
+            <div key={quiz.id} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs uppercase tracking-[0.25em] text-muted">{quiz.courseName}</p>
-                <p className="mt-1 text-lg font-semibold text-navy">{quiz.title}</p>
+                <p className="mt-1 break-words text-lg font-semibold text-navy">{quiz.title}</p>
                 <p className="mt-1 text-sm text-muted">{quiz.questions.length} questions · {quiz.timeLimitSeconds}s timer</p>
               </div>
               <button
                 type="button"
                 onClick={() => startQuiz(quiz)}
-                className="shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+                className="w-full shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent max-[767px]:min-h-[44px] sm:w-auto"
               >
                 Start quiz
               </button>
