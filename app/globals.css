@@ -92,6 +92,7 @@
 html {
   background: var(--bg);
   color: var(--text);
+  font-size: 16px; /* Lock root font to prevent Android system font scaling from inflating the rem-based layout */
 }
 
 body {
@@ -698,5 +699,16 @@ body {
   button[aria-label] {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Prevent text overlap on small screens — allow wrapping and ensure flex children can shrink */
+  * {
+    overflow-wrap: break-word;
+  }
+  p, h1, h2, h3, h4, span, a, button, div {
+    overflow-wrap: anywhere;
+  }
+  .flex > * {
+    min-width: 0;
   }
 }

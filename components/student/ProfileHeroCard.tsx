@@ -70,24 +70,26 @@ export function ProfileHeroCard() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-display truncate text-[19px] font-bold leading-none text-navy">
+                    <p className="font-display break-words text-[19px] font-bold leading-none text-navy">
                       {profile?.full_name ?? "Student"}
                     </p>
-                    <p className="mt-0.5 truncate text-[12.5px] font-normal text-muted">
+                    <p className="mt-0.5 break-words text-[12.5px] font-normal text-muted">
                       {[profile?.educational_level, profile?.level_label].filter(Boolean).join(" · ")}
                     </p>
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <RankTriangle rank={displayRank} size={14} showLabel={false} />
-                      <span className="text-[22px] font-bold leading-none text-navy" style={{ fontFamily: "Georgia, Times, serif" }}>
-                        {displayRank}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="flex items-center gap-1.5">
+                        <RankTriangle rank={displayRank} size={14} showLabel={false} />
+                        <span className="text-[22px] font-bold leading-none text-navy" style={{ fontFamily: "Georgia, Times, serif" }}>
+                          {displayRank}
+                        </span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-faint">Rank</span>
                       </span>
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-faint">Rank</span>
+                      <span className="flex items-baseline gap-0.5 rounded-full border border-line bg-[var(--surface-strong)] px-2 py-0.5">
+                        <span className="text-xs font-bold tabular-nums leading-none text-navy">{displayValue}</span>
+                        {!isEx && <span className="text-[10px] font-normal text-faint">/100</span>}
+                      </span>
                     </div>
                   </div>
-                  <span className="flex shrink-0 items-baseline gap-0.5 pt-1">
-                    <span className="text-sm font-bold tabular-nums leading-none text-navy">{displayValue}</span>
-                    {!isEx && <span className="text-[11px] font-normal text-faint">/100</span>}
-                  </span>
                 </div>
               </div>
             </div>
@@ -107,7 +109,7 @@ export function ProfileHeroCard() {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-warn">Weakest subject</p>
                 </div>
                 <div className="mt-2 flex items-baseline justify-between gap-3">
-                  <p className="truncate text-sm font-bold leading-none text-navy" style={{ fontFamily: "Georgia, Times, serif" }}>
+                  <p className="break-words text-sm font-bold leading-none text-navy" style={{ fontFamily: "Georgia, Times, serif" }}>
                     {courseName}
                   </p>
                   <p className="shrink-0 text-sm font-medium tabular-nums text-warn">{weakest.avg.toFixed(1)} avg</p>

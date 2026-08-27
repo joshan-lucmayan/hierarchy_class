@@ -3,6 +3,7 @@
 import { useSchoolFeed } from "@/lib/schoolFeedStore";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { StoriesRail } from "@/components/feed/StoriesRail";
+import { QuickSearchBar } from "@/components/search/QuickSearchBar";
 import { ProfileRankCard } from "@/components/student/ProfileRankCard";
 import { ProfileHeroCard } from "@/components/student/ProfileHeroCard";
 import HabitTracker from "@/components/dashboard/HabitTracker";
@@ -15,6 +16,11 @@ export default function StudentHomePage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pt-0 md:pt-5">
+      {/* Desktop: search bar at top, left-aligned. Hidden on phone/tablet. */}
+      <div className="hidden xl:block">
+        <QuickSearchBar />
+      </div>
+
       {/* Phone: MyDay just above profile card — restored left, adjusted down. */}
       <div className="block space-y-4 md:hidden">
         <div className="px-4 pt-3">
