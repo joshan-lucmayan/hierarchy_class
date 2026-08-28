@@ -22,11 +22,11 @@ Rank authority stays server-side (Supabase RPC `approve_grade_submission` etc.).
   - `~/Android/Sdk` holds build-tools 36.1.0 + 37.0.0, platforms android-36 + android-36.1, platform-tools (adb), cmdline-tools latest, accepted `licenses/`, and a `bin -> cmdline-tools/latest/bin` symlink (Bubblewrap ≤1.25 checks legacy `<sdk>/bin`).
 - **User env** in `~/.bashrc`: `ANDROID_HOME`/`ANDROID_SDK_ROOT=$HOME/Android/Sdk`, PATH += `cmdline-tools/latest/bin`, `platform-tools`, `build-tools/37.0.0`.
 - **Bubblewrap CLI 1.25.0** at `~/.local/bin/bubblewrap`; config `~/.bubblewrap/config.json` → jdkPath `/usr/lib/jvm/java-17-openjdk`, androidSdkPath `$HOME/Android/Sdk`. `bubblewrap doctor` → ✅ valid.
-- Production HTTPS domain serving the Next.js app with `/.well-known/assetlinks.json` reachable (**still pending**).
+- Production HTTPS domain **live**: `https://www.hierarchyclass.com` serves the Next.js app with `/.well-known/assetlinks.json` reachable (HTTP 200, valid JSON, matching fingerprints).
 
 ## Versioning
 
-App version source: `package.json` `version` is the web release (`1.16.103`). The Android shell tracks it only when a native build is made: currently `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11590` (`major*10000 + minor*100 + patch`). At a native release, bump `package.json`, `android/twa-manifest.json`, and the generated `android/app/build.gradle` `versionCode`/`versionName` together (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
+App version source: `package.json` `version` is the web release (`1.17.103`). The Android shell tracks it only when a native build is made: currently `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11590` (`major*10000 + minor*100 + patch`). At a native release, bump `package.json`, `android/twa-manifest.json`, and the generated `android/app/build.gradle` `versionCode`/`versionName` together (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
 
 ## Icon source
 
@@ -57,6 +57,8 @@ cd android && bubblewrap build --manifest twa-manifest.json
 - `android/app-release-signed.apk` — 1,142,956 B (`apksigner verify` v1+v2+v3 OK; cert SHA-256 `8c95e7dc38449b4bd682d358986e4b606400dbe19c29ba60e155e31eef51e846`)
 - `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) — 1,253,380 B (valid AAB: BundleConfig.pb, base/manifest, dex, resources.pb)
 
+**Rebuild re-verification (2026-08-28, same repo state):** `./gradlew assembleDebug` and `bubblewrap build --skipVersionUpgrade` were re-run after fixing the stale `manifest-checksum.txt`. The fresh `app-release-signed.apk` is **byte-identical** (`cmp`) to the distributed `public/downloads/hierarchy-class-v1.15.90.apk` — the release build is reproducible from the repo, so `lib/apkRelease.ts` size/SHA-256 records stay valid without re-auditing. The debug APK (signed with this machine's `~/.android/debug.keystore`) also verifies as a TWA on-device because its debug fingerprint is published in `assetlinks.json`.
+
 **Canonical regeneration (2026-08-26):** the project was regenerated with `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` directly against the live production manifest — no manual patching. Re-run this exact command whenever `twa-manifest.json` changes and the domain is reachable:
 
 ```bash
@@ -83,7 +85,7 @@ Re-verify `https://www.hierarchyclass.com/.well-known/assetlinks.json` returns t
 
 File: `public/.well-known/assetlinks.json` → served at `https://www.hierarchyclass.com/.well-known/assetlinks.json`
 
-**Current state (2026-08-26):** contains the VERIFIED fingerprint of the existing keystore — placeholder removed:
+**Current state (2026-08-26, updated 2026-08-28):** contains the VERIFIED fingerprint of the release keystore **plus this machine's Android debug keystore** (added in `c48914a` so dev/debug builds also verify as TWA):
 
 ```json
 [
@@ -92,11 +94,16 @@ File: `public/.well-known/assetlinks.json` → served at `https://www.hierarchyc
     "target": {
       "namespace": "android_app",
       "package_name": "com.hierarchyclass.app",
-      "sha256_cert_fingerprints": ["8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46"]
+      "sha256_cert_fingerprints": [
+        "8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46",
+        "B6:7B:34:DB:95:E0:97:C2:75:93:4C:04:34:55:22:FD:E8:A4:31:C1:84:69:CE:9B:52:9C:39:70:E8:10:C2:69"
+      ]
     }
   }
 ]
 ```
+
+> The second fingerprint is the local `~/.android/debug.keystore` (alias `androiddebugkey`) — it only matches debug APKs signed on machines sharing that keystore. Both entries were re-verified against the actual keystores with `keytool -list` on 2026-08-28.
 
 **How it works:** when the Android app opens a URL, Chrome fetches this file from the SAME domain and checks whether the app's signing certificate matches a listed fingerprint for the package name. Match → TWA renders fullscreen without browser UI. No match / file unreachable → falls back to Custom Tabs (address bar visible) — still functional.
 

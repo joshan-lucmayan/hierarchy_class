@@ -1,6 +1,6 @@
 # Android — Hierarchy Class PWA & Trusted Web Activity
 
-> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`) — **Web:** `1.16.103` (`package.json:version`; the TWA shell trails the web version and is rebuilt only for native changes)
+> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`) — **Web:** `1.17.103` (`package.json:version`; the TWA shell trails the web version and is rebuilt only for native changes)
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -123,7 +123,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:version` (`1.16.103`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
+**Version:** `package.json:version` (`1.17.103`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
 
 **Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 
@@ -201,7 +201,7 @@ bubblewrap build --manifest twa-manifest.json
 
 > **Canonical regeneration (2026-08-26):** with the production domain live, `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` was run against `https://www.hierarchyclass.com/manifest.json` — the project is generated canonically (no manual patching).
 >
-> **Gotcha:** `bubblewrap build` compares the manifest's SHA-1 against `android/manifest-checksum.txt`; write it WITHOUT trailing newline: `printf '%s' "$(sha1sum twa-manifest.json | awk '{print $1}')" > manifest-checksum.txt` (from `android/`). A trailing newline makes build prompt interactively.
+> **Gotcha:** `bubblewrap build` compares the manifest's SHA-1 against `android/manifest-checksum.txt`; write it WITHOUT trailing newline: `printf '%s' "$(sha1sum twa-manifest.json | awk '{print $1}')" > manifest-checksum.txt` (from `android/`). A trailing newline makes build prompt interactively. The checksum must be refreshed after **any** `twa-manifest.json` change — the v1.15.90 version bump (commit `91031cd`) forgot this and the stale checksum (still matching v1.15.87) was only caught and fixed on 2026-08-28.
 
 ### Production artifacts (2026-08-26, v1.15.90, www.hierarchyclass.com config)
 
@@ -213,6 +213,8 @@ bubblewrap build --manifest twa-manifest.json
 
 These builds use the real `www.hierarchyclass.com` configuration. They remain **untested on a physical device** — see Testing.
 
+**Re-verified 2026-08-28** (after fixing the stale `manifest-checksum.txt`, see Gotcha): `./gradlew assembleDebug` and `bubblewrap build --skipVersionUpgrade` were re-run against the same repo state. The fresh `android/app-release-signed.apk` is **byte-identical** (`cmp`) to the distributed `public/downloads/hierarchy-class-v1.15.90.apk`, so `lib/apkRelease.ts` (sha256 `7d0ac743…`, size 1,142,956 B) remains exact without re-auditing. The debug APK verifies as TWA on-device too (its `~/.android/debug.keystore` fingerprint is entry 2 of `assetlinks.json`). Physical device testing is still pending.
+
 ### Signing — CURRENT STATE
 
 - `android/android.keystore` **exists** (gitignored via `*.keystore`, mode 600, alias `android`, RSA-2048, validity 30y). Password stored user-level outside the repo at `~/.bubblewrap/hc-keystore.pass` (mode 600). Back it up to a password manager; losing it + losing Play access to the key = cannot update the app.
@@ -223,7 +225,7 @@ These builds use the real `www.hierarchyclass.com` configuration. They remain **
 
 ### Digital Asset Links
 
-File: `public/.well-known/assetlinks.json:1-11` → `https://YOUR_DOMAIN/.well-known/assetlinks.json`
+File: `public/.well-known/assetlinks.json:1-12` → served at `https://www.hierarchyclass.com/.well-known/assetlinks.json` (HTTP 200, byte-identical to the repo copy — verified 2026-08-28)
 
 ```json
 [
@@ -232,19 +234,26 @@ File: `public/.well-known/assetlinks.json:1-11` → `https://YOUR_DOMAIN/.well-k
     "target": {
       "namespace": "android_app",
       "package_name": "com.hierarchyclass.app",
-      "sha256_cert_fingerprints": ["__REPLACE_WITH_SHA256_FROM_UPLOAD_OR_SIGNING_CERT__"]
+      "sha256_cert_fingerprints": [
+        "8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46",
+        "B6:7B:34:DB:95:E0:97:C2:75:93:4C:04:34:55:22:FD:E8:A4:31:C1:84:69:CE:9B:52:9C:39:70:E8:10:C2:69"
+      ]
     }
   }
 ]
 ```
 
+Both fingerprints are real and re-verified against the actual keystores on 2026-08-28: entry 1 is the release keystore `android/android.keystore` (alias `android`, matches `app-release-signed.apk`); entry 2 is the local debug keystore `~/.android/debug.keystore` (alias `androiddebugkey`, added in commit `c48914a` so debug builds verify as TWA during development — it only matches debug APKs signed on machines sharing that keystore). No Play App Signing entry yet (none enrolled).
+
 **Steps:**
 1. Get SHA-256:
    - Current local keystore (exists): `keytool -list -v -keystore android/android.keystore -alias android | grep SHA-256` → `8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46` ✅ **verified 2026-08-26 and already inserted into `public/.well-known/assetlinks.json`**
    - Play signing (when enrolled): Play Console → Setup → App integrity → App signing key → SHA-256
-2. Replace placeholder `__REPLACE_WITH...__` with colon-separated hex `AB:CD:...` (64 hex chars + 15 colons).
-3. Deploy `public/.well-known/assetlinks.json` → `curl -v https://YOUR_DOMAIN/.well-known/assetlinks.json` must `200` `Content-Type: application/json` with no redirect, no auth (middleware already excludes `manifest.json`/`sw.js`/`offline`; add `.well-known` exclusion if needed).
+2. Add it as an additional colon-separated hex entry `AB:CD:...` (64 hex chars + 15 colons) — existing entries stay.
+3. Deploy `public/.well-known/assetlinks.json` → `curl -v https://www.hierarchyclass.com/.well-known/assetlinks.json` must `200` `Content-Type: application/json` with no redirect, no auth (middleware excludes `.well-known` — fixed, see Known Risks).
 4. Verify: `https://developers.google.com/digital-asset-links/tools/generator` or `adb logcat | grep -i assetlinks` on device after install — TWA shows no address bar when verified; Custom Tabs (with bar) is still functional.
+
+**Current status (2026-08-28): steps 1–3 are DONE.** Both real fingerprints are deployed and match the keystores on this machine; no Play signing entry is pending.
 
 ### Headers for PWA
 

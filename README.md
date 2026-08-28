@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastinate, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.16.103`
+**Current version:** `1.17.103`
 
 ---
 
@@ -75,8 +75,9 @@ Each admin account is scoped to exactly **one school**.
 ## PWA / installation
 
 - The app can be installed as a **Progressive Web App (PWA)** where supported. Browsers that support the Web App Manifest and service worker will show an install prompt.
-- An **Android TWA (Trusted Web Activity)** exists as a native wrapper: package `com.hierarchyclass.app`, built with Bubblewrap. It renders the web app in a Chrome Custom Tab with no native UI overhead.
+- An **Android TWA (Trusted Web Activity)** exists as a native wrapper: package `com.hierarchyclass.app`, built with Bubblewrap. It opens the live web app fullscreen with no browser UI once Digital Asset Links verify, falling back to Chrome Custom Tabs otherwise. The Android shell follows its own version (`1.15.90` / `versionCode 11590`) and is rebuilt only for native changes — see [`docs/ANDROID.md`](docs/ANDROID.md).
 - **Production domain:** `https://www.hierarchyclass.com/`
+- *v1.17.103:* Android production readiness finalized — the TWA architecture (Bubblewrap; AGP 8.9.1 / Gradle 8.11.1 / JDK 17; minSdk 21, target/compileSdk 36) was fully audited with no configuration changes needed; a stale `android/manifest-checksum.txt` that broke the documented release pipeline was corrected; debug APK, signed release APK, and release AAB were rebuilt and validated (`aapt2 dump badging`, `apksigner verify` v2/v3, production-only URLs, correct package/version/label/launchable activity); the fresh signed release APK is **byte-identical** to the distributed, git-tracked `public/downloads/hierarchy-class-v1.15.90.apk`, confirming the release chain is exactly reproducible and the SHA-256 in `lib/apkRelease.ts` remains authoritative; `public/.well-known/assetlinks.json` was verified against the actual keystores (release cert + local debug cert for dev builds; no Play App Signing fingerprint invented); the production deployment was verified live (HTTPS, `/manifest.json`, `/sw.js`, `/.well-known/assetlinks.json`, `/api/version`, icons all 200 with the deployed assetlinks byte-identical to the repo); stale Android documentation was corrected in `docs/ANDROID.md` and `android/README.md`. Not yet done: physical-device install testing and Play Store publication.
 
 ## Update system
 
