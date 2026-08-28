@@ -197,7 +197,7 @@ Why this design?
   → S++ → EX through the shared `RankTriangle` emblem (rank identity in the
   triangle, neutral letters below - the same visual language as the landing
   page ladder and `RankDistribution`), each tier with its product note
-  (Fresh start … Extra) and the real season-reset rule (S and above → C, A
+  (Fresh start … Exceptional) and the real season-reset rule (S and above → C, A
   and below → D). Below it: live standings (rank position,
   `UserAvatar`, `RankBadge` + bar/EX score) and a season-control rail -
   Declare semester (`declare_semester`, shared `Button` + inputs), End season

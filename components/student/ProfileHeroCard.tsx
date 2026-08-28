@@ -79,10 +79,10 @@ export function ProfileHeroCard() {
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <span className="flex items-center gap-1.5">
                         <RankTriangle rank={displayRank} size={14} showLabel={false} />
-                        <span className="text-[22px] font-bold leading-none text-navy" style={{ fontFamily: "Georgia, Times, serif" }}>
+                        <span className="text-[22px] font-extrabold leading-none tracking-[0.02em] text-navy">
                           {displayRank}
                         </span>
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-faint">Rank</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.3px] text-faint">Rank</span>
                       </span>
                       <span className="flex items-baseline gap-0.5 rounded-full border border-line bg-[var(--surface-strong)] px-2 py-0.5">
                         <span className="text-xs font-bold tabular-nums leading-none text-navy">{displayValue}</span>

@@ -41,7 +41,7 @@ export default function TermsPage() {
           items={[
             "Teachers input scores for the activities and categories they configure for their courses.",
             "Approved grades feed the rank engine. Each grade computes its own contribution using its category weight; pending or rejected grades do not affect ranks.",
-            "Ranks, bars, and leaderboards are computed from approved data. The EX tier is an open-ended score for Extra seasons.",
+            "Ranks, bars, and leaderboards are computed from approved data. The EX tier is an open-ended score for Exceptional seasons.",
             "Administrators declare seasons with start and end dates. When a season ends, final and peak ranks are recorded and the ladder resets.",
             "We may correct rank or grade computations if an error is found, without retroactive penalty beyond restoring correct values.",
             "Grade data is only visible to the student it belongs to, their teachers, and their school administrators. Aggregate averages may be shown on leaderboards.",

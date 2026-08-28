@@ -25,6 +25,22 @@
 export const RANK_ORDER = ["D", "C", "B", "A", "S", "S+", "S++", "EX"] as const;
 export type Rank = (typeof RANK_ORDER)[number];
 
+/** Human-readable display names — codes remain D/C/B/A/S/S+/S++/EX. */
+export const RANK_DISPLAY_NAMES: Record<Rank, string> = {
+  D: "D",
+  C: "C",
+  B: "B",
+  A: "A",
+  S: "S",
+  "S+": "Honors",
+  "S++": "Distinguished",
+  EX: "Exceptional",
+} as const;
+
+export function getRankDisplayName(rank: Rank): string {
+  return RANK_DISPLAY_NAMES[rank] ?? rank;
+}
+
 export const CATEGORIES = ["quiz", "exam", "activity", "participation"] as const;
 export type Category = (typeof CATEGORIES)[number];
 

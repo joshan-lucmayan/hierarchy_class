@@ -15,7 +15,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { IconUser, IconCheck, IconCalendar } from "@/components/ui/icons";
 import { createClient } from "@/lib/supabase/client";
-import type { Rank } from "@/lib/rankEngine";
+import { RANK_DISPLAY_NAMES, type Rank } from "@/lib/rankEngine";
 
 interface SeasonLog {
   student_id: string;
@@ -44,9 +44,9 @@ const LADDER: { letter: Rank; note: string }[] = [
   { letter: "B", note: "Consistent" },
   { letter: "A", note: "Strong" },
   { letter: "S", note: "Elite" },
-  { letter: "S+", note: "Exceptional" },
-  { letter: "S++", note: "Near perfect" },
-  { letter: "EX", note: "Extra" },
+  { letter: "S+", note: RANK_DISPLAY_NAMES["S+"] },
+  { letter: "S++", note: RANK_DISPLAY_NAMES["S++"] },
+  { letter: "EX", note: RANK_DISPLAY_NAMES["EX"] },
 ];
 
 export default function AdminRanksPage() {
@@ -192,7 +192,7 @@ export default function AdminRanksPage() {
           label="EX students"
           value={exCount}
           tone={exCount > 0 ? "gold" : "muted"}
-          hint="Extra this season"
+          hint={`${RANK_DISPLAY_NAMES["EX"]} this season`}
         />
       </div>
 
@@ -207,7 +207,7 @@ export default function AdminRanksPage() {
         <h3 className="section-label">The ladder</h3>
         <p className="mt-1.5 max-w-2xl text-xs leading-5 text-muted">
           Eight ranks, one climb. Every season starts fresh - S and above land in C, A and below land in D.
-          Promotion happens when a bar fills; EX belongs to Extra seasons.
+          Promotion happens when a bar fills; EX belongs to {RANK_DISPLAY_NAMES["EX"]} seasons.
         </p>
         <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
           {LADDER.map((tier) => (

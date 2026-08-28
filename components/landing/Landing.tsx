@@ -10,6 +10,7 @@ import { AuthTabs } from "@/components/auth/AuthTabs";
 import { LandingBackground } from "./Background";
 import { APP_VERSION } from "@/lib/version";
 import { usePlatformContext } from "@/lib/usePlatformContext";
+import { RANK_DISPLAY_NAMES } from "@/lib/rankEngine";
 
 const GITHUB_URL = "https://github.com/joshan-lucmayan";
 
@@ -403,9 +404,9 @@ const RANKS = [
   { letter: "B", note: "Consistent" },
   { letter: "A", note: "Strong" },
   { letter: "S", note: "Elite" },
-  { letter: "S+", note: "Exceptional" },
-  { letter: "S++", note: "Near perfect" },
-  { letter: "EX", note: "Extra" },
+  { letter: "S+", note: RANK_DISPLAY_NAMES["S+"] },
+  { letter: "S++", note: RANK_DISPLAY_NAMES["S++"] },
+  { letter: "EX", note: RANK_DISPLAY_NAMES["EX"] },
 ] as const;
 
 function RankLadder() {
@@ -414,7 +415,7 @@ function RankLadder() {
       <SectionHeading
         eyebrow="The ladder"
         title="Eight ranks, one climb"
-        sub="Every season starts fresh: S and above land in C, A and below land in D. Promotion happens when your bar fills; the EX tier belongs to Extra seasons."
+        sub={`Every season starts fresh: S and above land in C, A and below land in D. Promotion happens when your bar fills; the EX tier belongs to ${RANK_DISPLAY_NAMES["EX"]} seasons.`}
       />
       <div className="mb-10 grid grid-cols-4 gap-3 sm:grid-cols-8">
         {RANKS.map((rank, i) => (
