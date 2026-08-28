@@ -91,7 +91,7 @@ export function StoriesRail() {
         <div className="flex gap-2 overflow-x-auto pb-1.5 sm:gap-4">
           {/* Your stories — single circle, first position. Small accent + badge on bottom-right. */}
           <div className="flex shrink-0 flex-col items-center gap-1 sm:gap-1.5">
-            <div className="relative">
+            <div className="relative h-14 w-14 shrink-0 sm:h-16 sm:w-16">
               <button
                 type="button"
                 onClick={() => {
@@ -103,7 +103,7 @@ export function StoriesRail() {
                   }
                 }}
                 aria-label={myStory ? "View your story" : "Add story"}
-                className={`flex h-14 w-14 items-center justify-center rounded-full p-[4px] transition active:scale-95 sm:h-16 sm:w-16 sm:p-[2px] ${
+                className={`flex h-full w-full items-center justify-center rounded-full p-[4px] transition active:scale-95 sm:p-[2px] ${
                   myStory ? "bg-[var(--surface-strong)]" : "border-2 border-dashed border-gold"
                 }`}
               >
@@ -121,6 +121,7 @@ export function StoriesRail() {
                 </span>
               </button>
               {/* Small accent + badge — bottom-right of the story ring.
+                  Positioned absolute bottom-0 right-0 relative to the exact circle wrapper.
                   No aria-label: the global button[aria-label] rule in globals.css
                   forces min-width/min-height: 44px on mobile, which would balloon
                   this small badge. The parent button already carries the accessible name. */}
@@ -130,7 +131,7 @@ export function StoriesRail() {
                   e.stopPropagation();
                   fileInputRef.current?.click();
                 }}
-                className="absolute -bottom-0.5 -right-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-surface bg-gold text-on-accent shadow-sm transition active:scale-95 sm:h-5 sm:w-5"
+                className="absolute bottom-0 right-0 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-surface bg-gold text-on-accent shadow-sm transition active:scale-95 sm:h-5 sm:w-5"
               >
                 <svg aria-hidden="true" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="sm:w-2.5 sm:h-2.5">
                   <path d="M12 5v14M5 12h14" />
