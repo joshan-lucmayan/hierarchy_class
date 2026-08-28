@@ -131,7 +131,7 @@ export function StoriesRail() {
                   e.stopPropagation();
                   fileInputRef.current?.click();
                 }}
-                className="absolute bottom-0 right-0 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-surface bg-gold text-on-accent shadow-sm transition active:scale-95 sm:h-5 sm:w-5"
+                className="absolute bottom-[2px] right-[2px] flex h-[18px] w-[18px] items-center justify-center rounded-full border border-surface bg-gold text-on-accent shadow-sm transition active:scale-95 sm:bottom-[1px] sm:right-[1px] sm:h-5 sm:w-5"
               >
                 <svg aria-hidden="true" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="sm:w-2.5 sm:h-2.5">
                   <path d="M12 5v14M5 12h14" />

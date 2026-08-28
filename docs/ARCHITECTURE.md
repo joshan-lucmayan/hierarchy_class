@@ -1,6 +1,6 @@
 # Hierarchy Class - Architecture
 
-**Version 1.16.101.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
+**Version 1.16.102.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).

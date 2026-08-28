@@ -101,31 +101,49 @@ export function ProfileHeroCard() {
               <div className="h-full rounded-full bg-sealion" style={{ width: `${trackWidth}%` }} />
             </div>
 
-            {/* Weakest-subject inset — layout like screenshot, visual tokens normal */}
+            {/* Weakest-subject inset — typography matches desktop WeakestSubjectCard (desktop is source of truth) */}
             {weakest ? (
               <div className="mt-4 w-full rounded-[10px] border border-base bg-[var(--surface-strong)] p-3.5 text-left">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-faint">Focus on</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-warn">Weakest subject</p>
+                  <h2 className="section-label">Weakest Subject</h2>
+                  <span className="inline-flex items-center gap-1.5 rounded border border-[rgba(201,143,143,0.3)] bg-[rgba(201,143,143,0.08)] px-2 py-0.5 text-[10.5px] text-warn">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17l10-10" />
+                      <path d="M9 7h8v8" />
+                    </svg>
+                    tracking
+                  </span>
                 </div>
-                <div className="mt-2 flex items-baseline justify-between gap-3">
-                  <p className="break-words text-sm font-bold leading-none text-navy" style={{ fontFamily: "Georgia, Times, serif" }}>
-                    {courseName}
-                  </p>
-                  <p className="shrink-0 text-sm font-medium tabular-nums text-warn">{weakest.avg.toFixed(1)} avg</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line bg-tile text-muted">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+                      <path d="M4 19.5A2.5 2.5 0 016.5 22H20V2H6.5A2.5 2.5 0 004 4.5z" />
+                    </svg>
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-navy">{courseName}</p>
+                    <p className="mt-0.5 text-xs text-muted">Average {weakest.avg.toFixed(1)} · lowest of {weakest.totalTracked} tracked subjects</p>
+                  </div>
                 </div>
-                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-line">
+                <div className="mt-3.5 h-1 w-full overflow-hidden rounded-full bg-line">
                   <div className="h-full rounded-full bg-warn" style={{ width: `${Math.min(weakest.avg, 100)}%` }} />
                 </div>
-                <p className="mt-2 text-[11px] font-normal text-muted">Lowest of {weakest.totalTracked} tracked subjects</p>
+                <p className="mt-2 text-[11px] text-faint">Lowest of {weakest.totalTracked} tracked subjects</p>
               </div>
             ) : (
               <div className="mt-4 w-full rounded-[10px] border border-base bg-[var(--surface-strong)] p-3.5 text-left">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-faint">Focus on</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-warn">Weakest subject</p>
+                  <h2 className="section-label">Weakest Subject</h2>
+                  <span className="inline-flex items-center gap-1.5 rounded border border-[rgba(201,143,143,0.3)] bg-[rgba(201,143,143,0.08)] px-2 py-0.5 text-[10.5px] text-warn">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17l10-10" />
+                      <path d="M9 7h8v8" />
+                    </svg>
+                    tracking
+                  </span>
                 </div>
-                <p className="mt-2 text-sm text-muted">No subject-level grades recorded yet.</p>
+                <p className="mt-4 text-sm text-muted">No subject-level grades recorded yet.</p>
               </div>
             )}
           </>
