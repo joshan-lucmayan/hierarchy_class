@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic tracking platform for students, teachers, and school administrators that turns the report card into an RPG-style character sheet: real grades become tiered **ranks** (S++ down to D), habits build streaks, and every day's work moves you up the ladder. The point is engagement - students stay productive, beat procrastinate, and keep improving academically, while grading data stays strictly controlled by teachers and admins. It blends the social feel of a profile app with the structure and accountability of a school information system.
 
-**Current version:** `1.16.98`
+**Current version:** `1.16.99`
 
 ---
 
@@ -32,15 +32,15 @@ Each admin account is scoped to exactly **one school**.
 | **Teacher** | Blocked (device-warning) | Supported | Supported |
 | **Admin** | Blocked (device-warning) | Supported | Supported |
 
-- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop. On Android phones (< 768px) the Home screen shows the student identity + rank as a prominent card directly below the header, followed by search, stories, and the school feed — reusing the existing `ProfileRankCard` without redesigning colors, typography, or rank visuals. Verified on real browsers from **320px** through 1440px (no horizontal overflow; compact rank badges and wrapping theme cards under 420px); internal scrollers are used intentionally for wide tables/toolbars.
+- **Student** uses a hamburger menu + navigation drawer on phone/tablet, and a sidebar rail on desktop. On Android phones (< 768px) the Home screen shows the student identity + rank as a prominent card directly below the header, followed by stories and the school feed — reusing the existing `ProfileRankCard` without redesigning colors, typography, or rank visuals. **Search behavior** is split by breakpoint: on phone (< 768px), a standalone search icon sits in the header and opens the search overlay; the `QuickSearchBar` on the Home page is hidden. On tablet and desktop (>= 768px), the header search icon is hidden and the `QuickSearchBar` is visible on the Home page (centered on tablet, left-aligned on desktop). Tablet intentionally follows desktop-style search behavior. Verified on real browsers from **320px** through 1440px (no horizontal overflow; compact rank badges and wrapping theme cards under 420px); internal scrollers are used intentionally for wide tables/toolbars.
 - **Teacher** and **Admin** see a dedicated device-warning screen on phone-sized viewports (< 768px) with a clear message to continue on a larger screen. The user remains authenticated; the warning is a UI layer only.
 - The 768px breakpoint (`md:` in Tailwind) cleanly separates phone from tablet. The phone layout stacks the Home content for natural one-hand use; tablet (768px+) keeps the existing desktop/tablet arrangement. Resizing or rotating the device updates the view instantly.
 
 ## Student navigation
 
-- **Phone** (< 768px): Hamburger button in the header opens the drawer (navigation links + logout). The identity/rank card lives prominently on Home itself, so the Home hierarchy is Header → Rank Card → Search/Stories/Feed.
-- **Tablet** (768px–1279px): Hamburger + drawer containing the profile card, stat widgets, navigation links, and logout — same as before.
-- **Desktop** (1280px+): Fixed icon-rail sidebar on the left with the same navigation links and logout. The rank card appears in the right column of Home.
+- **Phone** (< 768px): Hamburger button in the header opens the drawer (navigation links + logout). The identity/rank card lives prominently on Home itself, so the Home hierarchy is Header (with search icon) → Rank Card → Stories/Feed. The header search icon opens the search overlay; the Home page `QuickSearchBar` is hidden.
+- **Tablet** (768px–1279px): Hamburger + drawer containing the profile card, stat widgets, navigation links, and logout. The header search icon is hidden; the Home page `QuickSearchBar` is visible (centered). Tablet follows desktop-style search behavior.
+- **Desktop** (1280px+): Fixed icon-rail sidebar on the left with the same navigation links and logout. The rank card appears in the right column of Home. The header search icon is hidden; the Home page `QuickSearchBar` is visible (left-aligned).
 - The student BottomNav has been removed. All student navigation flows through the drawer (phone/tablet) or sidebar (desktop).
 
 ## Key features

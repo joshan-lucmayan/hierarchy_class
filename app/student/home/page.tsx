@@ -16,8 +16,8 @@ export default function StudentHomePage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pt-0 md:pt-5">
-      {/* Desktop: search bar at top, left-aligned. Hidden on phone/tablet. */}
-      <div className="hidden xl:block">
+      {/* Tablet/Desktop: search bar at top — centered on tablet, left-aligned on desktop. Hidden on phone. */}
+      <div className="hidden md:block mx-auto w-full max-w-md xl:mx-0">
         <QuickSearchBar />
       </div>
 

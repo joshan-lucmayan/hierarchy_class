@@ -110,7 +110,7 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-tile text-muted transition hover:border-sealion active:scale-[0.96]"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-tile text-muted transition hover:border-sealion active:scale-[0.96] md:hidden"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="11" cy="11" r="7" />
