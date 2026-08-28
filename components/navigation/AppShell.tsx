@@ -43,7 +43,7 @@ const SHELL_CLASSES = {
 } as const;
 
 const MAIN_CLASSES = {
-  xl: "flex-1 p-4 sm:p-6 max-md:p-0 max-md:pt-0 xl:p-8 xl:pb-8",
+  xl: "flex-1 p-4 sm:p-6 max-md:px-5 max-md:pt-0 xl:p-8 xl:pb-8",
   md: "flex-1 p-4 sm:p-6 md:p-8 md:pb-8",
 } as const;
 

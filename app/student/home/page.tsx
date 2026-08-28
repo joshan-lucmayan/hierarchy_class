@@ -23,7 +23,7 @@ export default function StudentHomePage() {
 
       {/* Phone: MyDay just above profile card — restored left, adjusted down. */}
       <div className="block space-y-4 md:hidden">
-        <div className="px-4 pt-3">
+        <div className="pt-3">
           <StoriesRail />
         </div>
         <ProfileHeroCard />
