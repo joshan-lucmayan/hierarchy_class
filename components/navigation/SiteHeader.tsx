@@ -76,7 +76,7 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
     return (
       <>
         <header
-          className="relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-1 border-b border-base bg-surface px-2 py-2 sm:gap-2 sm:px-4 xl:mx-0 xl:px-0"
+          className="relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-1 border-b border-base bg-surface px-2 py-2 sm:gap-2 sm:px-4 xl:mx-0 xl:px-0 xl:pl-8"
           style={{
             paddingTop: "max(0.5rem, env(safe-area-inset-top))",
           }}

@@ -26,7 +26,7 @@ Rank authority stays server-side (Supabase RPC `approve_grade_submission` etc.).
 
 ## Versioning
 
-App version source: `package.json` `version` is the web release (`1.16.99`). The Android shell tracks it only when a native build is made: currently `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11590` (`major*10000 + minor*100 + patch`). At a native release, bump `package.json`, `android/twa-manifest.json`, and the generated `android/app/build.gradle` `versionCode`/`versionName` together (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
+App version source: `package.json` `version` is the web release (`1.16.100`). The Android shell tracks it only when a native build is made: currently `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11590` (`major*10000 + minor*100 + patch`). At a native release, bump `package.json`, `android/twa-manifest.json`, and the generated `android/app/build.gradle` `versionCode`/`versionName` together (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
 
 ## Icon source
 
