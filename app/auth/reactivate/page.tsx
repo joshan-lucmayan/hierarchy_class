@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LandingBackground } from "@/components/landing/Background";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
-import { reactivateAccount } from "@/app/actions/account";
+import { reactivateAccount } from "@/lib/bridgeClient";
 
 /**
  * Shown to signed-in users whose account is deactivated (middleware redirects

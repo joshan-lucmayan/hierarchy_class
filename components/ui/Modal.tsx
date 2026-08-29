@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconX } from "@/components/ui/icons";
+import { registerBackHandler } from "@/lib/nativeBackHandler";
 
 /**
  * Shared modal shell, matching the PostEditor visual language: dimmed
@@ -54,10 +55,18 @@ export function Modal({ onClose, eyebrow, description, children, maxWidth = "max
       }
     }
     document.addEventListener("keydown", onKeyDown);
-    // Move focus to the panel itself (not a button, so no visual ring on
-    // touch); screen readers announce the dialog via aria-label.
+    // Android hardware back closes the dialog before any navigation happens
+    // (the global native backButton listener consults this registry first).
+    // Inert on the web, where nothing consumes the registry.
+    const unregister = registerBackHandler(() => {
+      onClose();
+      return true;
+    });
     panelRef.current?.focus({ preventScroll: true });
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      unregister();
+    };
   }, [mounted, onClose]);
 
   // Modals only ever render after a user interaction, but the guard keeps the

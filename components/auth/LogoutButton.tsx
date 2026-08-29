@@ -5,13 +5,88 @@ import { createClient } from "@/lib/supabase/client";
 import { Modal } from "@/components/ui/Modal";
 
 /**
- * Shared sign-out control for every role: a quiet trigger plus a bottom-sheet
- * confirmation on phones / centered dialog on larger screens. Signing out
- * reuses the existing Supabase browser session and mirrors SideNav's
- * desktop behavior - a full-page navigation to "/" so no authenticated React
- * state survives (the landing page shows signed-out content and middleware
- * guards the role prefixes).
+ * Shared sign-out flow for every role: a confirm dialog (bottom sheet on
+ * phones / centered dialog on larger screens) followed by signOut and a
+ * clean-state reload. useLogoutFlow + LogoutConfirmModal are consumed by the
+ * LogoutButton trigger AND the role bottom navs (Android phones), so every
+ * surface shares exactly one implementation.
+ *
+ * Signing out reuses the existing Supabase browser session. The navigation
+ * uses location.replace("/") — same full-state reset as before, but it
+ * REPLACES the current history entry so the hardware/app back button never
+ * re-enters the now-unauthenticated pages.
  */
+export function useLogoutFlow() {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function confirmLogout() {
+    setIsLoggingOut(true);
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      window.location.replace("/");
+    } catch {
+      setIsLoggingOut(false);
+    }
+  }
+
+  return { confirmOpen, setConfirmOpen, isLoggingOut, confirmLogout };
+}
+
+export function LogoutConfirmModal({
+  open,
+  onClose,
+  isLoggingOut,
+  onConfirm,
+}: {
+  open: boolean;
+  onClose: () => void;
+  isLoggingOut: boolean;
+  onConfirm: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <Modal
+      align="sheet"
+      maxWidth="max-w-md"
+      ariaLabel="Sign out of Hierarchy Class"
+      onClose={() => {
+        if (!isLoggingOut) onClose();
+      }}
+    >
+      <div className="mx-auto mb-4 mt-1 h-1 w-10 rounded-full bg-gold-token sm:hidden" aria-hidden />
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Log out</p>
+      <h2 className="mt-2 text-xl font-bold text-navy">Sign out of Hierarchy Class?</h2>
+      <p className="mt-3 text-sm leading-6 text-muted">
+        You will need to sign in again to continue tracking progress, messages, and materials on this device.
+      </p>
+      <div className="mt-5 flex gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={isLoggingOut}
+          className="min-h-[44px] flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover-border-gold-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] touch-manipulation"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={isLoggingOut}
+          aria-label="Confirm sign out of Hierarchy Class"
+          className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover:text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] touch-manipulation"
+        >
+          {isLoggingOut && (
+            <span aria-hidden className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          )}
+          Log out
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 export function LogoutButton({
   label = "Log out",
   variant = "outline",
@@ -19,21 +94,7 @@ export function LogoutButton({
   label?: string;
   variant?: "outline" | "danger" | "ghost";
 }) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  async function handleLogout() {
-    setIsLoggingOut(true);
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      // Full reload: clears in-memory stores/caches and makes back navigation
-      // re-request protected routes from the server (which redirects).
-      window.location.href = "/";
-    } catch {
-      setIsLoggingOut(false);
-    }
-  }
+  const { confirmOpen, setConfirmOpen, isLoggingOut, confirmLogout } = useLogoutFlow();
 
   return (
     <>
@@ -51,45 +112,12 @@ export function LogoutButton({
         {label}
       </button>
 
-      {confirmOpen && (
-        <Modal
-          align="sheet"
-          maxWidth="max-w-md"
-          ariaLabel="Sign out of Hierarchy Class"
-          onClose={() => {
-            if (!isLoggingOut) setConfirmOpen(false);
-          }}
-        >
-          <div className="mx-auto mb-4 mt-1 h-1 w-10 rounded-full bg-gold-token sm:hidden" aria-hidden />
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Log out</p>
-          <h2 className="mt-2 text-xl font-bold text-navy">Sign out of Hierarchy Class?</h2>
-          <p className="mt-3 text-sm leading-6 text-muted">
-            You will need to sign in again to continue tracking progress, messages, and materials on this device.
-          </p>
-          <div className="mt-5 flex gap-2">
-            <button
-              type="button"
-              onClick={() => setConfirmOpen(false)}
-              disabled={isLoggingOut}
-              className="min-h-[44px] flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover-border-gold-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] touch-manipulation"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              aria-label="Confirm sign out of Hierarchy Class"
-              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover:text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] touch-manipulation"
-            >
-              {isLoggingOut && (
-                <span aria-hidden className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              )}
-              Log out
-            </button>
-          </div>
-        </Modal>
-      )}
+      <LogoutConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        isLoggingOut={isLoggingOut}
+        onConfirm={confirmLogout}
+      />
     </>
   );
 }

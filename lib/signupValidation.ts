@@ -1,13 +1,14 @@
 /**
  * Shared, pure signup validation.
  *
- * Used by BOTH the server action (app/actions/auth.ts) and the client form
+ * Used by BOTH the signup bridge route (app/api/bridge/auth/signup →
+ * lib/server/authOps.ts) and the client form
  * (components/auth/SignupForm.tsx) so the UI and the server enforce exactly
  * the same policy. Also unit-tested in lib/signupValidation.test.ts.
  *
  * Nothing here touches the database - school eligibility and identifier
- * uniqueness are checked by the server action (against the schools/profiles
- * tables) on top of these rules.
+ * uniqueness are checked by the server bridge implementation (against the
+ * schools/profiles tables) on top of these rules.
  */
 
 export const PUBLIC_SIGNUP_ROLES = ["student", "teacher"] as const;

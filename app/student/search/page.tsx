@@ -112,13 +112,13 @@ function SearchPageInner() {
   // profile page so the person's profile opens alone, not over the list.
   useEffect(() => {
     if (profileParam) {
-      router.replace(`/student/profile/${profileParam}`);
+      router.replace(`/student/profile/view?id=${profileParam}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileParam]);
 
   function openProfile(person: ProfileRow) {
-    router.push(`/student/profile/${person.id}`);
+    router.push(`/student/profile/view?id=${person.id}`);
   }
 
   const matches = (p: ProfileRow, normalized: string) =>

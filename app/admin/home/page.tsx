@@ -23,7 +23,7 @@ import { useClassroomHierarchy, type GradeEntry } from "@/lib/classroomHierarchy
 import { useTeacherTasks } from "@/lib/teacherTasksStore";
 import { useSchoolFeed, type SchoolPost } from "@/lib/schoolFeedStore";
 import { useAccountRequests } from "@/lib/useAccountRequests";
-import { resolveDeletionRequest } from "@/app/actions/account";
+import { resolveDeletionRequest } from "@/lib/bridgeClient";
 import { useRankStore } from "@/lib/rankStore";
 import { useAdminEnrollments } from "@/lib/useEnrollment";
 import { useSchoolProfiles } from "@/lib/useSchoolProfiles";

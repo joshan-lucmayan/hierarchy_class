@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { StudentMusicRow } from "@/types/supabase";
-import type { ResolvedMusic } from "@/app/api/resolve-music/route";
+import type { ResolvedMusic } from "@/lib/musicTypes";
 import { createClient } from "@/lib/supabase/client";
+import { backendUrl } from "@/lib/siteUrl";
 
 export interface MusicProfile {
   id: string;
@@ -82,7 +83,7 @@ export function useMusic(studentId?: string | null) {
  * message on any failure so the UI can show it directly.
  */
 export async function resolveMusicUrl(url: string): Promise<ResolvedMusic> {
-  const res = await fetch("/api/resolve-music", {
+  const res = await fetch(backendUrl("/api/resolve-music"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url }),

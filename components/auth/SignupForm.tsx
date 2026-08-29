@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { School } from "@/types/school";
 import { useSchools } from "@/lib/useSchools";
 import { SchoolSelector } from "./SchoolSelector";
-import { signUpWithProfile, resendSignupConfirmation } from "@/app/actions/auth";
+import { signUpWithProfile, resendSignupConfirmation } from "@/lib/bridgeClient";
 import {
   validateSignupInput,
   type PublicSignupRole,

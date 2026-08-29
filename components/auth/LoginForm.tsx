@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { homePathForRole } from "@/lib/authz";
-import { resendSignupConfirmation } from "@/app/actions/auth";
-import type { Role } from "@/types/supabase";
+import { isNativeApp, cacheNativeRole } from "@/lib/native";
+import { resolvePasswordLogin } from "@/lib/passwordLogin";
+import { resendSignupConfirmation } from "@/lib/bridgeClient";
 
 function FieldLabel({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -60,51 +61,28 @@ export function LoginForm() {
       }
 
       const supabase = createClient();
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const result = await resolvePasswordLogin(supabase, email, password);
 
-      if (signInError || !authData.user) {
-        const message = signInError?.message ?? "Incorrect email or password.";
-        if (/not confirmed|confirm/i.test(message)) {
-          setErrors({ form: "Your email isn't confirmed yet. Confirm the link we sent you, or resend it below." });
-          setResendEmail(email.trim());
-        } else {
-          setErrors({ form: "Incorrect email or password." });
-        }
+      if (!result.ok) {
+        setErrors({ form: result.error });
+        if (result.resendEmail) setResendEmail(result.resendEmail);
         return;
       }
 
-      // Email confirmation is enforced server-side (login itself refuses
-      // unconfirmed accounts; middleware re-checks on every request).
-      if (!authData.user.email_confirmed_at) {
-        setErrors({ form: "Your email isn't confirmed yet. Confirm the link we sent you, or resend it below." });
-        setResendEmail(email.trim());
-        return;
-      }
-
-      // Resolve the role from the profiles table (database truth) - never
-      // from user_metadata, which the user can edit themselves.
-      const { data: profile } = (await supabase
-        .from("profiles")
-        .select("role, school_id")
-        .eq("user_id", authData.user.id)
-        .maybeSingle()) as { data: { role: string; school_id: string } | null };
-
-      if (!profile) {
-        setErrors({ form: "Your account isn't set up yet. Contact your school admin." });
-        return;
-      }
-
-      const role = profile.role as Role;
-      if (role !== "student" && role !== "teacher" && role !== "admin") {
-        setErrors({ form: "Your account role is not valid. Contact your admin." });
-        return;
-      }
+      const role = result.role;
 
       // Credentials + profile resolved - show the branded loading state while
       // the session redirects to the user's home (never a frozen form).
+      if (isNativeApp()) {
+        // Remember the role for the Android offline cold-start path.
+        cacheNativeRole(role);
+        // location.replace: the login page leaves the history stack, so the
+        // hardware back button from the role home never re-opens the entry/
+        // login flow (and the native root gate never has to bounce back).
+        setPhase("authenticating");
+        window.location.replace(homePathForRole(role));
+        return;
+      }
       setPhase("authenticating");
       window.location.href = homePathForRole(role);
     } catch {

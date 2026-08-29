@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { StudentMusicRow } from "@/types/supabase";
-import type { ResolvedMusic } from "@/app/api/resolve-music/route";
+import type { ResolvedMusic } from "@/lib/musicTypes";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useMusic, resolveMusicUrl, type MusicProfile } from "@/lib/useMusic";
 import { Button } from "@/components/ui/Button";

@@ -23,6 +23,10 @@ import { useFlorin } from "@/lib/florinStore";
 import { FlorinPackageCard } from "./FlorinPackageCard";
 import { useOnline } from "@/lib/useOnline";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { backendUrl } from "@/lib/siteUrl";
+import { isNativeApp } from "@/lib/native";
+import { registerBackHandler } from "@/lib/nativeBackHandler";
+import { Browser } from "@capacitor/browser";
 
 // ============================================================================
 // TYPES
@@ -64,7 +68,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
     
     async function loadPackages() {
       try {
-        const response = await fetch('/api/payments/packages');
+        const response = await fetch(backendUrl('/api/payments/packages'));
         
         if (!response.ok) {
           throw new Error('Failed to load packages');
@@ -104,7 +108,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
     setError(null);
     
     try {
-      const response = await fetch('/api/payments/create-checkout', {
+      const response = await fetch(backendUrl('/api/payments/create-checkout'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,9 +125,16 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
       
       const data: CheckoutResponse = await response.json();
       
-      // Redirect to PayMongo checkout
+      // Redirect to PayMongo checkout. In the standalone Android app the
+      // hosted checkout (an off-origin URL) must leave the app shell - open
+      // it in the system browser and return via the app switcher. On the web
+      // the same-origin navigation behaves exactly as before.
       if (data.checkout_url) {
-        window.location.href = data.checkout_url;
+        if (isNativeApp()) {
+          void Browser.open({ url: data.checkout_url });
+        } else {
+          window.location.href = data.checkout_url;
+        }
       } else {
         throw new Error('No checkout URL received');
       }
@@ -140,6 +151,14 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
       onClose();
     }
   }, [isProcessing, onClose]);
+
+  // Android hardware back closes the modal before any navigation happens.
+  useEffect(() => {
+    return registerBackHandler(() => {
+      handleClose();
+      return true;
+    });
+  }, [handleClose]);
   
   return (
     <div

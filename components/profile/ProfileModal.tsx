@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useFriendsStore } from "@/lib/friendsStore";
@@ -11,6 +12,7 @@ import { useShop } from "@/lib/shopStore";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { registerBackHandler } from "@/lib/nativeBackHandler";
 import type { ProfileRow } from "@/types/supabase";
 
 /**
@@ -22,6 +24,15 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
   const { profileCardOf } = useShop();
   const cardBg = profileCardOf(person.id);
   const router = useRouter();
+
+  // Android hardware back closes the preview before any navigation happens.
+  useEffect(() => {
+    return registerBackHandler(() => {
+      onClose();
+      return true;
+    });
+  }, [onClose]);
+
   const { profile: me } = useMyProfile();
   const { rankOf } = useRankStore();
   const { getCoursesByTeacher } = useClassroomHierarchy();
@@ -168,7 +179,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
             )}
             <button
               type="button"
-              onClick={() => router.push(`/student/profile/${person.id}`)}
+              onClick={() => router.push(`/student/profile/view?id=${person.id}`)}
               className="rounded-full border border-base px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
             >
               View full profile

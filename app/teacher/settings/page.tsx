@@ -11,8 +11,9 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { IconPencil } from "@/components/ui/icons";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { createClient } from "@/lib/supabase/client";
-import { deactivateAccount } from "@/app/actions/account";
+import { deactivateAccount } from "@/lib/bridgeClient";
 import { APP_VERSION } from "@/lib/version";
+import { backendUrl } from "@/lib/siteUrl";
 
 export default function TeacherSettingsPage() {
   const { request } = useAccountRequests();
@@ -193,7 +194,7 @@ export default function TeacherSettingsPage() {
           </div>
           <div className="mt-5 space-y-2">
             <a
-              href="/api/export-account"
+              href={backendUrl("/api/export-account")}
               className="flex w-full items-center justify-center rounded-[10px] border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-gold"
             >
               Download My Data

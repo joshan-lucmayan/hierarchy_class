@@ -1,13 +1,59 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { SideNav } from "@/components/navigation/SideNav";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { TeacherBottomNav } from "@/components/navigation/TeacherBottomNav";
 import { AdminBottomNav } from "@/components/navigation/AdminBottomNav";
 import { DeviceWarning } from "@/components/navigation/DeviceWarning";
 import { PageBackdrop } from "@/components/dashboard/PageBackdrop";
+import { createClient } from "@/lib/supabase/client";
+import { isNativeApp } from "@/lib/native";
 
 type Role = "student" | "teacher" | "admin";
+
+/**
+ * Standalone Android app has no edge middleware, so role sections guard
+ * themselves: an unauthenticated (or expired-session) visitor of any shell
+ * route is sent to /login. Uses getUser() — network-validated, refreshes the
+ * persisted session — rather than getSession(), which would happily return an
+ * expired local session and leave the user on a protected page with failing
+ * data. On a network failure the page is kept (its data hooks surface the
+ * offline state; no surprise logout), only a definitive auth rejection or a
+ * confirmed missing session clears it.
+ */
+function useNativeAuthGuard() {
+  const router = useRouter();
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    let disposed = false;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (disposed || user) return;
+        const status = (error as { status?: number } | null)?.status;
+        const authRejected =
+          typeof status === "number" && status >= 400 && status < 500;
+        const offline = typeof navigator !== "undefined" && !navigator.onLine;
+        if (!error || (authRejected && !offline)) {
+          // No session at all, or the stored one was definitively rejected:
+          // clear it so a stale token can't linger, then send to /login.
+          await supabase.auth.signOut().catch(() => undefined);
+          if (!disposed) router.replace("/login");
+        }
+        // Offline / transient backend failure: keep the page rendering; its
+        // data hooks show their own offline errors.
+      } catch {
+        /* backend unreachable - let the page render its own error states */
+      }
+    })();
+    return () => {
+      disposed = true;
+    };
+  }, [router]);
+}
 
 function BottomNavForRole({ role }: { role: Role }) {
   if (role === "teacher") return <TeacherBottomNav />;
@@ -57,8 +103,17 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pad = bottomPaddingFor(role);
-  const isPhoneBlocked = role === "teacher" || role === "admin";
-  const desktopAt = isPhoneBlocked ? "md" : "xl";
+  // Teacher/admin phones get the DeviceWarning screen on the WEB only. The
+  // standalone Android app must be usable on phones: the role's mobile bottom
+  // nav (TeacherBottomNav / AdminBottomNav, self-hidden at md+ where the
+  // SideNav takes over) is the existing mobile navigation, so native phones
+  // render the real app instead of the block screen.
+  const isPhoneBlocked =
+    (role === "teacher" || role === "admin") && !isNativeApp();
+  // Student pivots to desktop chrome at xl (1280px); teacher/admin at md
+  // (768px) — on every platform, native included.
+  const desktopAt = role === "student" ? "xl" : "md";
+  useNativeAuthGuard();
 
   return (
     <div className="relative min-h-screen text-[var(--text)]" style={{ minHeight: "100dvh" }}>

@@ -9,6 +9,7 @@ import {
   normalizeBuild,
 } from "@/lib/appUpdate";
 import { AppUpdatePrompt } from "@/components/pwa/AppUpdatePrompt";
+import { isNativeApp } from "@/lib/native";
 
 /**
  * Global app-update orchestrator (mounted once in the root layout).
@@ -113,6 +114,10 @@ export function ServiceWorkerRegistration() {
   );
 
   useEffect(() => {
+    // Standalone Android app: the frontend is bundled in the APK, the service
+    // worker / deployment-version update model does not apply (updates ship
+    // as new APK builds), and the backend is a different origin.
+    if (isNativeApp()) return;
     if (!("serviceWorker" in navigator)) return;
     // Only register in secure contexts (HTTPS or localhost)
     if (!window.isSecureContext) return;

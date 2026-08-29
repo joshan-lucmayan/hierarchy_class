@@ -1,154 +1,140 @@
-# Android — Trusted Web Activity (TWA) for Hierarchy Class
+# Android — Standalone App (Capacitor)
 
-> Source PWA: `public/manifest.json` + `public/sw.js` (vanilla, no Workbox)
-> Package: `com.hierarchyclass.app` — `versionName 1.15.90` — `versionCode 11590`
+> Package: `com.hierarchyclass.app` — `versionName 1.22.110` — `versionCode 122110` — **minSdk 24, target/compileSdk 36**
+> Stack: Capacitor 8.5 (core/android/browser) + statically exported Next.js frontend bundled in the APK
 
 ## Architecture
 
 ```
-Next.js 14.2.5 (App Router) → HTTPS production (https://www.hierarchyclass.com)
-  → PWA manifest (public/manifest.json) + SW (public/sw.js, CACHE_STATIC hc-static-v1)
-  → Trusted Web Activity (Bubblewrap) → Android APK / AAB (Play Store)
+APK (com.hierarchyclass.app)
+ └─ MainActivity (Capacitor WebView)
+     └─ bundled frontend: android/app/src/main/assets/public/   ← from out/ (static export)
+          ↓ https://localhost (local asset server; no browser UI, no Custom Tabs)
+     ├─ Supabase (auth, Postgres+RLS, Realtime, Storage)  ← direct HTTPS, public anon key
+     └─ Deployed backend https://www.hierarchyclass.com   ← /api/bridge/*, /api/payments/*,
+                                                             /api/feedback, /api/resolve-music,
+                                                             /api/export-account, /api/version
 ```
 
-Rank authority stays server-side (Supabase RPC `approve_grade_submission` etc.). No offline rank mutation queue. See `lib/rankEngine.ts` and `docs/ANDROID.md` offline rules.
+- The **frontend is bundled**: launching the app never loads `hierarchyclass.com` for UI.
+- **Auth is direct Supabase** (`supabase-js` in the WebView; session persists in WebView localStorage
+  via `@supabase/ssr`'s browser client — reliable across cold starts, so no native storage adapter).
+- Server-only operations (signup with school-eligibility checks, account lifecycle, payments, email,
+  music resolution, data export) run on the deployed Next.js backend and are called through
+  `lib/bridgeClient.ts` → `app/api/bridge/*` (the same implementations the web app uses via
+  `lib/server/*`). Secrets stay server-side; only `NEXT_PUBLIC_*` values are inlined.
+- The previous Bubblewrap TWA is archived untouched at `../android-twa/` (same keystore; see
+  `../android-twa/README.md` for its history). The standalone app signs with the SAME
+  `android-twa/android.keystore` and a higher versionCode, so it installs over TWA builds as an update.
 
-## Prerequisites — verified on this Arch Linux machine (2026-08-26)
+## Authentication boot flow (components/native/NativeRootGate.tsx)
 
-- Node 26.7.0, npm 12 (`npm config get prefix` → set to `~/.local` for user-level globals)
-- **Java:** JDK 17 active system default — `/usr/lib/jvm/java-17-openjdk` (17.0.20.1). Pass this exact path as Bubblewrap `jdkPath`.
-- **Android SDK root (user-level, writable):** `~/Android/Sdk`
-  - The AUR packages install a **root-owned read-only** SDK at `/opt/android-sdk`; locate binaries with `pacman -Ql <pkg>` (e.g. `/opt/android-sdk/cmdline-tools/latest/bin/sdkmanager`). `sdkmanager --sdk_root=/opt/android-sdk` fails without sudo.
-  - `~/Android/Sdk` holds build-tools 36.1.0 + 37.0.0, platforms android-36 + android-36.1, platform-tools (adb), cmdline-tools latest, accepted `licenses/`, and a `bin -> cmdline-tools/latest/bin` symlink (Bubblewrap ≤1.25 checks legacy `<sdk>/bin`).
-- **User env** in `~/.bashrc`: `ANDROID_HOME`/`ANDROID_SDK_ROOT=$HOME/Android/Sdk`, PATH += `cmdline-tools/latest/bin`, `platform-tools`, `build-tools/37.0.0`.
-- **Bubblewrap CLI 1.25.0** at `~/.local/bin/bubblewrap`; config `~/.bubblewrap/config.json` → jdkPath `/usr/lib/jvm/java-17-openjdk`, androidSdkPath `$HOME/Android/Sdk`. `bubblewrap doctor` → ✅ valid.
-- Production HTTPS domain **live**: `https://www.hierarchyclass.com` serves the Next.js app with `/.well-known/assetlinks.json` reachable (HTTP 200, valid JSON, matching fingerprints).
+"/" serves static HTML that IS the minimal entry screen (logo + spinner), so a cold start never
+flashes a Home or login page. One client gate owns the whole boot decision — no setTimeout, no
+timeouts-based races, no second auth system:
+
+1. `auth.getSession()` (local, offline-safe): no session → entry screen with **Log In /
+   Create an Account** (fresh install / signed out).
+2. `auth.getUser()` (network-validated, refreshes tokens): failure with a 4xx → the stored session
+   is expired/invalid → `signOut()` clears it (plus the role hint) → entry screen.
+3. Profile row (`profiles.role`, database truth — never `user_metadata`): restricted →
+   `/auth/restricted`, deactivated → `/auth/reactivate`, unverified email → `/login?unverified=1`,
+   valid role → `router.replace(/<role>/home)` (Student/Teacher/Admin home), no profile →
+   `/auth/incomplete`.
+4. Offline with a persisted session: the last known role (`lib/native.ts` localStorage hint) routes
+   to the role home; no logout happens just because the network is down.
+
+After login, the role home is loaded with `location.replace` — the login page leaves the history
+stack, so hardware back from the role home exits the app instead of re-entering the auth flow.
+After logout (`components/auth/LogoutButton.tsx`) the entry screen is shown and the session stays
+cleared across restarts.
+
+## Android navigation
+
+- **Student:** header hamburger on Home (< xl) → `MobileDrawer` (the same `STUDENT_NAV_ITEMS` the
+  desktop `SideNav` uses; Home, Messages, Materials, Library, Quiz, Leaderboard, Shop, Habits,
+  Profile, Settings + logout). Sub-pages show a back arrow. xl+ pivots to the desktop SideNav.
+- **Teacher/Admin:** role bottom nav on phones (`TeacherBottomNav` / `AdminBottomNav`, self-hidden
+  at md+) with Home, role areas, Settings and logout; md+ pivots to the desktop SideNav. The
+  teacher/admin phone block screen (`DeviceWarning`) is web-only — native phones get the real app.
+
+## Android back button (components/native/NativeBackButton.tsx)
+
+ONE global `App.addListener("backButton")` listener mounted from the root layout (native only):
+
+1. An open overlay (Modal / SearchOverlay / ProfileModal / FlorinPurchaseModal — registered in
+   `lib/nativeBackHandler.ts`; the topmost handler wins) consumes the press and closes itself.
+2. Otherwise, if the WebView has in-app history (`canGoBack`) → `history.back()` (the MobileDrawer
+   participates through its own pushed history entry).
+3. Otherwise — at the root (role home, entry screen) → `App.exitApp()`, standard Android behavior.
+
+The entry screen registers a root handler while it is up, so stale authenticated history behind "/"
+after a sign-out is unreachable. No duplicate listeners, no browser interference, no logout loops.
+
+## Prerequisites (this machine — verified 2026-08-28)
+
+- **JDK 21** (`/usr/lib/jvm/java-21-openjdk`) — Capacitor 8's Android module needs Java 21 (JDK 17 fails with `invalid source release: 21`).
+- Android SDK `~/Android/Sdk` (build-tools 37, platform 36, platform-tools) with `ANDROID_SDK_ROOT` set.
+- Node + the repo's npm dependencies (includes `@capacitor/core|android|browser` + dev `@capacitor/cli`).
+
+## Build
+
+```bash
+# 1. Statically export the frontend into out/ (moves middleware/api aside, restores after)
+npm run export:android
+
+# 2. Copy out/ into the native project + update plugins
+npx cap sync android
+
+# 3a. Debug APK
+cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew assembleDebug --no-daemon
+#    → app/build/outputs/apk/debug/app-debug.apk
+
+# 3b. Signed release APK + AAB (requires android/keystore.properties, see Signing)
+cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew assembleRelease bundleRelease --no-daemon
+#    → app/build/outputs/apk/release/app-release.apk
+#    → app/build/outputs/bundle/release/app-release.aab
+```
+
+**Deployment prerequisite:** the Android app calls `https://www.hierarchyclass.com/api/bridge/*`.
+Those routes ship with this repo — deploy the web app BEFORE distributing APK builds, otherwise
+signup/account operations fall back to the bridge client's generic offline error (login, being
+direct Supabase, works regardless).
+
+## Signing
+
+`android/keystore.properties` (gitignored, mode 600) holds the release signing material:
+
+```
+storeFile=../../android-twa/android.keystore
+storePassword=…
+keyAlias=android
+keyPassword=…
+```
+
+The keystore is the original Bubblewrap keystore (untracked); its certificate SHA-256 is the one
+already published in `public/.well-known/assetlinks.json`. Without `keystore.properties`,
+`assembleRelease` produces an unsigned APK and `signingConfig` is skipped.
 
 ## Versioning
 
-App version source: `package.json` `version` is the web release (`1.17.103`). The Android shell tracks it only when a native build is made: currently `android/twa-manifest.json` `appVersion`/`packageVersion` + `appVersionCode: 11590` (`major*10000 + minor*100 + patch`). At a native release, bump `package.json`, `android/twa-manifest.json`, and the generated `android/app/build.gradle` `versionCode`/`versionName` together (until `bubblewrap update` can regenerate against the live deployment). `versionCode` must always increase for Play Store.
+Bump `versionCode`/`versionName` in `android/app/build.gradle` at a native release (versionCode
+must always increase for Play). The web version in `package.json` is independent (see
+`docs/ANDROID.md`).
 
-## Icon source
+## Device/permissions notes
 
-`public/icon.svg` (crown #9ea7b3 on #141214) → `sharp` generates `public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png` (51px padding on #0f0f11) and `apple-touch-icon-180.png`. See `scripts/generate-pwa-icons.mjs` if recreated.
+- Permissions: `INTERNET` + `CAMERA` only. CAMERA backs the in-app QR scanner (html5-qrcode via
+  WebView getUserMedia); Capacitor's bridge surfaces the runtime prompt and denies gracefully.
+- PayMongo checkout and other external URLs open in the system browser via `@capacitor/browser`
+  (`Browser.open`) — the app shell itself never renders browser chrome.
+- The PWA service worker / update prompt / install banner are intentionally disabled inside the
+  app (`lib/native.ts` guards); updates ship as new APK builds.
+- Known benign log line at startup: `Error injecting safe area CSS` (Capacitor 8 SystemBars
+  races the first page paint; the app uses native `env(safe-area-inset-*)` and is unaffected).
 
-## Bubblewrap build (verified)
+## Testing status
 
-```bash
-export PATH="$HOME/.local/bin:$PATH"
+**2026-08-30 — physical device (POCO 22111317PG, ADB 71a314040000):** install ✓, launch ✓, MainActivity ✓ (no TWA/browser), entry screen ✓ (branding, tagline, purpose, Log In, Create an Account), login ✓ (fields, validation, Supabase invalid-credential error, forgot/signup nav), signup ✓ (all fields, scroll, CREATE ACCOUNT reachable), forgot-password ✓ (submission, generic success state, no fake success), keyboard ✓ (Next advancement on all forms, Enter advances focus, terminal Go submits), back button ✓ (priority: overlay → history → exit; all auth-screen traversal verified), offline ✓ (login shows "You're offline" message, forgot shows connection error, no fake success), deep-link ✓ (fake code → reset-password invalid state, no crash), lifecycle ✓ (background/resume, recent apps, force-stop/relaunch), form abuse ✓ (rapid taps, no duplicate navigation), visual ✓ (consistent 52px buttons, rounded-xl, safe-area, dark-theme, no Portalyx contamination). Web suite green (tsc, lint, 160/160 tests, build, PWA).
 
-# Non-interactive passwords (keystore password also at ~/.bubblewrap/hc-keystore.pass)
-export BUBBLEWRAP_KEYSTORE_PASSWORD=$(cat ~/.bubblewrap/hc-keystore.pass)
-export BUBBLEWRAP_KEY_PASSWORD=$BUBBLEWRAP_KEYSTORE_PASSWORD
-
-# Regenerate project from canonical manifest (needs reachable webManifestUrl + icons):
-bubblewrap update --manifest android/twa-manifest.json --directory android --skipVersionUpgrade
-
-# Debug APK:
-cd android && JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleDebug --no-daemon
-
-# Signed release APK + AAB:
-cd android && bubblewrap build --manifest twa-manifest.json
-```
-
-**Production artifacts (2026-08-26, v1.15.90, `www.hierarchyclass.com` config):**
-
-- `android/app/build/outputs/apk/debug/app-debug.apk` — 5,052,528 B (badging: `com.hierarchyclass.app`, versionCode 11590, versionName 1.15.90)
-- `android/app-release-signed.apk` — 1,142,956 B (`apksigner verify` v1+v2+v3 OK; cert SHA-256 `8c95e7dc38449b4bd682d358986e4b606400dbe19c29ba60e155e31eef51e846`)
-- `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) — 1,253,380 B (valid AAB: BundleConfig.pb, base/manifest, dex, resources.pb)
-
-**Rebuild re-verification (2026-08-28, same repo state):** `./gradlew assembleDebug` and `bubblewrap build --skipVersionUpgrade` were re-run after fixing the stale `manifest-checksum.txt`. The fresh `app-release-signed.apk` is **byte-identical** (`cmp`) to the distributed `public/downloads/hierarchy-class-v1.15.90.apk` — the release build is reproducible from the repo, so `lib/apkRelease.ts` size/SHA-256 records stay valid without re-auditing. The debug APK (signed with this machine's `~/.android/debug.keystore`) also verifies as a TWA on-device because its debug fingerprint is published in `assetlinks.json`.
-
-**Canonical regeneration (2026-08-26):** the project was regenerated with `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` directly against the live production manifest — no manual patching. Re-run this exact command whenever `twa-manifest.json` changes and the domain is reachable:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-cd .. && bubblewrap update --manifest android/twa-manifest.json --directory android --skipVersionUpgrade && cd android
-```
-
-Re-verify `https://www.hierarchyclass.com/.well-known/assetlinks.json` returns the real fingerprint (HTTP 200, valid JSON).
-
-## Rebuilding after a version bump
-
-1. Bump `package.json:version` and `android/twa-manifest.json` `appVersion`/`packageVersion`/`appVersionCode` together (versionCode must increase).
-2. `bubblewrap update --manifest android/twa-manifest.json --directory android` (omit `--skipVersionUpgrade` to auto-increment versionCode) → regenerates `android/app/` + refreshes `manifest-checksum.txt`.
-3. Rebuild APK/AAB as above; upload the signed AAB to Play Console.
-
-## Signing — CURRENT STATE
-
-- `android/android.keystore` **exists** (gitignored, mode 600): alias `android`, RSA-2048, 30-year validity. Password stored OUTSIDE the repo at `~/.bubblewrap/hc-keystore.pass` (mode 600) — back it up to a password manager.
-- Certificate SHA-256 (public): `8c95e7dc38449b4bd682d358986e4b606400dbe19c29ba60e155e31eef51e846`
-- **Debug:** Gradle auto-generates the user debug keystore at `~/.android/debug.keystore` (do not commit).
-- For Play Store: upload `app-release-bundle.aab`, enroll in Play App Signing, then fetch the **Play signing SHA-256** (Play Console → Setup → App signing) and put it in `public/.well-known/assetlinks.json`.
-
-## Digital Asset Links
-
-File: `public/.well-known/assetlinks.json` → served at `https://www.hierarchyclass.com/.well-known/assetlinks.json`
-
-**Current state (2026-08-26, updated 2026-08-28):** contains the VERIFIED fingerprint of the release keystore **plus this machine's Android debug keystore** (added in `c48914a` so dev/debug builds also verify as TWA):
-
-```json
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.hierarchyclass.app",
-      "sha256_cert_fingerprints": [
-        "8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46",
-        "B6:7B:34:DB:95:E0:97:C2:75:93:4C:04:34:55:22:FD:E8:A4:31:C1:84:69:CE:9B:52:9C:39:70:E8:10:C2:69"
-      ]
-    }
-  }
-]
-```
-
-> The second fingerprint is the local `~/.android/debug.keystore` (alias `androiddebugkey`) — it only matches debug APKs signed on machines sharing that keystore. Both entries were re-verified against the actual keystores with `keytool -list` on 2026-08-28.
-
-**How it works:** when the Android app opens a URL, Chrome fetches this file from the SAME domain and checks whether the app's signing certificate matches a listed fingerprint for the package name. Match → TWA renders fullscreen without browser UI. No match / file unreachable → falls back to Custom Tabs (address bar visible) — still functional.
-
-**Verify it (after deploying to Vercel):**
-
-```bash
-curl -s https://www.hierarchyclass.com/.well-known/assetlinks.json   # must be HTTP 200, valid JSON, no redirect
-# statement generator/checker:
-# https://developers.google.com/digital-asset-links/tools/generator
-```
-
-If Play App Signing is enrolled later, ADD the Play-managed signing key's SHA-256 as a second entry in `sha256_cert_fingerprints` (Play re-signs uploads; both fingerprints can coexist).
-
-## Offline rules (enforced in `public/sw.js` + UI)
-
-- **Safe offline:** shell, icons, fonts, `/_next/static/*`, `/offline`, `public/icons/*`, `brand/*`. Cached `CacheFirst` with revalidate.
-- **Network-only (never cached):** `isSupabase` (`hostname includes supabase.co`), `/api/*`, `/payment/*`, `/auth/*`, `POST/PUT/DELETE`, navigation HTML (`request.mode==="navigate"` → NetworkFirst, never `cache.put`).
-- **Student rank:** Never mutated offline; classroom grade submit blocked offline with “You’re offline — connect to submit…” preserving inputs, not fake success (`app/teacher/classroom/page.tsx` `useOnline` guard). Chat send blocked offline (`MessengerView` `useOnline`), payments blocked (`FlorinPurchaseModal` `useOnline`). See `lib/rankEngine.ts` authoritative flow: Teacher/Admin → Server RPC → validation → realtime sync → student sees rank.
-
-## Missing SDK pieces (Arch, no sudo)
-
-`sdkmanager` can only install into a **user-writable** SDK root (`~/Android/Sdk`). Example (already done for `platforms;android-36`):
-
-```bash
-export ANDROID_HOME="$HOME/Android/Sdk"
-export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
-yes | sdkmanager --sdk_root="$ANDROID_HOME" "platforms;android-36" "build-tools;36.1.0" "platform-tools"
-```
-
-Never point `--sdk_root` at `/opt/android-sdk` (root-owned AUR copy; installs fail with AccessDeniedException). Bubblewrap 1.25 template needs: build-tools **36.1.0**, platforms **android-36** (compile/targetSdk 36), Gradle 8.11.1 + AGP 8.9.1 (auto-downloaded).
-
-## Testing checklist (physical device)
-
-See `docs/ANDROID.md` full QA — at minimum:
-
-Android 320/360/375/390/412 portrait + landscape: install banner → standalone (no address bar) → safe-area insets → BottomNav scroll → keyboard (chat input) → login → student/teacher/admin nav → chat → classroom grading → rank view → offline airplane → /offline → reconnect → update banner → Play billing not tested live (GCash redirect requires external browser; TWA uses Custom Tabs, return via `window.location.href` — verify on device).
-
-## Troubleshooting
-
-- `bubblewrap doctor` → "androidSdkPath isn't correct … contains the folder build/bin" → the SDK root needs a legacy `bin/` entry: `ln -sfn cmdline-tools/latest/bin ~/Android/Sdk/bin` (already in place).
-- `bubblewrap: readline was closed` → set `~/.bubblewrap/config.json` (`bubblewrap updateConfig --jdkPath /usr/lib/jvm/java-17-openjdk --androidSdkPath "$HOME/Android/Sdk"`) or export `BUBBLEWRAP_KEYSTORE_PASSWORD`/`BUBBLEWRAP_KEY_PASSWORD` to skip password prompts.
-- `manifest not reachable` → ensure `https://YOUR_DOMAIN/manifest.json` returns 200, not 301, with `Content-Type: application/manifest+json`.
-- `assetlinks.json` not verified → check `https://YOUR_DOMAIN/.well-known/assetlinks.json` is not behind auth/middleware (see Known Risks in `docs/ANDROID.md`; `.well-known` matcher exclusion still recommended).
-- `SW not registering` → requires `isSecureContext` (HTTPS or localhost), and `public/sw.js` at `scope "/"`.
-
-## References
-
-- `docs/ANDROID.md` (full), `public/manifest.json`, `public/sw.js`, `middleware.ts:102-105`, `lib/rankEngine.ts`, `app/offline/page.tsx`
+NOT tested: real-account login/session persistence on hardware, authenticated role flows, password-reset end-to-end (requires recovery email), camera QR, PayMongo checkout, Play Store publication.

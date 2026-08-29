@@ -14,7 +14,7 @@ import { ThemePicker } from "@/components/ThemePicker";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { useAccountRequests } from "@/lib/useAccountRequests";
 import { useAppeals } from "@/lib/useAppeals";
-import { resolveDeletionRequest, resolveAppeal } from "@/app/actions/account";
+import { resolveDeletionRequest, resolveAppeal } from "@/lib/bridgeClient";
 import { APP_VERSION } from "@/lib/version";
 
 export default function AdminSettingsPage() {

@@ -59,7 +59,9 @@ export function SideNav({ role, brandHref }: { role: Role; brandHref: string }) 
     await supabase.auth.signOut();
     // Land on the public home page (the landing site), not the login form -
     // the landing page redirects signed-in users to their role home.
-    window.location.href = "/";
+    // location.replace keeps the sign-out out of the history stack so the
+    // Android back button can't walk back into authenticated pages.
+    window.location.replace("/");
   }
 
   return (

@@ -6,6 +6,7 @@ import { useMyProfile } from "@/lib/useMyProfile";
 import { createClient } from "@/lib/supabase/client";
 import { validateUpload, extensionForMime } from "@/lib/uploadUtils";
 import { randomId } from "@/lib/randomId";
+import { backendUrl } from "@/lib/siteUrl";
 
 const MAX_ATTACHMENTS = 3;
 
@@ -97,7 +98,7 @@ export function FeedbackForm() {
       }
 
       // 2) Submit the report with the stored paths.
-      const res = await fetch("/api/feedback", {
+      const res = await fetch(backendUrl("/api/feedback"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

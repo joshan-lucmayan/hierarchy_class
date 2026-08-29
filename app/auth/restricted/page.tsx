@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LandingBackground } from "@/components/landing/Background";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
-import { submitAppeal } from "@/app/actions/account";
+import { submitAppeal } from "@/lib/bridgeClient";
 import type { AccountAppealRow } from "@/types/supabase";
 
 type State = "checking" | "restricted" | "notRestricted" | "missing";

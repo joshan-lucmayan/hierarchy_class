@@ -1,4 +1,13 @@
-"use server";
+/**
+ * Server-only signup operations.
+ *
+ * Single implementation shared by the web app and the standalone Android
+ * (Capacitor) app, exposed over HTTPS by the POST /api/bridge/auth/*
+ * route handlers and consumed through lib/bridgeClient.ts.
+ *
+ * Server-only module: imports next/headers and the service-role client.
+ * Never import this from a client component.
+ */
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";

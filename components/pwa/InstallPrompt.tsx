@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { isNativeApp } from "@/lib/native";
 
 /**
  * SILENT install-prompt capture — renders NOTHING and never calls prompt().
@@ -33,6 +34,8 @@ export function clearDeferredInstallPrompt(): void {
 
 export function InstallPromptCapture() {
   useEffect(() => {
+    // Standalone Android app: browser install prompts do not apply.
+    if (isNativeApp()) return;
     const onBeforeInstall = (e: Event) => {
       // Suppress ALL automatic install prompting — capture for manual use only.
       e.preventDefault();

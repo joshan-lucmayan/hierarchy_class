@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { MusicPlatform, ResolvedMusic } from "@/lib/musicTypes";
 
 // Music metadata resolution - post-music-by-link.
 //
@@ -24,15 +25,8 @@ import { NextResponse } from "next/server";
 //                                     final host verified) before either
 //                                     path.
 
-export type MusicPlatform = "youtube" | "soundcloud" | "vimeo" | "spotify" | "apple";
-
-export interface ResolvedMusic {
-  url: string;
-  platform: MusicPlatform;
-  title: string;
-  artist: string | null;
-  coverUrl: string | null;
-}
+// Types live in lib/musicTypes.ts (shared with client code - see there).
+export type { MusicPlatform, ResolvedMusic } from "@/lib/musicTypes";
 
 const OEmbed_TIMEOUT_MS = 8000;
 

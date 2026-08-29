@@ -1,6 +1,16 @@
 # Android — Hierarchy Class PWA & Trusted Web Activity
 
-> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`) — **Web:** `1.17.103` (`package.json:version`; the TWA shell trails the web version and is rebuilt only for native changes)
+> ⚠️ **ARCHITECTURE MIGRATED (2026-08-30, v1.22.110):** the Android app is now a **standalone
+> Capacitor application** with the Next.js frontend bundled inside the APK — it no longer uses a
+> Trusted Web Activity, Custom Tabs, or the website as its frontend source. See
+> [`android/README.md`](../android/README.md) for the current architecture, build, and signing
+> docs. The Bubblewrap TWA implementation described below was fully audited and verified
+> (checksum fix, byte-identical reproducible release build, DAL verified) and is archived intact
+> at [`android-twa/`](../android-twa/README.md); this document's TWA/PWA sections remain accurate
+> as the archive's reference and for the web PWA half (PWA manifest, service worker, offline
+> model, caching policy all still serve the website).
+
+> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`, archived) — **Standalone build:** `1.22.110` (`versionCode 122110`) — **Web:** `1.22.110` (`package.json:version`)
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -123,7 +133,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:version` (`1.17.103`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
+**Version:** `package.json:version` (`1.22.110`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
 
 **Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 

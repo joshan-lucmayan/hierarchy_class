@@ -12,7 +12,7 @@ import { UserAvatar } from "@/components/ui/UserAvatar";
 import { Modal } from "@/components/ui/Modal";
 import { IconUser, IconRefresh } from "@/components/ui/icons";
 import { useRankStore } from "@/lib/rankStore";
-import { adminRestrictUser, adminUnrestrictUser } from "@/app/actions/account";
+import { adminRestrictUser, adminUnrestrictUser } from "@/lib/bridgeClient";
 import type { ProfileRow } from "@/types/supabase";
 
 // The school directory shows students and teachers only - admin accounts

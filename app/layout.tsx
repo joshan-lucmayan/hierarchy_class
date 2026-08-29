@@ -19,6 +19,8 @@ import { MaterialsProvider } from "@/lib/materialsStore";
 import { RankProvider } from "@/lib/rankStore";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { InstallPromptCapture } from "@/components/pwa/InstallPrompt";
+import { NativeBackButton } from "@/components/native/NativeBackButton";
+import { NativeDeepLink } from "@/components/native/NativeDeepLink";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -118,6 +120,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </MaterialsProvider>
         <ServiceWorkerRegistration />
         <InstallPromptCapture />
+        {/* Android hardware back button (native-only, no-op on the web). */}
+        <NativeBackButton />
+        {/* Android auth deep links (password recovery / confirmation). */}
+        <NativeDeepLink />
         {/* IOSInstallHint intentionally unmounted: automatic install UI is
             disabled app-wide. Future /download pages will offer install
             options explicitly (see components/pwa/IOSInstallHint.tsx). */}

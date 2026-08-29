@@ -35,3 +35,17 @@ android/debug.keystore
 android/build/
 android/*.apk
 android/*.aab
+
+# Standalone Android (Capacitor) build
+/out/
+/.android-export-staging/
+/android/keystore.properties
+
+# Archived Bubblewrap TWA implementation (android-twa/) — build outputs and
+# signing materials stay out of git, same as when it lived at android/
+android-twa/app/build/
+android-twa/app/release/
+android-twa/.gradle/
+android-twa/build/
+android-twa/*.apk
+android-twa/*.aab

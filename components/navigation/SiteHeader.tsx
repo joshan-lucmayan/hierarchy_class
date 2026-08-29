@@ -40,7 +40,12 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
 
   const schoolName = schools[0]?.name;
   const isStudent = showFlorin && showMenu;
-  const isHome = pathname === "/student/home";
+  // Trailing-slash-safe home check: the Android export (and any full-page
+  // navigation) can surface "/student/home/" with a trailing slash, which
+  // made this exact-match fail and rendered the sub-page header — a BACK
+  // arrow instead of the menu — on the student's actual home.
+  const normalizedPathname = (pathname ?? "").replace(/\/+$/, "") || "/";
+  const isHome = normalizedPathname === "/student/home";
 
   // Student header: layout only — no logo, Search icon in header, visual tokens back to normal
   // Non-home student pages: back arrow only, no menu/name/search/florin/bell

@@ -1,4 +1,13 @@
-"use server";
+/**
+ * Server-only account lifecycle operations.
+ *
+ * Single implementation shared by the web app and the standalone Android
+ * (Capacitor) app, exposed over HTTPS by the POST /api/bridge/account/*
+ * route handlers and consumed through lib/bridgeClient.ts.
+ *
+ * Server-only module: imports next/headers and the service-role client.
+ * Never import this from a client component.
+ */
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -6,7 +15,7 @@ import type { Database, ProfileRow, AccountRequestRow, AccountAppealRow } from "
 import { createServiceClient } from "@/lib/supabase/serviceClient";
 import { storagePathFromUrl } from "@/lib/uploadUtils";
 
-// Account lifecycle server actions.
+// Account lifecycle operations.
 //
 // DEACTIVATION / REACTIVATION - self-service, reversible, no admin step.
 //   Runs through the caller's own session against the anon-key server client,

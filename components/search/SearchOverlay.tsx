@@ -11,6 +11,7 @@ import type { ProfileRow } from "@/types/supabase";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { ProfileModal } from "@/components/profile/ProfileModal";
+import { registerBackHandler } from "@/lib/nativeBackHandler";
 
 const RESULT_LIMIT = 5;
 
@@ -36,7 +37,15 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    // Android hardware back closes the overlay before any navigation.
+    const unregister = registerBackHandler(() => {
+      onClose();
+      return true;
+    });
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      unregister();
+    };
   }, [onClose]);
 
   const studentResults = useMemo(() => {
