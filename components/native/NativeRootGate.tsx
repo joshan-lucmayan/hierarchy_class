@@ -20,11 +20,12 @@ import type { Role } from "@/types/supabase";
  * Authentication boot gate for the standalone Android app.
  *
  * The Android export has no edge middleware and no server: "/" is the static
- * NativeEntry HTML, and this client gate owns the cold-start auth decision —
- * the exact equivalent of the web's app/page.tsx redirect + middleware rules
- * (lib/authz.ts decideAuthRoute), so both platforms follow one flow:
+ * NativeEntry boot HTML, and this client gate owns the cold-start auth
+ * decision — the exact equivalent of the web's app/page.tsx redirect +
+ * middleware rules (lib/authz.ts decideAuthRoute), so both platforms follow
+ * one flow:
  *
- *   1. getSession()            — local, no network. No session → entry screen
+ *   1. getSession()            — local, no network. No session → Login screen
  *                                (fresh install / signed out) with zero delay.
  *   2. getUser()               — network validation + token refresh of the
  *                                persisted session.
@@ -41,14 +42,15 @@ import type { Role } from "@/types/supabase";
  *                                their own offline errors. No logout happens.
  *   5. Online auth rejection   — the stored session is expired/invalid:
  *                                signOut() clears it (plus the role cache)
- *                                and the entry screen is shown.
+ *                                and the Login screen is shown.
  *
- * While resolving, the gate shows the entry screen's boot state (logo +
- * spinner). Protected routes are never rendered before the session is
- * determined — AppShell's useNativeAuthGuard re-checks on the role sections.
+ * There is no separate entry chooser: when no valid session exists the gate
+ * routes directly to the Login screen, which owns the "Welcome back"
+ * greeting and the Create an Account link. NativeEntry is only a transient
+ * boot state (logo + spinner) while the session resolves.
  *
- * Hydration: the FIRST client render is `showActions=false`, which is exactly
- * the static export HTML of "/" — no mismatch, no landing flash. Every state
+ * Hydration: the FIRST client render is the static export HTML of "/"
+ * (NativeEntry boot state) — no mismatch, no landing flash. Every state
  * change happens after mount.
  *
  * Rendered by app/page.tsx ONLY in the Android export build (CAPACITOR_EXPORT
@@ -56,38 +58,35 @@ import type { Role } from "@/types/supabase";
  */
 export function NativeRootGate() {
   const router = useRouter();
-  const [showActions, setShowActions] = useState(false);
+  const [resolving, setResolving] = useState(true);
 
-  // While the entry state is up (no valid session) the gate IS the app root:
-  // hardware back exits the app. This keeps any stale authenticated entries
-  // that may still sit behind "/" after a sign-out unreachable — back can
-  // never re-enter an authed page and bounce to /login. Unregisters as soon
-  // as the gate unmounts (the entry actions navigate away client-side via
-  // Next <Link>, pushing /login or /signup onto the stack).
+  // While the boot state is up (session still resolving) the gate IS the app
+  // root: hardware back exits the app. Unregisters as soon as the gate
+  // unmounts (the Login/role-home navigation happens via router.replace).
   useEffect(() => {
-    if (!showActions) return;
+    if (!resolving) return;
     return registerBackHandler(() => {
       void App.exitApp();
       return true;
     });
-  }, [showActions]);
+  }, [resolving]);
 
   useEffect(() => {
     if (!isNativeApp()) return;
     let disposed = false;
     const supabase = createClient();
 
-    function finishAtEntry() {
+    function goToLogin(params?: string) {
       if (disposed) return;
       clearNativeRole();
-      setShowActions(true);
+      router.replace(params ? `/login?${params}` : "/login");
     }
 
     async function boot() {
       // Cold-start auth deep link (password recovery / confirmation): the
       // NativeDeepLink handler (root layout) owns the exchange and will
       // navigate away (unmounting this gate). Stay in the boot state instead
-      // of showing the entry screen or routing to a role home.
+      // of showing the login screen or routing to a role home.
       if (hasPendingAuthLink()) return;
 
       // 1) Local session check (no network): fast path for signed-out users.
@@ -96,7 +95,7 @@ export function NativeRootGate() {
       } = await supabase.auth.getSession();
       if (disposed) return;
       if (!session) {
-        setShowActions(true);
+        goToLogin();
         return;
       }
 
@@ -110,13 +109,13 @@ export function NativeRootGate() {
         if (disposed) return;
 
         if (!user) {
-          finishAtEntry();
+          goToLogin();
           return;
         }
 
         // 3) Resolve the lifecycle state + role from the profiles table.
         if (!user.email_confirmed_at) {
-          router.replace("/login?unverified=1");
+          goToLogin("unverified=1");
           return;
         }
         const { data: profile } = (await supabase
@@ -160,13 +159,13 @@ export function NativeRootGate() {
           typeof navigator !== "undefined" && navigator.onLine === false;
 
         if (authRejected) {
-          // Expired/invalid stored session: clear it safely and show entry.
+          // Expired/invalid stored session: clear it safely and show Login.
           try {
             await supabase.auth.signOut();
           } catch {
             /* clearing the local session below still applies */
           }
-          finishAtEntry();
+          goToLogin();
           return;
         }
 
@@ -179,23 +178,24 @@ export function NativeRootGate() {
             router.replace(homePathForRole(role));
             return;
           }
-          setShowActions(true);
+          goToLogin();
           return;
         }
-        // Transient backend failure while "online": drop to the entry screen
+        // Transient backend failure while "online": drop to the Login screen
         // without destroying the session (AppShell's guard re-checks later).
+        goToLogin();
+        return;
       }
-      if (!disposed) setShowActions(true);
     }
 
     void boot();
 
     // If the session dies while the gate is mounted (remote sign-out, refresh
-    // hard-fail elsewhere), fall back to the entry screen.
+    // hard-fail elsewhere), fall back to the Login screen.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT" && !disposed) finishAtEntry();
+      if (event === "SIGNED_OUT" && !disposed) goToLogin();
     });
 
     return () => {
@@ -204,5 +204,8 @@ export function NativeRootGate() {
     };
   }, [router]);
 
-  return <NativeEntry showActions={showActions} />;
+  // Boot state only: once session resolution finishes the gate has already
+  // navigated away (login or role home), so this component only ever renders
+  // the minimal logo + spinner.
+  return <NativeEntry />;
 }

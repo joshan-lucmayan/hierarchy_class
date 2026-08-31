@@ -1,6 +1,6 @@
 # Android — Standalone App (Capacitor)
 
-> Package: `com.hierarchyclass.app` — `versionName 1.22.110` — `versionCode 122110` — **minSdk 24, target/compileSdk 36**
+> Package: `com.hierarchyclass.app` — `versionName 1.23.110` — `versionCode 123110` — **minSdk 24, target/compileSdk 36**
 > Stack: Capacitor 8.5 (core/android/browser) + statically exported Next.js frontend bundled in the APK
 
 ## Architecture
@@ -33,10 +33,11 @@ APK (com.hierarchyclass.app)
 flashes a Home or login page. One client gate owns the whole boot decision — no setTimeout, no
 timeouts-based races, no second auth system:
 
-1. `auth.getSession()` (local, offline-safe): no session → entry screen with **Log In /
-   Create an Account** (fresh install / signed out).
+1. `auth.getSession()` (local, offline-safe): no session → **Login** directly (the redundant
+   "Log In / Create an Account" chooser was removed — `Login` owns the "Welcome back" greeting and
+   the Create an Account path, so a fresh install / signed-out cold start lands on Login).
 2. `auth.getUser()` (network-validated, refreshes tokens): failure with a 4xx → the stored session
-   is expired/invalid → `signOut()` clears it (plus the role hint) → entry screen.
+   is expired/invalid → `signOut()` clears it (plus the role hint) → Login.
 3. Profile row (`profiles.role`, database truth — never `user_metadata`): restricted →
    `/auth/restricted`, deactivated → `/auth/reactivate`, unverified email → `/login?unverified=1`,
    valid role → `router.replace(/<role>/home)` (Student/Teacher/Admin home), no profile →
@@ -46,7 +47,7 @@ timeouts-based races, no second auth system:
 
 After login, the role home is loaded with `location.replace` — the login page leaves the history
 stack, so hardware back from the role home exits the app instead of re-entering the auth flow.
-After logout (`components/auth/LogoutButton.tsx`) the entry screen is shown and the session stays
+After logout (`components/auth/LogoutButton.tsx`) the Login screen is shown and the session stays
 cleared across restarts.
 
 ## Android navigation
@@ -54,6 +55,12 @@ cleared across restarts.
 - **Student:** header hamburger on Home (< xl) → `MobileDrawer` (the same `STUDENT_NAV_ITEMS` the
   desktop `SideNav` uses; Home, Messages, Materials, Library, Quiz, Leaderboard, Shop, Habits,
   Profile, Settings + logout). Sub-pages show a back arrow. xl+ pivots to the desktop SideNav.
+- **Back header:** on Android the sub-page header's back arrow uses `router.back()` (previous menu
+  level, no hard-coded "Back to Home") and the title shows the current menu name (Materials,
+  Library, Quiz, Leaderboard, Shop, Habits, …) instead of "Back to Home". The header collapses to a
+  compact back-only strip when scrolling down and expands again on scroll up
+  (`lib/useCollapsibleHeader.ts`), with a single rAF-throttled scroll listener (no jitter, no
+  duplicate listeners).
 - **Teacher/Admin:** role bottom nav on phones (`TeacherBottomNav` / `AdminBottomNav`, self-hidden
   at md+) with Home, role areas, Settings and logout; md+ pivots to the desktop SideNav. The
   teacher/admin phone block screen (`DeviceWarning`) is web-only — native phones get the real app.
@@ -66,9 +73,9 @@ ONE global `App.addListener("backButton")` listener mounted from the root layout
    `lib/nativeBackHandler.ts`; the topmost handler wins) consumes the press and closes itself.
 2. Otherwise, if the WebView has in-app history (`canGoBack`) → `history.back()` (the MobileDrawer
    participates through its own pushed history entry).
-3. Otherwise — at the root (role home, entry screen) → `App.exitApp()`, standard Android behavior.
+3. Otherwise — at the root (role home, boot screen) → `App.exitApp()`, standard Android behavior.
 
-The entry screen registers a root handler while it is up, so stale authenticated history behind "/"
+The boot screen registers a root handler while it is up, so stale authenticated history behind "/"
 after a sign-out is unreachable. No duplicate listeners, no browser interference, no logout loops.
 
 ## Prerequisites (this machine — verified 2026-08-28)
@@ -80,7 +87,9 @@ after a sign-out is unreachable. No duplicate listeners, no browser interference
 ## Build
 
 ```bash
-# 1. Statically export the frontend into out/ (moves middleware/api aside, restores after)
+# 1. Statically export the frontend into out/ (moves middleware/api aside, restores after).
+#    The APK distribution file under public/downloads is intentionally NOT bundled
+#    (out/downloads is stripped — the in-app download page links the production origin).
 npm run export:android
 
 # 2. Copy out/ into the native project + update plugins
@@ -100,6 +109,23 @@ cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew assembleRelease b
 Those routes ship with this repo — deploy the web app BEFORE distributing APK builds, otherwise
 signup/account operations fall back to the bridge client's generic offline error (login, being
 direct Supabase, works regardless).
+
+## APK distribution & update system
+
+- **Distribution:** beta/standalone users sideload the direct APK from the website's `/download`
+  page, which serves `public/downloads/hierarchy-class-v<version>.apk` and shows the real
+  version / size / SHA-256 from `lib/apkRelease.ts` (update that file to match the exact audited
+  `app-release.apk` after each release).
+- **Update detection:** the app (only inside Capacitor) fetches
+  `https://www.hierarchyclass.com/android-version.json` on launch and compares `versionCode`.
+  If a newer version exists it shows a non-blocking banner with a **Download Update** action that
+  opens the official `/download` page on the production origin (`components/pwa/AndroidUpdateChecker.tsx`).
+- **No silent updating** — installing a new APK is always a manual user action. If Google Play is
+  added later, Play handles updates itself (store AAB, Play App Signing); this direct-APK checker
+  would then be unnecessary.
+- **`public/android-version.json`** must be kept in sync with `lib/apkRelease.ts` and
+  `android/app/build.gradle` on every release (`latestVersion`, `versionCode`, `downloadUrl`,
+  `releaseNotes`).
 
 ## Signing
 

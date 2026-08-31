@@ -38,7 +38,7 @@ export function HabitFormModal({
   const [category, setCategory] = useState(habit?.category ?? "study");
   const [goalType, setGoalType] = useState(habit?.goalType ?? "completion");
   const [targetValue, setTargetValue] = useState(String(habit?.targetValue ?? ""));
-  const [targetUnit, setTargetUnit] = useState(habit?.targetUnit ?? UNIT_HINTS.completion);
+  const [targetUnit, setTargetUnit] = useState(habit?.targetUnit ?? UNIT_HINTS[habit?.goalType ?? "completion"] ?? "");
   const [frequency, setFrequency] = useState(habit?.frequencyType ?? "weekly");
   const [days, setDays] = useState<number[]>(habit?.scheduledDays ?? [0, 1, 2, 3, 4]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -103,10 +103,8 @@ export function HabitFormModal({
         paddingLeft: "max(1rem, env(safe-area-inset-left))",
       }}
       onClick={(e) => {
-        // This modal can render inside the detail modal - stop the click from
-        // bubbling to the detail backdrop and closing both at once.
         e.stopPropagation();
-        onClose();
+        if (!saving) onClose();
       }}
     >
       <div

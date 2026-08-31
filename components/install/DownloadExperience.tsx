@@ -11,6 +11,15 @@ import {
 } from "@/components/pwa/InstallPrompt";
 import { usePlatformContext } from "@/lib/usePlatformContext";
 import { APK_RELEASE, apkDownloadUrl, formatApkSize } from "@/lib/apkRelease";
+import { isNativeApp } from "@/lib/native";
+import { PRODUCTION_ORIGIN } from "@/lib/siteUrl";
+
+/** Absolute APK download URL when running inside the standalone Android app
+ *  (the local bundle has no server), same-origin relative path otherwise. */
+function absoluteDownloadUrl(): string {
+  const path = apkDownloadUrl();
+  return isNativeApp() ? `${PRODUCTION_ORIGIN}${path}` : path;
+}
 
 /**
  * The /download hub — for people browsing the WEBSITE in a browser.
@@ -182,7 +191,7 @@ export function DownloadExperience() {
                   </p>
                 </div>
                 <a
-                  href={apkDownloadUrl()}
+                  href={absoluteDownloadUrl()}
                   download
                   className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg bg-gradient-to-b from-[#c2c7cf] to-[#9ea7b3] px-5 py-2.5 text-[13px] font-semibold text-[#141214] transition hover:-translate-y-0.5 hover:brightness-110"
                 >

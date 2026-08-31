@@ -52,7 +52,7 @@ export default function TermsPage() {
       <LegalSection heading="5. Profiles, stories, achievements, and habits">
         <LegalList
           items={[
-            "Profiles include your name, school identifiers, academic level, photo, bio, hobbies, tags, favorite subject, achievements, and music you add.",
+            "Profiles include your name, school identifiers, academic level, photo, bio, hobbies, favorite subject, achievements, and music you add.",
             "MyDay stories you publish are visible to your school for a limited time (24 hours by default) and may show who viewed them.",
             "Achievements you upload represent awards you received and are visible to your school.",
             "Habits are personal: your targets, daily logs, and streak history are visible only to you (and to school administrators as needed).",

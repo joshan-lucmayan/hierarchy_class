@@ -225,14 +225,14 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
       {/* Media-style tabs: ACHIEVEMENTS is the active/default tab. */}
-      <div className="mb-5 flex flex-nowrap items-center gap-2 overflow-x-auto border-b border-base pb-4">
+      <div className="mb-5 flex flex-nowrap items-center gap-1.5 overflow-x-auto border-b border-base pb-4 [-webkit-overflow-scrolling:touch]">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
             aria-current={tab === t.key ? "page" : undefined}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] transition ${
+            className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] transition ${
               tab === t.key
                 ? "border border-base bg-tile text-navy"
                 : "border border-transparent text-muted hover:text-navy"

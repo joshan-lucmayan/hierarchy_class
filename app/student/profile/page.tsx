@@ -9,7 +9,9 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Wardrobe } from "@/components/profile/Wardrobe";
 import { Achievements } from "@/components/profile/Achievements";
 import { SeasonHistory } from "@/components/profile/SeasonHistory";
-import { IconMore, IconArchive, IconEye } from "@/components/ui/icons";
+import { StoryArchive } from "@/components/profile/StoryArchive";
+import { FriendsModal } from "@/components/profile/FriendsModal";
+import { IconMore, IconArchive, IconEye, IconStory } from "@/components/ui/icons";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { useClassroomHierarchy } from "@/lib/classroomHierarchyStore";
 import { useFriendsStore } from "@/lib/friendsStore";
@@ -37,9 +39,6 @@ export default function StudentProfilePage() {
   const [hobbies, setHobbies] = useState("");
   const [isEditingHobbies, setIsEditingHobbies] = useState(false);
 
-  const [tags, setTags] = useState("");
-  const [isEditingTags, setIsEditingTags] = useState(false);
-
   const [uploading, setUploading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [photoMessage, setPhotoMessage] = useState<string | null>(null);
@@ -47,6 +46,8 @@ export default function StudentProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [seasonOpen, setSeasonOpen] = useState(false);
+  const [storyArchiveOpen, setStoryArchiveOpen] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewAs, setViewAs] = useState(false);
 
@@ -56,7 +57,6 @@ export default function StudentProfilePage() {
     setBio(profile.bio ?? "");
     setFavoriteSubject(profile.favorite_subject ?? "");
     setHobbies((Array.isArray(profile.hobbies) ? profile.hobbies : []).join(", "));
-    setTags((Array.isArray(profile.tags) ? profile.tags : []).join(", "));
     setHydrated(true);
   }
 
@@ -94,10 +94,6 @@ export default function StudentProfilePage() {
   async function saveHobbies() {
     await updateProfile({ hobbies: hobbies.split(",").map((h) => h.trim()).filter(Boolean) });
     setIsEditingHobbies(false);
-  }
-  async function saveTags() {
-    await updateProfile({ tags: tags.split(",").map((t) => t.trim()).filter(Boolean) });
-    setIsEditingTags(false);
   }
 
   const { friends, loading: friendsLoading, error: friendsError } = useFriendsStore();
@@ -221,13 +217,6 @@ export default function StudentProfilePage() {
               </div>
             )}
           </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {tags.split(",").map((t) => t.trim()).filter(Boolean).map((tag) => (
-              <span key={tag} className="rounded-full border border-base px-3 py-1 text-[11px] font-medium text-navy">
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
 
         <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-5 text-center">
@@ -235,7 +224,84 @@ export default function StudentProfilePage() {
           <RankBadge rank={overallRank} size="lg" bar={rankBar} exScore={rankExScore} />
         </div>
 
-        {/* Tabbed Achievements / Music / Photos section, inside the profile card. */}
+        {/* About section — editable profile fields inside the hero area. */}
+        {!viewAs && (
+          <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-left">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">About</p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-wide text-muted">Bio</p>
+                  <button
+                    type="button"
+                    onClick={() => (isEditingBio ? saveBio() : setIsEditingBio(true))}
+                    className="text-[10px] font-semibold text-navy underline decoration-gold underline-offset-2"
+                  >
+                    {isEditingBio ? "Done" : "Edit"}
+                  </button>
+                </div>
+                {isEditingBio ? (
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={3}
+                    className="mt-1.5 w-full rounded-[10px] border border-base bg-surface p-3 text-sm text-navy outline-none focus:border-gold"
+                  />
+                ) : (
+                  <p className="mt-1.5 text-sm leading-6 text-muted">{bio || "No bio yet."}</p>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-wide text-muted">Favorite subject</p>
+                  <button
+                    type="button"
+                    onClick={() => (isEditingSubject ? saveFavoriteSubject() : setIsEditingSubject(true))}
+                    className="text-[10px] font-semibold text-navy underline decoration-gold underline-offset-2"
+                  >
+                    {isEditingSubject ? "Done" : "Edit"}
+                  </button>
+                </div>
+                {isEditingSubject ? (
+                  <input
+                    value={favoriteSubject}
+                    onChange={(e) => setFavoriteSubject(e.target.value)}
+                    placeholder="e.g. Physics"
+                    className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  />
+                ) : (
+                  <p className="mt-1.5 text-sm text-navy">{favoriteSubject || "Not set"}</p>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-wide text-muted">Hobbies</p>
+                  <button
+                    type="button"
+                    onClick={() => (isEditingHobbies ? saveHobbies() : setIsEditingHobbies(true))}
+                    className="text-[10px] font-semibold text-navy underline decoration-gold underline-offset-2"
+                  >
+                    {isEditingHobbies ? "Done" : "Edit"}
+                  </button>
+                </div>
+                {isEditingHobbies ? (
+                  <input
+                    value={hobbies}
+                    onChange={(e) => setHobbies(e.target.value)}
+                    placeholder="Hobbies — separate multiple hobbies with commas"
+                    className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  />
+                ) : (
+                  <p className="mt-1.5 text-sm text-navy">{hobbies || "Not set"}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tabbed Achievements / Music / Photos / History section, inside the profile card. */}
         <Achievements viewer={viewAs} />
 
         </div>
@@ -277,12 +343,65 @@ export default function StudentProfilePage() {
               <IconArchive size={15} className="shrink-0 text-muted" />
               Season History
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStoryArchiveOpen(true);
+                setMenuOpen(false);
+              }}
+              className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-left text-sm font-medium text-navy transition hover:bg-tile"
+            >
+              <IconStory size={15} className="shrink-0 text-muted" />
+              Story Archive
+            </button>
           </div>
         </>
       )}
       </div>
 
       <div className="min-w-0 space-y-6">
+        {/* Friends Section — moved above Wardrobe per profile hierarchy. */}
+        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Friends</h2>
+            {friends.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setFriendsOpen(true)}
+                className="rounded-full border border-base px-3 py-1 text-[11px] font-semibold text-navy transition hover:border-gold"
+              >
+                See All
+              </button>
+            )}
+          </div>
+          {friendsLoading ? (
+            <p className="mt-4 text-sm text-muted">Loading friends...</p>
+          ) : friendsError ? (
+            <p className="mt-4 text-sm text-warn">{friendsError}</p>
+          ) : friends.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">No friends yet.</p>
+          ) : (
+            <div className="mt-4 flex flex-wrap gap-4">
+              {friends.slice(0, 8).map((friend) => (
+                <Link
+                  key={friend.id}
+                  href={`/student/profile/${friend.id}`}
+                  className="flex shrink-0 flex-col items-center gap-1.5 transition active:scale-95"
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-tile p-[2px]">
+                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface">
+                      <UserAvatar name={friend.fullName} src={friend.avatarUrl} size="xl" profileId={friend.id} />
+                    </div>
+                  </div>
+                  <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">
+                    {friend.fullName.split(" ")[0]}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CornerFrame>
+
         {!viewAs && <Wardrobe />}
 
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
@@ -322,133 +441,6 @@ export default function StudentProfilePage() {
             </div>
           )}
           <p className="mt-4 text-xs text-muted">Grades and ranks are set by your teachers and can&apos;t be edited here.</p>
-        </CornerFrame>
-
-        {!viewAs && (
-        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">About</h2>
-            <button
-              type="button"
-              onClick={() => (isEditingBio ? saveBio() : setIsEditingBio(true))}
-              className="rounded-full border border-base px-3 py-1 text-xs font-semibold text-navy transition hover:border-gold"
-            >
-              {isEditingBio ? "Done" : "Edit"}
-            </button>
-          </div>
-
-          {isEditingBio ? (
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={4}
-              className="w-full rounded-[10px] border border-base bg-surface p-4 text-sm text-navy outline-none focus:border-gold"
-            />
-          ) : (
-            <p className="text-sm leading-6 text-muted">{bio || "No bio yet."}</p>
-          )}
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div>
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] uppercase tracking-wide text-muted">Favorite subject</p>
-                <button
-                  type="button"
-                  onClick={() => (isEditingSubject ? saveFavoriteSubject() : setIsEditingSubject(true))}
-                  className="text-[11px] font-semibold text-navy underline decoration-gold underline-offset-2"
-                >
-                  {isEditingSubject ? "Done" : "Edit"}
-                </button>
-              </div>
-              {isEditingSubject ? (
-                <input
-                  value={favoriteSubject}
-                  onChange={(e) => setFavoriteSubject(e.target.value)}
-                  placeholder="e.g. Physics"
-                  className="mt-2 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                />
-              ) : (
-                <p className="mt-2 text-sm text-navy">{favoriteSubject || "Not set"}</p>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] uppercase tracking-wide text-muted">Hobbies</p>
-                <button
-                  type="button"
-                  onClick={() => (isEditingHobbies ? saveHobbies() : setIsEditingHobbies(true))}
-                  className="text-[11px] font-semibold text-navy underline decoration-gold underline-offset-2"
-                >
-                  {isEditingHobbies ? "Done" : "Edit"}
-                </button>
-              </div>
-              {isEditingHobbies ? (
-                <input
-                  value={hobbies}
-                  onChange={(e) => setHobbies(e.target.value)}
-                  placeholder="Separate with commas"
-                  className="mt-2 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                />
-              ) : (
-                <p className="mt-2 text-sm text-navy">{hobbies || "Not set"}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] uppercase tracking-wide text-muted">Tags</p>
-              <button
-                type="button"
-                onClick={() => (isEditingTags ? saveTags() : setIsEditingTags(true))}
-                className="text-[11px] font-semibold text-navy underline decoration-gold underline-offset-2"
-              >
-                {isEditingTags ? "Done" : "Edit"}
-              </button>
-            </div>
-            {isEditingTags ? (
-              <input
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="Separate with commas"
-                className="mt-2 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-              />
-            ) : (
-              <p className="mt-2 text-sm text-navy">{tags || "Not set"}</p>
-            )}
-          </div>
-        </CornerFrame>
-        )}
-
-        {/* Friends Section */}
-        <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Friends</h2>
-          {friendsLoading ? (
-            <p className="mt-4 text-sm text-muted">Loading friends...</p>
-          ) : friendsError ? (
-            <p className="mt-4 text-sm text-warn">{friendsError}</p>
-          ) : friends.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">No friends yet.</p>
-          ) : (
-            <div className="mt-4 flex flex-wrap gap-4">
-              {friends.map((friend) => (
-                <Link
-                  key={friend.id}
-                  href={`/student/profile/${friend.id}`}
-                  className="flex shrink-0 flex-col items-center gap-1.5 transition active:scale-95"
-                >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-tile p-[2px]">
-                    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-surface">
-                      <UserAvatar name={friend.fullName} src={friend.avatarUrl} size="xl" profileId={friend.id} />
-                    </div>
-                  </div>
-                  <span className="max-w-[64px] truncate text-[11px] font-medium text-muted">
-                    {friend.fullName.split(" ")[0]}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          )}
         </CornerFrame>
       </div>
 
@@ -551,6 +543,14 @@ export default function StudentProfilePage() {
           <SeasonHistory />
         </Modal>
       )}
+
+      {storyArchiveOpen && (
+        <Modal onClose={() => setStoryArchiveOpen(false)} eyebrow="Archive" description="Your past MyDay stories">
+          <StoryArchive />
+        </Modal>
+      )}
+
+      {friendsOpen && <FriendsModal onClose={() => setFriendsOpen(false)} />}
 
     </div>
   );

@@ -225,18 +225,6 @@ export function ViewStudentProfile({ profileId }: { profileId: string }) {
                 ))}
               </div>
             )}
-            {person.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                {person.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-line bg-tile px-2.5 py-0.5 text-[11px] text-muted"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="mt-6 grid gap-2 sm:grid-cols-2">

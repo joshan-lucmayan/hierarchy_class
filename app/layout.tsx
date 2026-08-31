@@ -21,6 +21,7 @@ import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistr
 import { InstallPromptCapture } from "@/components/pwa/InstallPrompt";
 import { NativeBackButton } from "@/components/native/NativeBackButton";
 import { NativeDeepLink } from "@/components/native/NativeDeepLink";
+import { AndroidUpdateChecker } from "@/components/pwa/AndroidUpdateChecker";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -124,6 +125,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NativeBackButton />
         {/* Android auth deep links (password recovery / confirmation). */}
         <NativeDeepLink />
+        {/* Android update checker — checks for newer APK versions on
+            production domain. Only shows on the native Capacitor app. */}
+        <AndroidUpdateChecker />
         {/* IOSInstallHint intentionally unmounted: automatic install UI is
             disabled app-wide. Future /download pages will offer install
             options explicitly (see components/pwa/IOSInstallHint.tsx). */}

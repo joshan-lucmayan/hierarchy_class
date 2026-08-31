@@ -67,7 +67,6 @@ export async function GET() {
       program: profile.program,
       bio: profile.bio,
       hobbies: profile.hobbies,
-      tags: profile.tags,
       favorite_subject: profile.favorite_subject,
       created_at: profile.created_at,
     },

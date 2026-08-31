@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useHabits, type Habit } from "@/lib/habitStore";
 import { toISODate, getCurrentWeek } from "@/lib/weekUtils";
 import {
@@ -55,6 +55,11 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
     return e ? String(e.value) : "";
   });
 
+  useEffect(() => {
+    const e = entries.find((x) => x.habitId === habit.id && x.entryDate === today);
+    setDraft(e ? String(e.value) : "");
+  }, [habit.id, entries, today]);
+
   const entriesForHabit = useMemo(
     () => entries.filter((e) => e.habitId === habit.id),
     [entries, habit.id]
@@ -67,7 +72,10 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
   const todayEntry = entriesForHabit.find((e) => e.entryDate === today);
   const todayDone = dayComplete(habit, today, entriesForHabit);
   const dueToday = isScheduled(habit, today) && habit.status === "active";
-  const isValueGoal = habit.goalType === "duration" || habit.goalType === "quantity";
+  const isValueGoal =
+    habit.goalType === "duration" ||
+    habit.goalType === "quantity" ||
+    (habit.goalType === "count" && habit.frequencyType === "daily");
 
   async function run(action: () => Promise<string | null>, key: string) {
     setBusy(key);

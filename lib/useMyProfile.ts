@@ -10,7 +10,7 @@ interface UseMyProfileResult {
   profile: ProfileRow | null;
   loading: boolean;
   error: string | null;
-  updateProfile: (patch: Partial<Pick<ProfileRow, "bio" | "favorite_subject" | "hobbies" | "interests" | "tags">>) => Promise<void>;
+  updateProfile: (patch: Partial<Pick<ProfileRow, "bio" | "favorite_subject" | "hobbies" | "interests">>) => Promise<void>;
   uploadAvatar: (file: File) => Promise<void>;
   removeAvatar: () => Promise<void>;
 }
@@ -83,7 +83,7 @@ export function useMyProfile(): UseMyProfileResult {
   const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
   const updateProfile = useCallback(
-    async (patch: Partial<Pick<ProfileRow, "bio" | "favorite_subject" | "hobbies" | "interests" | "tags">>) => {
+    async (patch: Partial<Pick<ProfileRow, "bio" | "favorite_subject" | "hobbies" | "interests">>) => {
       if (!profile) return;
       const supabase = createClient();
       await (supabase.from("profiles") as any).update(patch).eq("id", profile.id);

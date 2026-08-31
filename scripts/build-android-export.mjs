@@ -80,6 +80,17 @@ try {
   if (result.status !== 0) {
     console.error("Android export build FAILED.");
     process.exitCode = result.status ?? 1;
+  } else {
+    // The APK distribution file lives in public/downloads so the WEBSITE can
+    // serve it. It must NOT be bundled into the Android app itself - that
+    // would embed the previous APK inside every new APK ("APK-in-APK" bloat,
+    // and the download link inside the app targets the production origin
+    // anyway). Strip it from the export output after a successful build.
+    const downloads = join(root, "out", "downloads");
+    if (existsSync(downloads)) {
+      rmSync(downloads, { recursive: true, force: true });
+      console.log("removed out/downloads (APK file is web-only, not bundled)");
+    }
   }
 } finally {
   restore();
