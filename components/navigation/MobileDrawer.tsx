@@ -8,6 +8,7 @@ import { STUDENT_NAV_ITEMS } from "@/components/navigation/navItems";
 import { MessagesBadge } from "@/components/navigation/MessagesBadge";
 import { IconX } from "@/components/ui/icons";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { isNativeApp } from "@/lib/native";
 
 /**
  * Student mobile/tablet navigation drawer (< xl, where the SideNav is hidden).
@@ -21,6 +22,13 @@ import { LogoutButton } from "@/components/auth/LogoutButton";
  * panel on open. The drawer spans the full viewport height (safe-area inset
  * respected via inner padding); if a fixed bottom bar is ever present again,
  * its measured height is cleared automatically.
+ *
+ * Platform rule: history manipulation (pushing a drawer entry on open and
+ * REPLACING it on navigation so back never loops) exists ONLY for the native
+ * Android app where the back arrow reopens this menu. On the web (desktop,
+ * tablet, and mobile browsers) the drawer keeps the original behavior:
+ * nav items are plain Next <Link>s with normal router.push history, and the
+ * drawer auto-closes whenever the route changes.
  */
 
 interface DrawerHistoryState {
@@ -33,6 +41,7 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const native = isNativeApp();
 
   useEffect(() => setMounted(true), []);
 
@@ -56,27 +65,33 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
     }
   }, [onClose]);
 
-  // Selecting a nav item: close the drawer and navigate. The drawer pushed a
-  // history entry on open; REPLACING it with the destination keeps the stack
-  // clean — the next back goes to the page before the menu (no stale drawer
-  // entry, no back loop when the Android back arrow reopens the menu).
+  // Android only: selecting a nav item closes the drawer and navigates. The
+  // drawer pushed a history entry on open; REPLACING it with the destination
+  // keeps the stack clean — the next back goes to the page before the menu
+  // (no stale drawer entry, no back loop when the Android back arrow reopens
+  // the menu). On the web the nav items are <Link>s (original behavior), so
+  // this path is never taken there.
   const go = useCallback(
     (href: string) => {
-      const state = window.history.state as DrawerHistoryState | null;
-      if (state?.hcStudentDrawer) {
-        router.replace(href);
-      } else {
-        router.push(href);
+      if (native) {
+        const state = window.history.state as DrawerHistoryState | null;
+        if (state?.hcStudentDrawer) {
+          router.replace(href);
+        } else {
+          router.push(href);
+        }
       }
       onClose();
     },
-    [router, onClose]
+    [native, router, onClose]
   );
 
-  // History entry for the back gesture, Escape, initial focus, and auto-close
-  // if the viewport reaches the xl desktop layout (drawer is never used there).
+  // Android only: history entry for the hardware back gesture, Escape, initial
+  // focus, and auto-close if the viewport reaches the xl desktop layout
+  // (drawer is never used there).
   useEffect(() => {
     if (!mounted) return;
+    if (!native) return;
     const state = window.history.state as DrawerHistoryState | null;
     if (!state?.hcStudentDrawer) {
       window.history.pushState({ hcStudentDrawer: true } satisfies DrawerHistoryState, "");
@@ -101,9 +116,22 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
       document.removeEventListener("keydown", onKeyDown);
       desktop.removeEventListener("change", onDesktop);
     };
-  }, [mounted, onClose, requestClose]);
+  }, [mounted, native, onClose, requestClose]);
+
+  // Web behavior (original): navigating anywhere (drawer link, browser back,
+  // or any route change) closes the drawer.
+  const initialPath = useRef(pathname);
+  useEffect(() => {
+    if (native) return;
+    if (initialPath.current !== pathname) onClose();
+  }, [native, pathname, onClose]);
 
   if (!mounted) return null;
+
+  const navItemClass = (active: boolean) =>
+    `flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold transition touch-manipulation ${
+      active ? "bg-tile text-navy" : "text-muted hover:bg-[var(--tile)] hover:text-navy"
+    }`;
 
   return createPortal(
     <>
@@ -150,15 +178,15 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
           <nav aria-label="Student sections" className="space-y-1">
             {STUDENT_NAV_ITEMS.map((item) => {
               const active = item.href ? pathname.startsWith(item.href) : false;
-              return (
+              // Android: button + managed history so back returns to the menu.
+              // Web: original Next <Link> with normal push history.
+              return native ? (
                 <button
                   key={item.href}
                   type="button"
                   onClick={() => item.href && go(item.href)}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold transition touch-manipulation ${
-                    active ? "bg-tile text-navy" : "text-muted hover:bg-[var(--tile)] hover:text-navy"
-                  }`}
+                  className={navItemClass(active)}
                 >
                   <span className="relative shrink-0">
                     {item.icon(!!active)}
@@ -166,6 +194,20 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
                   </span>
                   <span className="truncate">{item.label}</span>
                 </button>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href ?? "#"}
+                  onClick={onClose}
+                  aria-current={active ? "page" : undefined}
+                  className={navItemClass(active)}
+                >
+                  <span className="relative shrink-0">
+                    {item.icon(!!active)}
+                    {item.href?.includes("/messages") && <MessagesBadge />}
+                  </span>
+                  <span className="truncate">{item.label}</span>
+                </Link>
               );
             })}
           </nav>

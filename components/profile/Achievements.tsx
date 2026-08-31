@@ -224,27 +224,34 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
 
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-      {/* Media-style tab group: ACHIEVEMENTS is the active/default tab.
-          One coherent segmented control — equal-width tabs sized to their
-          label, readable on Android, no clipping, no awkward wrapping. On
-          very narrow screens the whole group scrolls together as a unit
-          (contained, no page-level overflow). */}
-      <div className="mb-5 flex items-stretch overflow-x-auto rounded-[10px] border border-base bg-[var(--surface-strong)] p-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            aria-current={tab === t.key ? "page" : undefined}
-            className={`flex flex-1 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-3 py-2 text-[11px] font-semibold uppercase transition sm:px-5 sm:text-xs ${
-              tab === t.key
-                ? "bg-surface text-navy shadow-sm ring-1 ring-base"
-                : "text-muted hover:bg-[var(--tile)] hover:text-navy"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Profile-section tabs — a compact social-profile navigation strip
+          (Facebook-style UX, not the visual). Text-only tabs with a gold
+          bottom indicator on the active one; muted text when inactive. No
+          heavy borders, no oversized segmented buttons. On very narrow
+          screens ONLY this strip scrolls horizontally — never the page. */}
+      <div className="mb-5 -mx-5 flex items-stretch gap-1 overflow-x-auto border-b border-base px-5 pb-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              aria-current={active ? "page" : undefined}
+              className={`relative flex min-h-[44px] shrink-0 items-center justify-center whitespace-nowrap px-3 text-sm font-semibold transition sm:px-4 ${
+                active ? "text-navy" : "text-muted hover:text-navy"
+              }`}
+            >
+              {t.label}
+              {active && (
+                <span
+                  aria-hidden
+                  className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-gold-token"
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "music" && <Music studentId={targetId} viewer={viewer} />}

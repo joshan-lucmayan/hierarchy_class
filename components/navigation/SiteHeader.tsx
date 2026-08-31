@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { BrandMark } from "@/components/navigation/BrandMark";
 import { NotificationBell } from "@/components/navigation/NotificationBell";
@@ -107,12 +106,19 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
   // On the web/desktop/tablet the previous behavior is preserved.
   if (isStudent) {
     if (!isHome) {
+      // Non-home student page header. On Android, when the user scrolls down
+      // the header structurally collapses to ONLY the back-arrow bar (the
+      // label and bottom border are removed from layout — nothing is left
+      // occupying space). Scrolling up restores the full header.
+      const collapsed = native && compact;
       return (
         <>
           <header
-            className={`relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-3 border-b border-base bg-surface px-2 transition-all duration-200 sm:px-4 xl:mx-0 xl:px-0 ${native && compact ? "py-1" : "py-2"}`}
+            className={`relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center border-b bg-surface px-2 transition-all duration-200 sm:px-4 xl:mx-0 xl:px-0 ${
+              collapsed ? "gap-0 border-b-transparent py-0" : "gap-3 border-b-base py-2"
+            }`}
             style={{
-              paddingTop: native && compact
+              paddingTop: collapsed
                 ? "env(safe-area-inset-top)"
                 : "max(0.5rem, env(safe-area-inset-top))",
             }}
@@ -137,7 +143,9 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
                 <path d="M12 19l-7-7 7-7" />
               </svg>
             </button>
-            <span className={`truncate text-sm font-semibold text-navy transition-all duration-200 ${native && compact ? "max-w-0 overflow-hidden opacity-0" : ""}`}>
+            <span className={`truncate text-sm font-semibold text-navy transition-opacity duration-200 ${
+              collapsed ? "hidden" : ""
+            }`}>
               {native ? (menuLabel ?? "Back") : "Back to Home"}
             </span>
           </header>
@@ -150,7 +158,11 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
     return (
       <>
         <header
-          className={`relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-1 border-b border-base bg-surface px-2 transition-all duration-200 sm:gap-2 sm:px-4 xl:mx-0 xl:px-0 xl:pl-8 ${native && compact ? "py-1" : "py-2"}`}
+          className={`relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center border-b bg-surface px-2 transition-all duration-200 sm:gap-2 sm:px-4 xl:mx-0 xl:px-0 xl:pl-8 ${
+            native && compact
+              ? "gap-1 border-b-transparent py-0"
+              : "gap-1 border-b-base py-2"
+          }`}
           style={{
             paddingTop: native && compact
               ? "env(safe-area-inset-top)"
@@ -175,14 +187,18 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
 
           {/* App name — no logo, flex center so menu, name, search, florin, bell all stay visible.
               On Android it is removed from layout when scrolled down (compact keeps just the menu). */}
-          <div className={`flex min-w-0 flex-1 items-center justify-center px-1 transition-all duration-200 sm:px-2 xl:hidden ${native && compact ? "hidden" : ""}`}>
+          <div className={`flex min-w-0 flex-1 items-center justify-center px-1 transition-all duration-200 sm:px-2 xl:hidden ${
+            native && compact ? "hidden" : ""
+          }`}>
             <span className="whitespace-nowrap text-center font-display text-xs font-bold uppercase tracking-[0.1em] text-navy sm:text-sm sm:tracking-[0.12em]">Hierarchy Class</span>
           </div>
           <p className="hidden min-w-0 flex-1 truncate text-sm font-medium text-muted xl:block">
             {schoolName ? `${schoolName} \u00b7 Hierarchy Class` : "Hierarchy Class"}
           </p>
 
-          <div className={`flex shrink-0 items-center gap-1 transition-all duration-200 sm:gap-1.5 ${native && compact ? "hidden" : ""}`}>
+          <div className={`flex shrink-0 items-center gap-1 transition-all duration-200 sm:gap-1.5 ${
+            native && compact ? "hidden" : ""
+          }`}>
             <button
               type="button"
               onClick={() => setSearchOpen(true)}

@@ -1,8 +1,8 @@
 {
-  "latestVersion": "1.24.111",
-  "versionCode": 124111,
-  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.24.111.apk",
-  "releaseNotes": "Android UI fixes: profile tabs, leaderboard layout, back-to-menu navigation, collapsing header, and update checker fix.",
-  "minimumSupportedVersion": "1.23.110",
-  "minimumVersionCode": 123110
+  "latestVersion": "1.25.113",
+  "versionCode": 125113,
+  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.25.113.apk",
+  "releaseNotes": "Scope Android drawer history/navigation to the native app; restore original web drawer behavior.",
+  "minimumSupportedVersion": "1.24.111",
+  "minimumVersionCode": 124111
 }

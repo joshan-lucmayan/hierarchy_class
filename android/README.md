@@ -1,6 +1,6 @@
 # Android — Standalone App (Capacitor)
 
-> Package: `com.hierarchyclass.app` — `versionName 1.24.111` — `versionCode 124111` — **minSdk 24, target/compileSdk 36**
+> Package: `com.hierarchyclass.app` — `versionName 1.25.113` — `versionCode 125113` — **minSdk 24, target/compileSdk 36**
 > Stack: Capacitor 8.5 (core/android/browser) + statically exported Next.js frontend bundled in the APK
 
 ## Architecture
@@ -60,6 +60,10 @@ cleared across restarts.
   previous context) and the title shows the current menu name (Materials, Library, Quiz,
   Leaderboard, Shop, Habits, …) instead of "Back to Home". Drawer navigation replaces its pushed
   history entry, so there are no stale entries or back loops.
+- **Platform isolation:** the drawer history manipulation above is strictly Android-only
+  (`isNativeApp()`). On web/desktop/tablet/mobile-browser the drawer keeps the original behavior:
+  nav items are plain `<Link>`s with normal `router.push` history and an auto-close on route
+  change. The back arrow on web returns to Home (`router.push("/student/home")`) exactly as before.
 - **Collapsing header:** on Android the header collapses to a compact back/menu-only bar when
   scrolling down — title, app name, and icons are fully removed from layout — and returns to the
   full header when scrolling up (`lib/useCollapsibleHeader.ts`, a single rAF-throttled scroll
