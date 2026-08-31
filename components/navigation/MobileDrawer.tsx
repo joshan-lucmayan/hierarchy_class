@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { STUDENT_NAV_ITEMS } from "@/components/navigation/navItems";
 import { MessagesBadge } from "@/components/navigation/MessagesBadge";
 import { IconX } from "@/components/ui/icons";
@@ -32,6 +32,7 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
   const [navClearance, setNavClearance] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => setMounted(true), []);
 
@@ -54,6 +55,23 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
       onClose();
     }
   }, [onClose]);
+
+  // Selecting a nav item: close the drawer and navigate. The drawer pushed a
+  // history entry on open; REPLACING it with the destination keeps the stack
+  // clean — the next back goes to the page before the menu (no stale drawer
+  // entry, no back loop when the Android back arrow reopens the menu).
+  const go = useCallback(
+    (href: string) => {
+      const state = window.history.state as DrawerHistoryState | null;
+      if (state?.hcStudentDrawer) {
+        router.replace(href);
+      } else {
+        router.push(href);
+      }
+      onClose();
+    },
+    [router, onClose]
+  );
 
   // History entry for the back gesture, Escape, initial focus, and auto-close
   // if the viewport reaches the xl desktop layout (drawer is never used there).
@@ -84,12 +102,6 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
       desktop.removeEventListener("change", onDesktop);
     };
   }, [mounted, onClose, requestClose]);
-
-  // Navigating (drawer link or any link) closes the drawer.
-  const initialPath = useRef(pathname);
-  useEffect(() => {
-    if (initialPath.current !== pathname) onClose();
-  }, [pathname, onClose]);
 
   if (!mounted) return null;
 
@@ -139,12 +151,12 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
             {STUDENT_NAV_ITEMS.map((item) => {
               const active = item.href ? pathname.startsWith(item.href) : false;
               return (
-                <Link
+                <button
                   key={item.href}
-                  href={item.href ?? "#"}
+                  type="button"
+                  onClick={() => item.href && go(item.href)}
                   aria-current={active ? "page" : undefined}
-                  onClick={onClose}
-                  className={`flex min-h-[44px] items-center gap-3 rounded-lg px-3 text-sm font-semibold transition touch-manipulation ${
+                  className={`flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold transition touch-manipulation ${
                     active ? "bg-tile text-navy" : "text-muted hover:bg-[var(--tile)] hover:text-navy"
                   }`}
                 >
@@ -153,7 +165,7 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
                     {item.href?.includes("/messages") && <MessagesBadge />}
                   </span>
                   <span className="truncate">{item.label}</span>
-                </Link>
+                </button>
               );
             })}
           </nav>

@@ -1,6 +1,6 @@
 # Android — Standalone App (Capacitor)
 
-> Package: `com.hierarchyclass.app` — `versionName 1.23.110` — `versionCode 123110` — **minSdk 24, target/compileSdk 36**
+> Package: `com.hierarchyclass.app` — `versionName 1.24.111` — `versionCode 124111` — **minSdk 24, target/compileSdk 36**
 > Stack: Capacitor 8.5 (core/android/browser) + statically exported Next.js frontend bundled in the APK
 
 ## Architecture
@@ -55,12 +55,15 @@ cleared across restarts.
 - **Student:** header hamburger on Home (< xl) → `MobileDrawer` (the same `STUDENT_NAV_ITEMS` the
   desktop `SideNav` uses; Home, Messages, Materials, Library, Quiz, Leaderboard, Shop, Habits,
   Profile, Settings + logout). Sub-pages show a back arrow. xl+ pivots to the desktop SideNav.
-- **Back header:** on Android the sub-page header's back arrow uses `router.back()` (previous menu
-  level, no hard-coded "Back to Home") and the title shows the current menu name (Materials,
-  Library, Quiz, Leaderboard, Shop, Habits, …) instead of "Back to Home". The header collapses to a
-  compact back-only strip when scrolling down and expands again on scroll up
-  (`lib/useCollapsibleHeader.ts`), with a single rAF-throttled scroll listener (no jitter, no
-  duplicate listeners).
+- **Back header:** on Android the sub-page header's back arrow returns to the **menu selection**
+  (top-level menu pages reopen the drawer; drill-down pages like a viewed profile go back to the
+  previous context) and the title shows the current menu name (Materials, Library, Quiz,
+  Leaderboard, Shop, Habits, …) instead of "Back to Home". Drawer navigation replaces its pushed
+  history entry, so there are no stale entries or back loops.
+- **Collapsing header:** on Android the header collapses to a compact back/menu-only bar when
+  scrolling down — title, app name, and icons are fully removed from layout — and returns to the
+  full header when scrolling up (`lib/useCollapsibleHeader.ts`, a single rAF-throttled scroll
+  listener: no jitter, no duplicate listeners). Web/desktop/tablet keep their fixed header.
 - **Teacher/Admin:** role bottom nav on phones (`TeacherBottomNav` / `AdminBottomNav`, self-hidden
   at md+) with Home, role areas, Settings and logout; md+ pivots to the desktop SideNav. The
   teacher/admin phone block screen (`DeviceWarning`) is web-only — native phones get the real app.
@@ -117,9 +120,12 @@ direct Supabase, works regardless).
   version / size / SHA-256 from `lib/apkRelease.ts` (update that file to match the exact audited
   `app-release.apk` after each release).
 - **Update detection:** the app (only inside Capacitor) fetches
-  `https://www.hierarchyclass.com/android-version.json` on launch and compares `versionCode`.
-  If a newer version exists it shows a non-blocking banner with a **Download Update** action that
-  opens the official `/download` page on the production origin (`components/pwa/AndroidUpdateChecker.tsx`).
+  `https://www.hierarchyclass.com/android-version.json` on launch and compares versions
+  numerically (MAJOR/MINOR/BUG_FIX — never lexicographic). The installed versionCode follows the
+  project convention (`MAJOR×100000 + MINOR×1000 + BUG_FIX`), so an up-to-date install never shows
+  a false update banner. If a newer version exists it shows a non-blocking banner with a
+  **Download Update** action that opens the official `/download` page on the production origin
+  (`components/pwa/AndroidUpdateChecker.tsx`).
 - **No silent updating** — installing a new APK is always a manual user action. If Google Play is
   added later, Play handles updates itself (store AAB, Play App Signing); this direct-APK checker
   would then be unnecessary.

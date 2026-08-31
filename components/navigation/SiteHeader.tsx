@@ -72,6 +72,12 @@ function currentMenuLabel(pathname: string): string | null {
   return prefix ? MENU_LABELS[prefix] : null;
 }
 
+/** True when the current route IS a top-level menu page (not a drill-down). */
+function isMenuTopLevel(pathname: string): boolean {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  return MENU_LABELS[normalized] !== undefined;
+}
+
 export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { href?: string; showFlorin?: boolean; showMenu?: boolean; desktopAt?: "md" | "xl" }) {
   const { balance } = useFlorin();
   const { schools } = useSchools();
@@ -88,12 +94,14 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
   const isHome = normalizedPathname === "/student/home";
 
   const menuLabel = currentMenuLabel(pathname ?? "");
+  const menuTopLevel = isMenuTopLevel(pathname ?? "");
   const native = isNativeApp();
   const compact = useCollapsibleHeader();
 
   // Student header: layout only — no logo, Search icon in header, visual tokens back to normal
   // Non-home student pages: back arrow only, no menu/name/search/florin/bell.
-  // On Android: back navigates to the previous context (not hard-coded to home),
+  // On Android: back returns to the Android menu selection (top-level menu
+  // pages reopen the drawer; drill-down pages go back to the previous context),
   // and the header shows the current menu name instead of "Back to Home".
   // On Android, the header also collapses to a compact strip when scrolling down.
   // On the web/desktop/tablet the previous behavior is preserved.
@@ -102,15 +110,26 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
       return (
         <>
           <header
-            className="relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-3 border-b border-base bg-surface px-2 py-2 transition-all duration-200 sm:px-4 xl:mx-0 xl:px-0"
+            className={`relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-3 border-b border-base bg-surface px-2 transition-all duration-200 sm:px-4 xl:mx-0 xl:px-0 ${native && compact ? "py-1" : "py-2"}`}
             style={{
-              paddingTop: "max(0.5rem, env(safe-area-inset-top))",
+              paddingTop: native && compact
+                ? "env(safe-area-inset-top)"
+                : "max(0.5rem, env(safe-area-inset-top))",
             }}
           >
             <button
               type="button"
-              onClick={() => (native ? router.back() : router.push("/student/home"))}
-              aria-label="Back"
+              onClick={() => {
+                if (!native) {
+                  router.push("/student/home");
+                } else if (menuTopLevel) {
+                  // Return to the Android menu selection (the drawer).
+                  setMenuOpen(true);
+                } else {
+                  router.back();
+                }
+              }}
+              aria-label={native ? (menuTopLevel ? "Open menu" : "Back") : "Back to home"}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-tile text-muted transition hover:border-sealion active:scale-[0.96]"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -118,7 +137,7 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
                 <path d="M12 19l-7-7 7-7" />
               </svg>
             </button>
-            <span className={`truncate text-sm font-semibold text-navy transition-opacity duration-200 ${native && compact ? "opacity-0 w-0 overflow-hidden" : ""}`}>
+            <span className={`truncate text-sm font-semibold text-navy transition-all duration-200 ${native && compact ? "max-w-0 overflow-hidden opacity-0" : ""}`}>
               {native ? (menuLabel ?? "Back") : "Back to Home"}
             </span>
           </header>
@@ -131,9 +150,11 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
     return (
       <>
         <header
-          className="relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-1 border-b border-base bg-surface px-2 py-2 transition-all duration-200 sm:gap-2 sm:px-4 xl:mx-0 xl:px-0 xl:pl-8"
+          className={`relative max-xl:sticky max-xl:top-0 z-30 mx-0 flex items-center gap-1 border-b border-base bg-surface px-2 transition-all duration-200 sm:gap-2 sm:px-4 xl:mx-0 xl:px-0 xl:pl-8 ${native && compact ? "py-1" : "py-2"}`}
           style={{
-            paddingTop: "max(0.5rem, env(safe-area-inset-top))",
+            paddingTop: native && compact
+              ? "env(safe-area-inset-top)"
+              : "max(0.5rem, env(safe-area-inset-top))",
           }}
         >
           <div className="flex shrink-0 items-center xl:hidden">
@@ -153,15 +174,15 @@ export function SiteHeader({ href, showFlorin, showMenu, desktopAt = "xl" }: { h
           </div>
 
           {/* App name — no logo, flex center so menu, name, search, florin, bell all stay visible.
-              On Android it collapses away when scrolling down (compact header keeps just the menu). */}
-          <div className={`flex min-w-0 flex-1 items-center justify-center px-1 transition-all duration-200 sm:px-2 xl:hidden ${native && compact ? "max-sm:opacity-0 max-sm:w-0 max-sm:overflow-hidden" : ""}`}>
+              On Android it is removed from layout when scrolled down (compact keeps just the menu). */}
+          <div className={`flex min-w-0 flex-1 items-center justify-center px-1 transition-all duration-200 sm:px-2 xl:hidden ${native && compact ? "hidden" : ""}`}>
             <span className="whitespace-nowrap text-center font-display text-xs font-bold uppercase tracking-[0.1em] text-navy sm:text-sm sm:tracking-[0.12em]">Hierarchy Class</span>
           </div>
           <p className="hidden min-w-0 flex-1 truncate text-sm font-medium text-muted xl:block">
             {schoolName ? `${schoolName} \u00b7 Hierarchy Class` : "Hierarchy Class"}
           </p>
 
-          <div className={`flex shrink-0 items-center gap-1 transition-all duration-200 sm:gap-1.5 ${native && compact ? "max-sm:opacity-0 max-sm:w-0 max-sm:overflow-hidden" : ""}`}>
+          <div className={`flex shrink-0 items-center gap-1 transition-all duration-200 sm:gap-1.5 ${native && compact ? "hidden" : ""}`}>
             <button
               type="button"
               onClick={() => setSearchOpen(true)}

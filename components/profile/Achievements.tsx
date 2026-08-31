@@ -224,18 +224,22 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
 
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-      {/* Media-style tabs: ACHIEVEMENTS is the active/default tab. */}
-      <div className="mb-5 flex flex-nowrap items-center gap-1.5 overflow-x-auto border-b border-base pb-4 [-webkit-overflow-scrolling:touch]">
+      {/* Media-style tab group: ACHIEVEMENTS is the active/default tab.
+          One coherent segmented control — equal-width tabs sized to their
+          label, readable on Android, no clipping, no awkward wrapping. On
+          very narrow screens the whole group scrolls together as a unit
+          (contained, no page-level overflow). */}
+      <div className="mb-5 flex items-stretch overflow-x-auto rounded-[10px] border border-base bg-[var(--surface-strong)] p-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
             aria-current={tab === t.key ? "page" : undefined}
-            className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] transition ${
+            className={`flex flex-1 shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-3 py-2 text-[11px] font-semibold uppercase transition sm:px-5 sm:text-xs ${
               tab === t.key
-                ? "border border-base bg-tile text-navy"
-                : "border border-transparent text-muted hover:text-navy"
+                ? "bg-surface text-navy shadow-sm ring-1 ring-base"
+                : "text-muted hover:bg-[var(--tile)] hover:text-navy"
             }`}
           >
             {t.label}

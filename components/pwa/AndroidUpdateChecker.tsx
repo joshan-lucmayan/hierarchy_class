@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { isNativeApp } from "@/lib/native";
 import { PRODUCTION_ORIGIN } from "@/lib/siteUrl";
 import { APP_VERSION } from "@/lib/version";
@@ -9,10 +9,13 @@ import { APP_VERSION } from "@/lib/version";
  * Check for newer Android APK versions.
  *
  * Fetches the release metadata from the production domain and compares the
- * installed versionCode against the latest. If a newer version is available,
- * shows a non-blocking banner directing the user to the official download
- * page. Does NOT silently install — the user must manually download and
- * install the APK.
+ * installed version against the latest using proper numeric MAJOR/MINOR/BUG_FIX
+ * comparison (never lexicographic — 1.10.0 must beat 1.9.0). The project
+ * versionCode convention is MAJOR×100000 + MINOR×1000 + BUG_FIX (1.23.110 →
+ * 123110); the metadata's versionCode is compared too as a secondary guard.
+ * If a newer version is available, a non-blocking banner directs the user to
+ * the official download page. Does NOT silently install — the user must
+ * manually download and install the APK.
  *
  * Gracefully handles:
  * - offline (no fetch → quiet)
@@ -31,18 +34,42 @@ interface AndroidVersionMeta {
   minimumVersionCode: number;
 }
 
+/** [major, minor, bugFix] from a MAJOR.MINOR.BUG_FIX string, or null. */
+function parseVersion(v: string): [number, number, number] | null {
+  const parts = v.trim().split(".").map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
+  return [parts[0], parts[1], parts[2]];
+}
+
+/**
+ * Numeric three-part comparison. Returns 1 when a > b, -1 when a < b, 0 when
+ * equal. Compares MAJOR first, then MINOR, then BUG_FIX numerically — so
+ * 1.10.0 > 1.9.0 correctly.
+ */
+function compareVersions(a: string, b: string): number {
+  const pa = parseVersion(a);
+  const pb = parseVersion(b);
+  if (!pa || !pb) return a.localeCompare(b);
+  for (let i = 0; i < 3; i++) {
+    if (pa[i] > pb[i]) return 1;
+    if (pa[i] < pb[i]) return -1;
+  }
+  return 0;
+}
+
+/** Project convention: MAJOR×100000 + MINOR×1000 + BUG_FIX. */
+function versionToCode(v: string): number {
+  const p = parseVersion(v);
+  return p ? p[0] * 100000 + p[1] * 1000 + p[2] : 0;
+}
+
 export function AndroidUpdateChecker() {
   const [meta, setMeta] = useState<AndroidVersionMeta | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (!isNativeApp()) return;
     let cancelled = false;
-
-    // Parse the current versionCode from the APP_VERSION string (1.23.110 → 123110).
-    const parts = APP_VERSION.split(".").map(Number);
-    const currentVersionCode = parts.length === 3 ? parts[0] * 10000 + parts[1] * 100 + parts[2] : 0;
 
     async function check() {
       try {
@@ -53,10 +80,6 @@ export function AndroidUpdateChecker() {
         const data: AndroidVersionMeta = await res.json();
         if (cancelled) return;
         setMeta(data);
-
-        if (data.versionCode > currentVersionCode) {
-          // Newer version available — show banner
-        }
       } catch {
         // Offline or metadata unavailable — quiet
       }
@@ -70,9 +93,15 @@ export function AndroidUpdateChecker() {
 
   if (!isNativeApp() || dismissed || !meta) return null;
 
-  const parts = APP_VERSION.split(".").map(Number);
-  const currentVersionCode = parts.length === 3 ? parts[0] * 10000 + parts[1] * 100 + parts[2] : 0;
-  if (meta.versionCode <= currentVersionCode) return null;
+  // The banner must appear ONLY when the remote is strictly newer than the
+  // installed app — never when they match (the false-update bug) and never
+  // when the remote is older. Numeric string comparison is authoritative;
+  // versionCode is compared as a secondary guard.
+  const remoteNewer =
+    compareVersions(meta.latestVersion, APP_VERSION) > 0 ||
+    (compareVersions(meta.latestVersion, APP_VERSION) === 0 &&
+      meta.versionCode > versionToCode(APP_VERSION));
+  if (!remoteNewer) return null;
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 animate-modal-in sm:left-auto sm:right-6 sm:max-w-sm">
