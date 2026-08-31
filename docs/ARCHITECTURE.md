@@ -1,6 +1,6 @@
 # Hierarchy Class - Architecture
 
-**Version 1.25.113.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
+**Version 1.26.114.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).
@@ -354,7 +354,7 @@ Service-role client: remove storage objects (best-effort per bucket)
 
 **Why the service-role client exists.** Supabase Auth user deletion requires
 privileged access that the anon key cannot perform. `lib/supabase/serviceClient.ts`
-creates a server-only client using `SUPABASE_SERVICE_ROLE_KEY` — this key is:
+creates a server-only client using `SUPABASE_SERVICE_ROLE_KEY` - this key is:
 
 - Server-only (never `NEXT_PUBLIC_`, never exposed to the browser)
 - Never committed to the repository
@@ -370,7 +370,7 @@ storage cleanup require privileged access that RLS alone cannot provide.
 | File | Responsibility |
 |---|---|
 | `app/actions/account.ts` | Server actions: `deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`, `adminRestrictUser`, `adminUnrestrictUser`, `submitAppeal`, `resolveAppeal`. Authorization runs against the caller's session (anon key + RLS) before the service-role client is used for the irreversible step |
-| `app/api/export-account/route.ts` | Data export endpoint ("Download My Data"). Uses the caller's own session — RLS gates every query. Returns JSON. No service role involved |
+| `app/api/export-account/route.ts` | Data export endpoint ("Download My Data"). Uses the caller's own session - RLS gates every query. Returns JSON. No service role involved |
 | `app/auth/reactivate/page.tsx` | Reactivation page shown to deactivated users. Two options: Reactivate (clears `deactivated_at`, welcome-back notification) or Stay Deactivated (sign out) |
 | `lib/supabase/serviceClient.ts` | Server-only Supabase client with the service role. Used ONLY by account deletion (auth admin + storage cleanup) |
 | `middleware.ts` | Enforces deactivated-user redirects on every request (server-side, cannot be bypassed by hiding UI) |

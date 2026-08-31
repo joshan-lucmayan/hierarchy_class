@@ -296,7 +296,7 @@ export function NativeSignup() {
                 ${errors.studentId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             {errors.studentId && <p className="text-xs text-warn">{errors.studentId}</p>}
-            <p className="text-[11px] text-[var(--faint)]">The ID your school issued to you — not a password, and never shared.</p>
+            <p className="text-[11px] text-[var(--faint)]">The ID your school issued to you - not a password, and never shared.</p>
           </div>
         ) : (
           <div className="mt-4 flex flex-col gap-1.5">

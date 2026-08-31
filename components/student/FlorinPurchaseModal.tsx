@@ -99,7 +99,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
   const handleSelectPackage = useCallback(async (pkg: FlorinPackage) => {
     if (isProcessing) return;
     if (!isOnline) {
-      setError("You’re offline — connect to purchase Florin. Nothing was charged.");
+      setError("You’re offline - connect to purchase Florin. Nothing was charged.");
       return;
     }
     
@@ -184,7 +184,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
         </p>
         
         {/* Offline notice */}
-        {!isOnline && <OfflineBanner message="You’re offline — Florin purchase needs a connection. Nothing was charged." />}
+        {!isOnline && <OfflineBanner message="You’re offline - Florin purchase needs a connection. Nothing was charged." />}
         {/* Error message */}
         {error && (
           <div className="mt-4 rounded-[10px] bg-red-500/10 border border-red-500/20 p-3 text-center">

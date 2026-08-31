@@ -125,7 +125,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NativeBackButton />
         {/* Android auth deep links (password recovery / confirmation). */}
         <NativeDeepLink />
-        {/* Android update checker — checks for newer APK versions on
+        {/* Android update checker - checks for newer APK versions on
             production domain. Only shows on the native Capacitor app. */}
         <AndroidUpdateChecker />
         {/* IOSInstallHint intentionally unmounted: automatic install UI is

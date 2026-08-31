@@ -20,7 +20,7 @@ import { isNativeApp, setPendingAuthLink } from "@/lib/native";
  * to the appropriate page.
  *
  * If App Link verification hasn't completed, the link opens in the
- * system browser and the existing web recovery flow runs — the app
+ * system browser and the existing web recovery flow runs - the app
  * never sees the URL.  Both paths are functional; the deep link is an
  * enhancement, not a critical dependency.
  *
@@ -68,7 +68,7 @@ export function NativeDeepLink() {
           return;
         }
 
-        // Code exchanged successfully — session is now valid.
+        // Code exchanged successfully - session is now valid.
         if (type === "recovery") {
           router.replace("/reset-password");
         } else {

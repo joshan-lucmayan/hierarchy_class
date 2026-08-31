@@ -1,8 +1,8 @@
 -- ===========================================================================
--- 064: FIX storage owner policies — folder 2 is the PROFILE id, not auth.uid().
+-- 064: FIX storage owner policies - folder 2 is the PROFILE id, not auth.uid().
 --
 -- Every client upload path (stories `myday`, feedback attachments) builds
--- the object path as `{school_id}/{profile.id}/{uuid}.ext` — folder 2 is the
+-- the object path as `{school_id}/{profile.id}/{uuid}.ext` - folder 2 is the
 -- caller's PROFILES row id. But the owner policies (060 for `feedback`,
 -- and the pre-existing `myday` policies) compared folder 2 against
 -- `auth.uid()` (the AUTH USERS id). Since migration 059 fixed the old

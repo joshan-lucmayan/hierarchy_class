@@ -22,13 +22,13 @@ function absoluteDownloadUrl(): string {
 }
 
 /**
- * The /download hub — for people browsing the WEBSITE in a browser.
+ * The /download hub - for people browsing the WEBSITE in a browser.
  *
  * Context-aware:
  * - Installed contexts (TWA / standalone PWA) see an "already using the app"
  *   state: no install buttons, no nagging. Updates are explained instead.
  * - Normal browsers see honest per-platform guidance. No invented store
- *   listings, no fake binaries — only actions backed by something real.
+ *   listings, no fake binaries - only actions backed by something real.
  *
  * The browser's deferred install prompt is triggered ONLY by an explicit
  * button press here (never automatically).
@@ -102,7 +102,7 @@ export function DownloadExperience() {
       setApkCopied(true);
       window.setTimeout(() => setApkCopied(false), 2000);
     } catch {
-      /* clipboard unavailable — checksum is selectable text anyway */
+      /* clipboard unavailable - checksum is selectable text anyway */
     }
   }
 
@@ -131,7 +131,7 @@ export function DownloadExperience() {
             You&apos;re already using the Hierarchy Class app.
           </p>
           <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
-            New website improvements arrive automatically — when an update is
+            New website improvements arrive automatically - when an update is
             ready, you&apos;ll see a &ldquo;New version available&rdquo; notice inside the app.
             Nothing to reinstall.
           </p>
@@ -162,12 +162,12 @@ export function DownloadExperience() {
                 )}
                 {installState === "dismissed" && (
                   <span className="text-xs text-muted">
-                    No problem — you can also keep using Hierarchy Class in the browser.
+                    No problem - you can also keep using Hierarchy Class in the browser.
                   </span>
                 )}
                 {installState === "unsupported" && (
                   <span className="text-xs text-warn">
-                    Your browser doesn&apos;t offer one-tap install — use the manual steps below.
+                    Your browser doesn&apos;t offer one-tap install - use the manual steps below.
                   </span>
                 )}
               </div>
@@ -219,7 +219,7 @@ export function DownloadExperience() {
           )}
           <p>
             On Android, Hierarchy Class runs as a{" "}
-            <span className="font-semibold text-navy">full-screen app</span> — once
+            <span className="font-semibold text-navy">full-screen app</span> - once
             installed it opens without a browser address bar.
           </p>
           <ol className="ml-4 list-decimal space-y-1.5">
@@ -229,7 +229,7 @@ export function DownloadExperience() {
             <li>Open the downloaded file.</li>
             <li>
               Android may ask you to <strong>allow installs</strong> from your browser
-              or file manager — approve it once.
+              or file manager - approve it once.
             </li>
             <li>Install Hierarchy Class, then open the app.</li>
           </ol>
@@ -239,7 +239,7 @@ export function DownloadExperience() {
               published yet. We won&apos;t show a store button until it&apos;s real.
             </li>
             <li>
-              Already installed? Website updates arrive automatically inside the app —
+              Already installed? Website updates arrive automatically inside the app -
               you only ever need a new APK if we announce a native release.
             </li>
           </ul>
@@ -248,7 +248,7 @@ export function DownloadExperience() {
         {/* WINDOWS */}
         <Section title="Windows" badge={ready && isDesktop && !isIOS ? "Your device" : undefined}>
           <p>
-            There is no separate Windows program to download — you install the{" "}
+            There is no separate Windows program to download - you install the{" "}
             <span className="font-semibold text-navy">web app</span>, which behaves like
             one:
           </p>
@@ -266,7 +266,7 @@ export function DownloadExperience() {
         {/* LINUX */}
         <Section title="Linux" badge={undefined}>
           <p>
-            Same as Windows — there&apos;s no .deb/.rpm/AppImage/Flatpak/Snap package.
+            Same as Windows - there&apos;s no .deb/.rpm/AppImage/Flatpak/Snap package.
             Install the web app from a Chromium-based browser (Chrome, Chromium, Edge,
             Brave):
           </p>
@@ -276,7 +276,7 @@ export function DownloadExperience() {
               Use the <strong>install icon</strong> in the address bar, or menu → “Install
               app”. It appears in your applications menu.
             </li>
-            <li>Firefox users: keep using the site normally — everything works in-browser.</li>
+            <li>Firefox users: keep using the site normally - everything works in-browser.</li>
           </ol>
         </Section>
 
@@ -301,7 +301,7 @@ export function DownloadExperience() {
               {isAndroid && "You're on the Android app (Trusted Web Activity)."}
               {isIOS && "You added Hierarchy Class to your iOS home screen."}
               {!isAndroid && !isIOS && "You're running the installed web app."}{" "}
-              Website updates install through the in-app update notice — native Android
+              Website updates install through the in-app update notice - native Android
               releases (Play/APK) are announced separately when available.
             </p>
           </Section>

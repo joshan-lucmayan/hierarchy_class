@@ -1,4 +1,4 @@
-// Hierarchy Class — Service Worker (standards-based, no Workbox)
+// Hierarchy Class - Service Worker (standards-based, no Workbox)
 // Install: cache offline shell + static icons; skipWaiting only on user consent.
 // Security: NEVER cache Supabase, /api, payment, or authenticated HTML.
 const CACHE_STATIC = "hc-static-v1";
@@ -13,7 +13,7 @@ self.addEventListener("install", (event) => {
       .then((cache) => cache.addAll(PRECACHE.map((u) => new Request(u, { cache: "reload" }))))
       .catch(() => {})
   );
-  // Don't auto-skipWaiting — wait for user-approved update (message SKIP_WAITING)
+  // Don't auto-skipWaiting - wait for user-approved update (message SKIP_WAITING)
 });
 
 self.addEventListener("activate", (event) => {
@@ -46,8 +46,8 @@ self.addEventListener("fetch", (event) => {
   const isPayment = url.pathname.startsWith("/payment/");
   const isAuth = url.pathname.startsWith("/auth/");
   if (isSupabase || isApi || isPayment || isAuth) return;
-  // Also bypass if Authorization header present (best-effort — headers not always visible, but path check covers API)
-  // Navigation requests — NetworkFirst, never cache HTML (protects role-based routing + auth)
+  // Also bypass if Authorization header present (best-effort - headers not always visible, but path check covers API)
+  // Navigation requests - NetworkFirst, never cache HTML (protects role-based routing + auth)
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -60,7 +60,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets — CacheFirst with network update (icons, next static, images, fonts)
+  // Static assets - CacheFirst with network update (icons, next static, images, fonts)
   const isStatic =
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
@@ -101,5 +101,5 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Everything else — NetworkOnly (no cache) to avoid leaking user data
+  // Everything else - NetworkOnly (no cache) to avoid leaking user data
 });

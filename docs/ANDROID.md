@@ -1,7 +1,7 @@
-# Android — Hierarchy Class PWA & Trusted Web Activity
+# Android - Hierarchy Class PWA & Trusted Web Activity
 
 > ⚠️ **ARCHITECTURE MIGRATED (2026-08-30, v1.25.113):** the Android app is now a **standalone
-> Capacitor application** with the Next.js frontend bundled inside the APK — it no longer uses a
+> Capacitor application** with the Next.js frontend bundled inside the APK - it no longer uses a
 > Trusted Web Activity, Custom Tabs, or the website as its frontend source. See
 > [`android/README.md`](../android/README.md) for the current architecture, build, and signing
 > docs. The Bubblewrap TWA implementation described below was fully audited and verified
@@ -10,7 +10,7 @@
 > as the archive's reference and for the web PWA half (PWA manifest, service worker, offline
 > model, caching policy all still serve the website).
 
-> **Package:** `com.hierarchyclass.app` — **TWA build:** `1.15.90` (`versionCode 11590`, archived) — **Standalone build:** `1.25.113` (`versionCode 125113`) — **Web:** `1.25.113` (`package.json:version`)
+> **Package:** `com.hierarchyclass.app` - **TWA build:** `1.15.90` (`versionCode 11590`, archived) - **Standalone build:** `1.26.114` (`versionCode 126114`) - **Web:** `1.26.114` (`package.json:version`)
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -29,7 +29,7 @@ Next.js 14.2.5 App Router (React 18, Tailwind)
 
 - **Web is the product.** The TWA is a Chrome Custom Tabs wrapper that shows the PWA fullscreen (no address bar when Digital Asset Links verified). No native rewrite, no Capacitor/Tauri.
 - **Rank authority stays server-side.** `lib/rankEngine.ts` is pure math, but the authoritative transition is `Teacher/Admin → Server RPC (approve_grade_submission, confirm_and_apply_score_entry) → Postgres + RLS → realtime → UI`. See `docs/RANK_SYSTEM.md` and `lib/rankEngine.ts:1-100`.
-- **Realtime:** Supabase Realtime channels in `lib/rankStore.tsx`, `lib/classroomHierarchyStore.tsx`, `lib/chatStore.tsx` — never cached, never queued offline.
+- **Realtime:** Supabase Realtime channels in `lib/rankStore.tsx`, `lib/classroomHierarchyStore.tsx`, `lib/chatStore.tsx` - never cached, never queued offline.
 
 ---
 
@@ -41,36 +41,36 @@ Next.js 14.2.5 App Router (React 18, Tailwind)
 - Linked via `app/layout.tsx:37` `metadata.manifest: "/manifest.json"` → `<link rel="manifest">`
 
 **Icons** `public/icons/`
-- `icon-192.png` 192×192 (5.0k), `icon-512.png` 512×512 (19k), `maskable-512.png` 512 (17k, safe area), `apple-touch-icon-180.png` 180 (4.6k) — generated via `sharp` from `public/icon.svg` (crown #9ea7b3 on #141214 `rx="6"`). Source brand `public/brand/*` preserved. No new logo.
+- `icon-192.png` 192×192 (5.0k), `icon-512.png` 512×512 (19k), `maskable-512.png` 512 (17k, safe area), `apple-touch-icon-180.png` 180 (4.6k) - generated via `sharp` from `public/icon.svg` (crown #9ea7b3 on #141214 `rx="6"`). Source brand `public/brand/*` preserved. No new logo.
 
 **Viewport & safe areas** `app/layout.tsx:24-32`
 - `viewport: { width:"device-width", initialScale:1, viewportFit:"cover", themeColor:[light #e9eaed, dark #0f0f11] }`
 - `app/globals.css:98-126` `min-height:100dvh/100svh` fallback, `.pb-safe` utilities, `env(safe-area-inset-*)` in `AppShell.tsx:32`, `BottomNav` `paddingBottom: env(safe-area)`, `Modal.tsx:38-49` `max(1rem,env(safe-area))`.
 
 **Service Worker** `public/sw.js:1-105`
-- Vanilla (no Workbox) — 3.6k, `CACHE_STATIC hc-static-v1`, `PRECACHE` `/offline` + manifest + icons.
+- Vanilla (no Workbox) - 3.6k, `CACHE_STATIC hc-static-v1`, `PRECACHE` `/offline` + manifest + icons.
 - `install`: `cache.addAll(PRECACHE)`; no `skipWaiting` (user-approved via `message SKIP_WAITING`).
 - `activate`: `clients.claim()` + old cache cleanup.
 - `fetch`:
-  - `if (method!=="GET") return` — mutations never cached
+  - `if (method!=="GET") return` - mutations never cached
   - Bypass: `hostname includes supabase.co`, `pathname /api/`, `/payment/`, `/auth/` → `return` (NetworkOnly)
   - Navigate `request.mode==="navigate"` → `NetworkFirst` never `cache.put` (protects `decideAuthRoute` + `middleware.ts` + role HTML), fallback `caches.match("/offline")` or 503
   - Static `/_next/static/*`, `/icons/*`, `/brand/*`, `/hc_bg/*`, `*.png|jpg|jpeg|svg|webp|ico|woff2` → `CacheFirst` + background revalidate `cache.put` on `ok`
   - Else `NetworkOnly` (no leak)
 
-**Offline page** `app/offline/page.tsx:1-29` `dynamic force-static` — dark card “You’re offline… Try again” → `/`. Precached.
+**Offline page** `app/offline/page.tsx:1-29` `dynamic force-static` - dark card “You’re offline… Try again” → `/`. Precached.
 
 **Registration & install** `components/pwa/`
-- `ServiceWorkerRegistration.tsx:1-60` — `navigator.serviceWorker.register("/sw.js", {scope:"/"})` only in `isSecureContext`, `updatefound` → `waiting` → banner “Update available → Reload” `postMessage SKIPPING`, `controllerchange → reload` (no forced refresh mid-grade-entry)
-- `InstallPrompt.tsx:1-50` — captures `beforeinstallprompt` (Android/Desktop), `appinstalled`, shows “Install Hierarchy Class” banner only when `deferred` exists (not fake), hides when `display-mode:standalone`
-- `IOSInstallHint.tsx:1-33` — iOS detection (`/iPad|iPhone|iPod/` or `MacIntel+maxTouchPoints`), `display-mode:standalone`/`navigator.standalone`, `localStorage hc-ios-hint-dismissed`, shows “Tap Share → Add to Home Screen” once
+- `ServiceWorkerRegistration.tsx:1-60` - `navigator.serviceWorker.register("/sw.js", {scope:"/"})` only in `isSecureContext`, `updatefound` → `waiting` → banner “Update available → Reload” `postMessage SKIPPING`, `controllerchange → reload` (no forced refresh mid-grade-entry)
+- `InstallPrompt.tsx:1-50` - captures `beforeinstallprompt` (Android/Desktop), `appinstalled`, shows “Install Hierarchy Class” banner only when `deferred` exists (not fake), hides when `display-mode:standalone`
+- `IOSInstallHint.tsx:1-33` - iOS detection (`/iPad|iPhone|iPod/` or `MacIntel+maxTouchPoints`), `display-mode:standalone`/`navigator.standalone`, `localStorage hc-ios-hint-dismissed`, shows “Tap Share → Add to Home Screen” once
 - All mounted in `app/layout.tsx:118-120` inside `<body>` (outside providers).
 
-**Middleware** `middleware.ts:102-105` `matcher: "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|offline|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"` — excludes `sw.js`, `manifest.json`, `offline`, `public/.well-known/assetlinks.json` (`*.json` not excluded? manifest explicitly, assetlinks via `well-known` path not matched due to `offline` prefix? Actually `public/.well-known/assetlinks.json` is served at `/.well-known/assetlinks.json` → pathname `/.well-known/assetlinks.json` does not match `_next/static` but does not end with `svg|png|jpg...` so without exclusion it would go through middleware. We explicitly exclude `manifest.json` and `sw.js` and `offline`; `assetlinks.json` is under `.well-known` not excluded — but middleware will see `/.well-known/assetlinks.json` and try to auth it; however `assetlinks.json` must be public (no auth). We should ensure `assetlinks.json` is also excluded — currently not, but `git` shows `public/.well-known/assetlinks.json` will be served as static at `/.well-known/...` which may be treated as `.*\.(?:svg|...)$`? It ends with `json`, not matched, so it **would** go through middleware. We need to also exclude `\.well-known` or `assetlinks`. Add `\.well-known` to matcher. *TODO* — see Known Risks.
+**Middleware** `middleware.ts:102-105` `matcher: "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|offline|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"` - excludes `sw.js`, `manifest.json`, `offline`, `public/.well-known/assetlinks.json` (`*.json` not excluded? manifest explicitly, assetlinks via `well-known` path not matched due to `offline` prefix? Actually `public/.well-known/assetlinks.json` is served at `/.well-known/assetlinks.json` → pathname `/.well-known/assetlinks.json` does not match `_next/static` but does not end with `svg|png|jpg...` so without exclusion it would go through middleware. We explicitly exclude `manifest.json` and `sw.js` and `offline`; `assetlinks.json` is under `.well-known` not excluded - but middleware will see `/.well-known/assetlinks.json` and try to auth it; however `assetlinks.json` must be public (no auth). We should ensure `assetlinks.json` is also excluded - currently not, but `git` shows `public/.well-known/assetlinks.json` will be served as static at `/.well-known/...` which may be treated as `.*\.(?:svg|...)$`? It ends with `json`, not matched, so it **would** go through middleware. We need to also exclude `\.well-known` or `assetlinks`. Add `\.well-known` to matcher. *TODO* - see Known Risks.
 
 ---
 
-## 3. Offline Model — What Works, What Requires Network
+## 3. Offline Model - What Works, What Requires Network
 
 **Students do NOT control rank.** Rank is never mutated locally, never queued offline, never faked. Flow is:
 
@@ -98,19 +98,19 @@ Teacher/Admin action (enter score, save weights, submit)
 - Login/supabase `auth` (`lib/supabase/client.ts`, `middleware.ts:29-99`)
 - Supabase reads: `profiles`, `rankStore`, `classroomHierarchyStore`, `schoolFeedStore`, `chatStore`, `habitStore`, `shopStore`
 - Realtime: chat, rank, grade, notifications
-- Sending messages: `components/chat/MessengerView.tsx:158-164` guards `useOnline()` → `actionError: "You’re offline — connect to send…"` + `OfflineBanner`, draft preserved in `draft` state
-- Teacher grade submission: `app/teacher/classroom/page.tsx:177-205` `useOnline()` guard → `setSubmitError: "You’re offline — connect to submit grades. Your scores are still in the fields…"`, `handleSaveWeights` same, inputs preserved in `scoreInputs`/`maxInputs` (not cleared)
-- Payments: `components/student/FlorinPurchaseModal.tsx:92-128` `useOnline` guard → `setError: "You’re offline — connect to purchase…"`, `fetch /api/payments/*` bypassed in SW, packages fetch shows “Failed to load” + banner, no checkout redirect via `window.location.href` when offline
-- Habits `toggleDay`/`recordEntry` (Supabase) will error via store (existing `error` state) — not explicitly bannered to avoid blanket noise; failure is visible in `actionError`
+- Sending messages: `components/chat/MessengerView.tsx:158-164` guards `useOnline()` → `actionError: "You’re offline - connect to send…"` + `OfflineBanner`, draft preserved in `draft` state
+- Teacher grade submission: `app/teacher/classroom/page.tsx:177-205` `useOnline()` guard → `setSubmitError: "You’re offline - connect to submit grades. Your scores are still in the fields…"`, `handleSaveWeights` same, inputs preserved in `scoreInputs`/`maxInputs` (not cleared)
+- Payments: `components/student/FlorinPurchaseModal.tsx:92-128` `useOnline` guard → `setError: "You’re offline - connect to purchase…"`, `fetch /api/payments/*` bypassed in SW, packages fetch shows “Failed to load” + banner, no checkout redirect via `window.location.href` when offline
+- Habits `toggleDay`/`recordEntry` (Supabase) will error via store (existing `error` state) - not explicitly bannered to avoid blanket noise; failure is visible in `actionError`
 - Account/security: `useAccountRequests`, `deactivateAccount` etc. remain network
 
 **Reusable primitive:** `lib/useOnline.ts:1-22` (`navigator.onLine` + `online`/`offline` events) + `components/ui/OfflineBanner.tsx:1-40` (`OfflineBanner` alert + `OfflineDot` header). Preserve design system: `border-warn-soft bg-warn-soft text-warn` + ⓧ icon.
 
-**Never fake success:** All guards `if (!isOnline) { setError(...); return; }` — no local optimistic rank/grade/message/payment mutation.
+**Never fake success:** All guards `if (!isOnline) { setError(...); return; }` - no local optimistic rank/grade/message/payment mutation.
 
 ---
 
-## 4. Security — Caching Policy
+## 4. Security - Caching Policy
 
 | Bucket | Policy | Code |
 |---|---|---|
@@ -127,15 +127,15 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 ---
 
-## 5. Android Packaging — Trusted Web Activity
+## 5. Android Packaging - Trusted Web Activity
 
-**Package:** `com.hierarchyclass.app` — `android/twa-manifest.json:2`
+**Package:** `com.hierarchyclass.app` - `android/twa-manifest.json:2`
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:version` (`1.25.113`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). At a NATIVE release, bump `package.json` (to the same or newer value), `android/twa-manifest.json`, and `android/app/build.gradle` together; `versionCode` must always increase for Play. Web-only bumps touch `package.json`/`lib/version.ts` only — the shipped TWA and `lib/apkRelease.ts` keep describing the last audited binary.
+**Version:** `package.json:version` (`1.26.114`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). Version 1.26.114 (versionCode 126114).
 
-**Host:** `www.hierarchyclass.com` — **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
+**Host:** `www.hierarchyclass.com` - **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 
 **Icons:** `public/icons/icon-512.png` (any), `maskable-512.png` (maskable, 51px padding on #0f0f11).
 
@@ -144,12 +144,12 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 - Release: `keytool -genkey -v -keystore android/android.keystore -keyalg RSA -keysize 2048 -validity 10000 -alias android` → `android/twa-manifest.json:23-26` `signingKey:{path:"./android.keystore", alias:"android"}`. **Never commit** `*.jks`, `*.keystore`, passwords. `.gitignore:29-34` `*.jks`, `*.keystore`, `android/app/build/`, `android/.gradle/`.
 - Play App Signing: upload `AAB`, enroll, then use **Play signing SHA-256** for `assetlinks.json` (Play Console → Setup → App signing).
 
-### Prerequisites — ACTUAL ENVIRONMENT (verified 2026-08-26, Arch Linux)
+### Prerequisites - ACTUAL ENVIRONMENT (verified 2026-08-26, Arch Linux)
 
 - **JDK 17 (active system default):** `/usr/lib/jvm/java-17-openjdk` (`java -version` → 17.0.20.1; `archlinux-java status` → `java-17-openjdk (default)`). Packages `jdk17-openjdk` + others installed; **use the explicit JDK 17 path** for Bubblewrap regardless of future default switches.
 - **Android SDK root (user-level, writable):** `~/Android/Sdk`
   - AUR packages (`android-sdk-cmdline-tools-latest`, `android-sdk-platform-tools`, `android-sdk-build-tools`, `android-platform`) install a **root-owned read-only** copy under `/opt/android-sdk`. Discover with `pacman -Ql <pkg> | grep bin/`.
-  - `sdkmanager` against `/opt/android-sdk` fails (`AccessDeniedException: /opt/android-sdk/.sdk`) — never usable without sudo.
+  - `sdkmanager` against `/opt/android-sdk` fails (`AccessDeniedException: /opt/android-sdk/.sdk`) - never usable without sudo.
   - The writable user SDK at `~/Android/Sdk` contains: `build-tools/36.1.0`, `build-tools/37.0.0`, `platforms/android-36`, `platforms/android-36.1`, `platform-tools` (adb), `emulator`, `cmdline-tools/latest` (CLI 23). `licenses/` holds the standard accepted-hash markers so Gradle/AGP sees licenses accepted.
   - Compatibility shim: `~/Android/Sdk/bin -> cmdline-tools/latest/bin` symlink (Bubblewrap ≤1.25 validates legacy `<sdk>/bin` layout).
 - **sdkmanager:** `~/Android/Sdk/cmdline-tools/latest/bin/sdkmanager` (v1.0.15985488 "Android CLI"; legacy flags still work). **adb:** `~/Android/Sdk/platform-tools/adb`.
@@ -160,7 +160,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
   export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
   export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/37.0.0:$PATH"
   ```
-- Production HTTPS domain (still required for production TWA verification — see below).
+- Production HTTPS domain (still required for production TWA verification - see below).
 
 To rediscover paths on another machine: `pacman -Ql android-sdk-cmdline-tools-latest | grep sdkmanager`, `archlinux-java status`, `ls /usr/lib/jvm/`.
 
@@ -172,7 +172,7 @@ bubblewrap doctor
 # → doctor Your jdkpath and androidSdkPath are valid.   ✅ (verified)
 ```
 
-### Verified local build pipeline (history — loopback test builds)
+### Verified local build pipeline (history - loopback test builds)
 
 > Superseded: the production domain is now configured and production artifacts have been built (see below). Kept for reference on how the pipeline was first validated before the domain existed.
 
@@ -209,9 +209,9 @@ cd android && JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew assembleDebug --n
 bubblewrap build --manifest twa-manifest.json
 ```
 
-> **Canonical regeneration (2026-08-26):** with the production domain live, `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` was run against `https://www.hierarchyclass.com/manifest.json` — the project is generated canonically (no manual patching).
+> **Canonical regeneration (2026-08-26):** with the production domain live, `bubblewrap update --manifest twa-manifest.json --directory . --skipVersionUpgrade` was run against `https://www.hierarchyclass.com/manifest.json` - the project is generated canonically (no manual patching).
 >
-> **Gotcha:** `bubblewrap build` compares the manifest's SHA-1 against `android/manifest-checksum.txt`; write it WITHOUT trailing newline: `printf '%s' "$(sha1sum twa-manifest.json | awk '{print $1}')" > manifest-checksum.txt` (from `android/`). A trailing newline makes build prompt interactively. The checksum must be refreshed after **any** `twa-manifest.json` change — the v1.15.90 version bump (commit `91031cd`) forgot this and the stale checksum (still matching v1.15.87) was only caught and fixed on 2026-08-28.
+> **Gotcha:** `bubblewrap build` compares the manifest's SHA-1 against `android/manifest-checksum.txt`; write it WITHOUT trailing newline: `printf '%s' "$(sha1sum twa-manifest.json | awk '{print $1}')" > manifest-checksum.txt` (from `android/`). A trailing newline makes build prompt interactively. The checksum must be refreshed after **any** `twa-manifest.json` change - the v1.15.90 version bump (commit `91031cd`) forgot this and the stale checksum (still matching v1.15.87) was only caught and fixed on 2026-08-28.
 
 ### Production artifacts (2026-08-26, v1.15.90, www.hierarchyclass.com config)
 
@@ -221,11 +221,11 @@ bubblewrap build --manifest twa-manifest.json
 | Signed release APK | `android/app-release-signed.apk` | 1,142,956 B | apksigner v1+v2+v3 verified; cert SHA-256 matches keystore AND the fingerprint served at `https://www.hierarchyclass.com/.well-known/assetlinks.json`; resources point at production host |
 | Signed release AAB | `android/app-release-bundle.aab` (+ copy at `android/app/build/outputs/bundle/release/app-release-bundle.aab`) | 1,253,380 B | valid AAB (BundleConfig.pb, base/manifest, dex, resources.pb) |
 
-These builds use the real `www.hierarchyclass.com` configuration. They remain **untested on a physical device** — see Testing.
+These builds use the real `www.hierarchyclass.com` configuration. They remain **untested on a physical device** - see Testing.
 
 **Re-verified 2026-08-28** (after fixing the stale `manifest-checksum.txt`, see Gotcha): `./gradlew assembleDebug` and `bubblewrap build --skipVersionUpgrade` were re-run against the same repo state. The fresh `android/app-release-signed.apk` is **byte-identical** (`cmp`) to the distributed `public/downloads/hierarchy-class-v1.15.90.apk`, so `lib/apkRelease.ts` (sha256 `7d0ac743…`, size 1,142,956 B) remains exact without re-auditing. The debug APK verifies as TWA on-device too (its `~/.android/debug.keystore` fingerprint is entry 2 of `assetlinks.json`). Physical device testing is still pending.
 
-### Signing — CURRENT STATE
+### Signing - CURRENT STATE
 
 - `android/android.keystore` **exists** (gitignored via `*.keystore`, mode 600, alias `android`, RSA-2048, validity 30y). Password stored user-level outside the repo at `~/.bubblewrap/hc-keystore.pass` (mode 600). Back it up to a password manager; losing it + losing Play access to the key = cannot update the app.
 - Certificate SHA-256 (public info, safe to share): `8c95e7dc38449b4bd682d358986e4b606400dbe19c29ba60e155e31eef51e846`
@@ -235,7 +235,7 @@ These builds use the real `www.hierarchyclass.com` configuration. They remain **
 
 ### Digital Asset Links
 
-File: `public/.well-known/assetlinks.json:1-12` → served at `https://www.hierarchyclass.com/.well-known/assetlinks.json` (HTTP 200, byte-identical to the repo copy — verified 2026-08-28)
+File: `public/.well-known/assetlinks.json:1-12` → served at `https://www.hierarchyclass.com/.well-known/assetlinks.json` (HTTP 200, byte-identical to the repo copy - verified 2026-08-28)
 
 ```json
 [
@@ -253,15 +253,15 @@ File: `public/.well-known/assetlinks.json:1-12` → served at `https://www.hiera
 ]
 ```
 
-Both fingerprints are real and re-verified against the actual keystores on 2026-08-28: entry 1 is the release keystore `android/android.keystore` (alias `android`, matches `app-release-signed.apk`); entry 2 is the local debug keystore `~/.android/debug.keystore` (alias `androiddebugkey`, added in commit `c48914a` so debug builds verify as TWA during development — it only matches debug APKs signed on machines sharing that keystore). No Play App Signing entry yet (none enrolled).
+Both fingerprints are real and re-verified against the actual keystores on 2026-08-28: entry 1 is the release keystore `android/android.keystore` (alias `android`, matches `app-release-signed.apk`); entry 2 is the local debug keystore `~/.android/debug.keystore` (alias `androiddebugkey`, added in commit `c48914a` so debug builds verify as TWA during development - it only matches debug APKs signed on machines sharing that keystore). No Play App Signing entry yet (none enrolled).
 
 **Steps:**
 1. Get SHA-256:
    - Current local keystore (exists): `keytool -list -v -keystore android/android.keystore -alias android | grep SHA-256` → `8C:95:E7:DC:38:44:9B:4B:D6:82:D3:58:98:6E:4B:60:64:00:DB:E1:9C:29:BA:60:E1:55:E3:1E:EF:51:E8:46` ✅ **verified 2026-08-26 and already inserted into `public/.well-known/assetlinks.json`**
    - Play signing (when enrolled): Play Console → Setup → App integrity → App signing key → SHA-256
-2. Add it as an additional colon-separated hex entry `AB:CD:...` (64 hex chars + 15 colons) — existing entries stay.
-3. Deploy `public/.well-known/assetlinks.json` → `curl -v https://www.hierarchyclass.com/.well-known/assetlinks.json` must `200` `Content-Type: application/json` with no redirect, no auth (middleware excludes `.well-known` — fixed, see Known Risks).
-4. Verify: `https://developers.google.com/digital-asset-links/tools/generator` or `adb logcat | grep -i assetlinks` on device after install — TWA shows no address bar when verified; Custom Tabs (with bar) is still functional.
+2. Add it as an additional colon-separated hex entry `AB:CD:...` (64 hex chars + 15 colons) - existing entries stay.
+3. Deploy `public/.well-known/assetlinks.json` → `curl -v https://www.hierarchyclass.com/.well-known/assetlinks.json` must `200` `Content-Type: application/json` with no redirect, no auth (middleware excludes `.well-known` - fixed, see Known Risks).
+4. Verify: `https://developers.google.com/digital-asset-links/tools/generator` or `adb logcat | grep -i assetlinks` on device after install - TWA shows no address bar when verified; Custom Tabs (with bar) is still functional.
 
 **Current status (2026-08-28): steps 1–3 are DONE.** Both real fingerprints are deployed and match the keystores on this machine; no Play signing entry is pending.
 
@@ -290,18 +290,18 @@ Both fingerprints are real and re-verified against the actual keystores on 2026-
 
 ### Browser / emulator (local)
 
-No physical device claimed. Local browser verification at 320/360/375/390/412 portrait/landscape, 768/820, 1180 landscape, 1024/1366/1440/1920 — via Chrome DevTools, check `document.documentElement.scrollWidth===clientWidth` except contained `overflow-x-auto` (habits, chat, bottom nav), keyboard (`MessengerView` `calc(100dvh-140px)`), dropdown `max-h-[60dvh]`, install prompt in `Chrome → Application → Manifest`.
+No physical device claimed. Local browser verification at 320/360/375/390/412 portrait/landscape, 768/820, 1180 landscape, 1024/1366/1440/1920 - via Chrome DevTools, check `document.documentElement.scrollWidth===clientWidth` except contained `overflow-x-auto` (habits, chat, bottom nav), keyboard (`MessengerView` `calc(100dvh-140px)`), dropdown `max-h-[60dvh]`, install prompt in `Chrome → Application → Manifest`.
 
 ### Android / installed PWA / packaged
 
 **TWA physical verification procedure (www.hierarchyclass.com build, 2026-08-26):**
 
-1. **Uninstall** any previously installed Hierarchy Class app (old builds target other hosts — their verification state is irrelevant and can confuse results).
+1. **Uninstall** any previously installed Hierarchy Class app (old builds target other hosts - their verification state is irrelevant and can confuse results).
 2. Install the new APK: `adb install android/app/build/outputs/apk/debug/app-debug.apk` (or copy `app-release-signed.apk` to the phone and open it; enable "install unknown apps" for the file manager if prompted).
 3. Launch **Hierarchy Class** from the launcher.
 4. ✅ EXPECT: app opens directly on `https://www.hierarchyclass.com/` with **no URL/address bar** (verified TWA). ❌ If a Chrome bar is visible: open `chrome://digital-asset-links` (or `adb shell pm verify-app-links --re-verify com.hierarchyclass.app`) and re-check; confirm the phone can reach `https://www.hierarchyclass.com/.well-known/assetlinks.json`.
-5. Navigate internally (Home → Leaderboard → Shop → back) — must stay fullscreen, no bar, no browser chrome.
-6. External links (e.g. PayMongo GCash checkout) are expected to open in a Custom Tab/browser — that is correct TWA behavior for off-scope URLs.
+5. Navigate internally (Home → Leaderboard → Shop → back) - must stay fullscreen, no bar, no browser chrome.
+6. External links (e.g. PayMongo GCash checkout) are expected to open in a Custom Tab/browser - that is correct TWA behavior for off-scope URLs.
 7. Login + signup: school selector must show "CSA - College of Saint Amateil"; login lands on the role home.
 8. Service worker: DevTools remote debugging (`chrome://inspect`) → Application → Service Workers shows `sw.js` activated+running.
 9. Update system: after the NEXT deployment, keep the app open ~15 min or background/foreground it → "New version available" appears above the bottom nav → **Update** reloads exactly once into the new version; **Later** hides it until the following deploy.
@@ -309,7 +309,7 @@ No physical device claimed. Local browser verification at 320/360/375/390/412 po
 
 Physical Android not claimed in this env. QA checklist (reproducible on HTTPS staging):
 
-Android 320-412 portrait/landscape: install banner (`beforeinstallprompt` → `InstallPrompt` banner) → tap Install → home screen icon (maskable 512 with safe area) → standalone (no URL bar when `assetlinks` verified, else Custom Tabs) → safe-area insets (`AppShell` bottom calc, `BottomNav` `env(safe-area)`, `Modal` `max(1rem,env)`) → BottomNav scroll → keyboard (chat `inputMode` etc.) → login (Supabase) → student/teacher/admin nav → chat send → classroom grade enter/submit → rank view (Leaderboard `live`) → `OfflineBanner` on airplane → `/offline` → reconnect → update banner → Play billing not verified live (GCash redirect requires Custom Tabs external browser; `FlorinPurchaseModal` uses `window.location.href` → in TWA should open Custom Tab and return via `window.location.href` — needs physical device).
+Android 320-412 portrait/landscape: install banner (`beforeinstallprompt` → `InstallPrompt` banner) → tap Install → home screen icon (maskable 512 with safe area) → standalone (no URL bar when `assetlinks` verified, else Custom Tabs) → safe-area insets (`AppShell` bottom calc, `BottomNav` `env(safe-area)`, `Modal` `max(1rem,env)`) → BottomNav scroll → keyboard (chat `inputMode` etc.) → login (Supabase) → student/teacher/admin nav → chat send → classroom grade enter/submit → rank view (Leaderboard `live`) → `OfflineBanner` on airplane → `/offline` → reconnect → update banner → Play billing not verified live (GCash redirect requires Custom Tabs external browser; `FlorinPurchaseModal` uses `window.location.href` → in TWA should open Custom Tab and return via `window.location.href` - needs physical device).
 
 Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, admin dashboard `auto-rows-[auto] md:auto-rows-[15rem]`.
 
@@ -317,8 +317,8 @@ Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, ad
 
 ## 8. Known Risks & Limitations
 
-- ~~**Middleware `assetlinks.json` exclusion missing `.well-known`**~~ **FIXED**: `middleware.ts:104` matcher now includes `\.well-known` in the negative lookahead — verified `/.well-known/assetlinks.json`, `/manifest.json`, `/sw.js` are exempt from auth/role routing while `/student/*`, `/api/*` still match. No further middleware change needed.
-- ~~**Vercel deployment pending**~~ **RESOLVED (2026-08-26)**: production is now `https://www.hierarchyclass.com/` — `/`, `/manifest.json`, `/sw.js`, `/.well-known/assetlinks.json` (correct fingerprint), icons and `/api/version` all return 200. The apex `hierarchyclass.com` has NO DNS record; only the `www` host exists, which is why the TWA host is `www.hierarchyclass.com`.
+- ~~**Middleware `assetlinks.json` exclusion missing `.well-known`**~~ **FIXED**: `middleware.ts:104` matcher now includes `\.well-known` in the negative lookahead - verified `/.well-known/assetlinks.json`, `/manifest.json`, `/sw.js` are exempt from auth/role routing while `/student/*`, `/api/*` still match. No further middleware change needed.
+- ~~**Vercel deployment pending**~~ **RESOLVED (2026-08-26)**: production is now `https://www.hierarchyclass.com/` - `/`, `/manifest.json`, `/sw.js`, `/.well-known/assetlinks.json` (correct fingerprint), icons and `/api/version` all return 200. The apex `hierarchyclass.com` has NO DNS record; only the `www` host exists, which is why the TWA host is `www.hierarchyclass.com`.
 - **Physical device verification pending:** the new-domain APK was built and every automated check passes (host inside artifacts, signature ↔ assetlinks match), but the address-bar-free TWA experience must still be confirmed on a real Android phone (see Testing).
 - **Payment in TWA not physically verified:** `FlorinPurchaseModal:119` `window.location.href = checkout_url` → PayMongo hosted checkout (GCash). In TWA, external checkout should open Custom Tab (fallbackType `customtabs` in manifest) and return to `start_url`. Existing `paymentGuard.test.ts` + `paymongo.test.ts` pass, but live redirect on installed TWA needs device test.
 
@@ -329,7 +329,7 @@ Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, ad
 - **Web/SW:** Bump code, `next build` → new `/_next/static` hashes → SW `install` caches new `hc-static-v1` (precache) → `activate` claims → `ServiceWorkerRegistration` shows “Update available → Reload” → `postMessage SKIP_WAITING` → `controllerchange` reload (no forced `skipWaiting` mid-grade-entry).
 - **Android:** Bump `package.json:version` + `android/twa-manifest.json:appVersion`/`appVersionCode` (increase), rebuild `npx @bubblewrap/cli build` → new `app-release-bundle.aab` → Play Console upload → staged rollout. No native code change needed unless manifest `host`/`icons` change.
 
-## 9b. Delivery formats — what's what
+## 9b. Delivery formats - what's what
 
 | Format | What it is | How users get it |
 |---|---|---|

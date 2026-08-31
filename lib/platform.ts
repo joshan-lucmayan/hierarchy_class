@@ -38,7 +38,7 @@ export interface PlatformContext {
   isStandalone: boolean;
   /**
    * Launched from our Android package (strongest available TWA signal).
-   * NOTE: false does not prove "not TWA" — see module doc.
+   * NOTE: false does not prove "not TWA" - see module doc.
    */
   isTWAReferrer: boolean;
   isAndroid: boolean;

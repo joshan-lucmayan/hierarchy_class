@@ -1,5 +1,5 @@
 -- ===========================================================================
--- 065: feedback attachments — owner read (also required for owner deletes).
+-- 065: feedback attachments - owner read (also required for owner deletes).
 --
 -- The feedback bucket had no owner SELECT policy: reporters could upload
 -- (feedback_owner_write) but could not read their own attachment back, and

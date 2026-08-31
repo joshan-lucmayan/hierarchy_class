@@ -84,7 +84,7 @@ function RankPill({ rank, bar }: { rank: Rank; bar?: number | null }) {
       <RankTriangle rank={rank} size="sm" showLabel={false} />
       <span className="text-sm font-bold text-navy">{rank}</span>
       {bar != null && (
-        <span className="text-[11px] text-muted">— {Math.round(bar)}%</span>
+        <span className="text-[11px] text-muted">- {Math.round(bar)}%</span>
       )}
     </span>
   );

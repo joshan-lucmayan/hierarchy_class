@@ -146,7 +146,7 @@ export default function LeaderboardPage() {
               </p>
             </div>
 
-            {/* Campus + scope summary — compact on Android, inline chip on desktop. */}
+            {/* Campus + scope summary - compact on Android, inline chip on desktop. */}
             {(schoolName || entries.length > 0) && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {schoolName && (
@@ -161,7 +161,7 @@ export default function LeaderboardPage() {
             )}
           </div>
 
-          {/* Filter toggle — Android keeps the list in focus; desktop shows the
+          {/* Filter toggle - Android keeps the list in focus; desktop shows the
               sections inline (existing behavior). */}
           {native ? (
             <div className="mt-4 border-t border-base pt-3">

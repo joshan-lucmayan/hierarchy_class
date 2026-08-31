@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { APK_RELEASE, apkDownloadUrl, formatApkSize } from "./apkRelease.ts";
 
-// Read (not import) package.json — avoids JSON import-attribute requirements.
+// Read (not import) package.json - avoids JSON import-attribute requirements.
 const pkgVersion = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8")
 ).version as string;
@@ -18,12 +18,12 @@ test("APK release metadata matches the distributed artifact contract", () => {
     cmp <= 0,
     `APK version ${APK_RELEASE.version} must not be newer than package.json ${pkgVersion}`
   );
-  assert.equal(APK_RELEASE.versionCode, 125113);
-  assert.equal(APK_RELEASE.sizeBytes, 7667822);
+  assert.equal(APK_RELEASE.versionCode, 126114);
+  assert.equal(APK_RELEASE.sizeBytes, 7676374);
 });
 
 test("download URL is versioned and served from the public downloads path", () => {
-  assert.equal(apkDownloadUrl(), `/downloads/hierarchy-class-v1.25.113.apk`);
+  assert.equal(apkDownloadUrl(), `/downloads/hierarchy-class-v1.26.114.apk`);
   assert.match(apkDownloadUrl(), /^\/downloads\/hierarchy-class-v\d+\.\d+\.\d+\.apk$/);
   assert.equal(APK_RELEASE.fileName, apkDownloadUrl().split("/").pop());
 });

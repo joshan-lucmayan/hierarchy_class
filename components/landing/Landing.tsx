@@ -75,7 +75,7 @@ const SPARKLES = [
 ];
 
 function Hero() {
-  // Install/download CTA is only meaningful in normal browsers — never
+  // Install/download CTA is only meaningful in normal browsers - never
   // inside the installed Android TWA or a standalone PWA.
   const { ready, installedLike } = usePlatformContext();
   const scrollTo = (id: string) => {
@@ -175,7 +175,7 @@ function Hero() {
         >
           See how it works
         </button>
-        {/* Hidden inside the installed TWA/PWA — those users already have the app. */}
+        {/* Hidden inside the installed TWA/PWA - those users already have the app. */}
         {ready && !installedLike && (
           <a
             href="/download"

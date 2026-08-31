@@ -16,8 +16,8 @@ type Role = "student" | "teacher" | "admin";
 /**
  * Standalone Android app has no edge middleware, so role sections guard
  * themselves: an unauthenticated (or expired-session) visitor of any shell
- * route is sent to /login. Uses getUser() — network-validated, refreshes the
- * persisted session — rather than getSession(), which would happily return an
+ * route is sent to /login. Uses getUser() - network-validated, refreshes the
+ * persisted session - rather than getSession(), which would happily return an
  * expired local session and leave the user on a protected page with failing
  * data. On a network failure the page is kept (its data hooks surface the
  * offline state; no surprise logout), only a definitive auth rejection or a
@@ -80,7 +80,7 @@ function bottomPaddingFor(role: Role): { shell: string; main: string } {
   };
 }
 
-// Tailwind JIT requires complete class strings — no dynamic interpolation.
+// Tailwind JIT requires complete class strings - no dynamic interpolation.
 // Student desktop pivot at xl (1280px); Teacher/Admin at md (768px).
 // Student phone (android < md) is full-bleed: no outer px/py so header/card/feed are edge-to-edge.
 const SHELL_CLASSES = {
@@ -111,7 +111,7 @@ export function AppShell({
   const isPhoneBlocked =
     (role === "teacher" || role === "admin") && !isNativeApp();
   // Student pivots to desktop chrome at xl (1280px); teacher/admin at md
-  // (768px) — on every platform, native included.
+  // (768px) - on every platform, native included.
   const desktopAt = role === "student" ? "xl" : "md";
   useNativeAuthGuard();
 
@@ -127,7 +127,7 @@ export function AppShell({
         </div>
       )}
 
-      {/* Normal app content — hidden below md for teacher/admin when the
+      {/* Normal app content - hidden below md for teacher/admin when the
           device-warning is shown. Student is never affected. */}
       <div
         style={{ ["--sidebar-gap" as string]: "100px" }}
@@ -141,7 +141,7 @@ export function AppShell({
         </main>
       </div>
 
-      {/* Bottom navs — hidden at md+ for teacher/admin (desktop sidebar
+      {/* Bottom navs - hidden at md+ for teacher/admin (desktop sidebar
           replaces them). Already hidden below md by DeviceWarning. */}
       <div className={isPhoneBlocked ? "max-md:hidden" : undefined}>
         <BottomNavForRole role={role} />

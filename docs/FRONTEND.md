@@ -1094,12 +1094,12 @@ role home
 
 ### Deactivated-profile behavior
 
-- **Search:** `useSchoolProfiles` filters `.is('deactivated_at', null)` —
+- **Search:** `useSchoolProfiles` filters `.is('deactivated_at', null)` -
   deactivated users are excluded from active user searches.
 - **Friends:** `friendsStore` filters out deactivated peers from the friends
   list.
 - **Leaderboard:** the `get_school_leaderboard` RPC filters
-  `deactivated_at IS NULL` — deactivated students do not appear.
+  `deactivated_at IS NULL` - deactivated students do not appear.
 - **Profile viewer:** viewing a deactivated user's profile (`/student/profile/[id]`
   or teacher equivalent) shows a neutral "This account is deactivated" state
   instead of the normal personal profile.

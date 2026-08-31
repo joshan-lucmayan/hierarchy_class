@@ -133,9 +133,9 @@ export function QuickSearchBar() {
         {/* Search icon: magnifying glass using the muted token so it blends
             with the placeholder text and feels like part of the search control.
             On focus it lifts to --text (matching typed text), staying restrained
-            — no gold, no glow. Rounded caps + joins keep the handle and lens
-            crisp at 20 px. The handle starts at (16,16) — past the circle's
-            outer stroke edge — so it's never swallowed by the lens. */}
+            - no gold, no glow. Rounded caps + joins keep the handle and lens
+            crisp at 20 px. The handle starts at (16,16) - past the circle's
+            outer stroke edge - so it's never swallowed by the lens. */}
         <svg
           className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 z-10 text-[var(--muted)] transition-colors group-focus-within:text-[var(--text)]"
           viewBox="0 0 24 24"

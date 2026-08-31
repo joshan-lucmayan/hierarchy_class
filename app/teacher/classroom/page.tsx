@@ -137,7 +137,7 @@ export default function TeacherClassroomPage() {
 
   async function handleSaveWeights() {
     if (!isOnline) {
-      setWeightsMsg({ kind: "err", text: "You’re offline — connect to save categories. Nothing was saved." });
+      setWeightsMsg({ kind: "err", text: "You’re offline - connect to save categories. Nothing was saved." });
       return;
     }
     if (!selectedCourse) return;
@@ -181,7 +181,7 @@ export default function TeacherClassroomPage() {
 
   async function handleSubmitGrades() {
     if (!isOnline) {
-      setSubmitError("You’re offline — connect to submit grades. Your scores are still in the fields and weren’t sent.");
+      setSubmitError("You’re offline - connect to submit grades. Your scores are still in the fields and weren’t sent.");
       return;
     }
     if (!selectedCourse) return;
@@ -372,7 +372,7 @@ export default function TeacherClassroomPage() {
             Back
           </Button>
           {breadcrumb && <p className="font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">{breadcrumb}</p>}
-          {!isOnline && <OfflineBanner message="You’re offline — grade submission needs a connection. Scores stay in the fields until you’re back online." />}
+          {!isOnline && <OfflineBanner message="You’re offline - grade submission needs a connection. Scores stay in the fields until you’re back online." />}
 
           {/* Category editor - add / remove / edit per course */}
           <CornerFrame className="p-5">

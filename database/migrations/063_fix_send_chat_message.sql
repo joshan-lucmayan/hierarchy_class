@@ -1,5 +1,5 @@
 -- ===========================================================================
--- 063: FIX send_chat_message — 060 rewrote it against a schema that does not
+-- 063: FIX send_chat_message - 060 rewrote it against a schema that does not
 -- exist, breaking ALL message sending in production.
 --
 -- The live `conversations` table (migration 025, thread rewrite) uses ONE
@@ -7,7 +7,7 @@
 -- read_at_a/read_at_b, archived_a/archived_b, deleted_a/deleted_b). The 060
 -- version referenced `participant_id` / `other_user_id` (a much older
 -- two-rows-per-conversation model) and `deleted_at`/`archived_at`, so every
--- call failed with `column "other_user_id" does not exist` (42703) — sending
+-- call failed with `column "other_user_id" does not exist` (42703) - sending
 -- a message was completely broken.
 --
 -- This restores the correct 025-era logic (real columns, other side revived

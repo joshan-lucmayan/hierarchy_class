@@ -4,14 +4,14 @@ import { CrownMark } from "@/components/ui/CrownMark";
  * Android boot screen (standalone Capacitor app only).
  *
  * Rendered as the static HTML of "/" in the Android export build, so the
- * first paint on a cold start is already the minimal app boot — no marketing
+ * first paint on a cold start is already the minimal app boot - no marketing
  * landing, no desktop content, no hydration mismatch. NativeRootGate drives
  * it as a transient boot state while the persisted session is being resolved:
  *
  *   - A valid session is routed to the role home.
  *   - No valid session is routed directly to the Login screen, which owns the
  *     "Welcome back" greeting and the Create an Account path. There is no
- *     separate entry chooser ("Log In" / "Create an Account") anymore — the
+ *     separate entry chooser ("Log In" / "Create an Account") anymore - the
  *     redundant choice was removed so Android enters directly into Login.
  *
  * The tagline is the project's canonical wording (README.md headline, web
@@ -38,7 +38,7 @@ export function NativeEntry() {
       }}
     >
       <main className="flex w-full max-w-[340px] flex-col items-center text-center">
-        {/* Brand: the existing Hierarchy Class crown — no new artwork. */}
+        {/* Brand: the existing Hierarchy Class crown - no new artwork. */}
         <div className="flex items-center justify-center text-[var(--gold)]">
           <CrownMark height={56} />
         </div>

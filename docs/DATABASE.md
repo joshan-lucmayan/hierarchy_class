@@ -342,5 +342,5 @@ longer blocks deletion.
 After the DB cascade, the server action collects storage paths from the
 (now-deleted or about-to-be-deleted) DB rows (avatar, certificates, stories,
 materials, feed images) and removes them from Supabase Storage using the
-service-role client. This is best-effort per bucket — failures are reported
+service-role client. This is best-effort per bucket - failures are reported
 back but never leave a half-deleted account.

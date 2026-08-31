@@ -275,7 +275,7 @@ export default function TeacherHomePage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // Touch devices need no extra sensor — PointerSensor covers touch + mouse.
+  // Touch devices need no extra sensor - PointerSensor covers touch + mouse.
   // Keeping KeyboardSensor for a11y; touch drag is via pointer events.
 
   /** Enter edit mode with the saved layout as the working draft. */

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// validate-pwa.mjs — PWA/Android invariants (manifest, icons, SW bypass, no unsafe caching)
+// validate-pwa.mjs - PWA/Android invariants (manifest, icons, SW bypass, no unsafe caching)
 // Usage: node scripts/validate-pwa.mjs
 import fs from "fs";
 import path from "path";
@@ -50,7 +50,7 @@ assert(sw.includes('/auth/'), "SW bypasses /auth/");
 assert(sw.includes('request.method !== "GET"') || sw.includes("request.method !== 'GET'"), "SW bypasses non-GET");
 assert(sw.includes('request.mode === "navigate"'), "SW handles navigate");
 assert(sw.includes("caches.match(OFFLINE") || sw.includes("OFFLINE_URL"), "SW fallback to /offline");
-assert(!sw.includes("cache.put") || sw.includes("isStatic"), "SW cache.put only for static (not navigate) — check manual");
+assert(!sw.includes("cache.put") || sw.includes("isStatic"), "SW cache.put only for static (not navigate) - check manual");
 assert(sw.includes("CACHE_STATIC"), "SW has CACHE_STATIC");
 assert(sw.includes("SKIP_WAITING"), "SW supports SKIP_WAITING");
 

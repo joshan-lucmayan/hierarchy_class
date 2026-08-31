@@ -111,7 +111,7 @@ export default function TeacherLearningMaterialsPage() {
         </div>
         <Stat
           label="My materials"
-          value={loading ? "—" : myMaterials.length}
+          value={loading ? "-" : myMaterials.length}
           tone="gold"
           hint="Visible to your students"
         />

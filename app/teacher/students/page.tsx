@@ -97,7 +97,7 @@ export default function TeacherStudentsPage() {
         </div>
         <Stat
           label="Roster average"
-          value={studentsLoading ? "—" : overallAvg !== null ? `${overallAvg} / 100` : "No grades yet"}
+          value={studentsLoading ? "-" : overallAvg !== null ? `${overallAvg} / 100` : "No grades yet"}
           tone="gold"
           hint="Weighted across all students"
         />
@@ -238,7 +238,7 @@ export default function TeacherStudentsPage() {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <Stat
                   label="Average"
-                  value={getStudentAverageByProfile(selectedStudent.id) ?? "—"}
+                  value={getStudentAverageByProfile(selectedStudent.id) ?? "-"}
                   tone={getStudentAverageByProfile(selectedStudent.id) !== null ? "gold" : "muted"}
                   hint="Across approved grades"
                 />
@@ -251,7 +251,7 @@ export default function TeacherStudentsPage() {
                         : effectiveOf(selectedStudent.id) === "expired"
                           ? "Expired"
                           : "Revoked"
-                      : "—"
+                      : "-"
                   }
                   tone={!enrollLoading && effectiveOf(selectedStudent.id) === "enrolled" ? "gold" : "muted"}
                   hint="Current status"

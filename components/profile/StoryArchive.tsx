@@ -9,7 +9,7 @@ import { IconX } from "@/components/ui/icons";
 import { registerBackHandler } from "@/lib/nativeBackHandler";
 
 /**
- * Story Archive — a student's own past MyDay stories.
+ * Story Archive - a student's own past MyDay stories.
  *
  * Rendered inside the profile's three-dot menu (own profile) as a modal,
  * matching the Season History pattern. Shows the real story history from the
@@ -103,7 +103,7 @@ export function StoryArchive() {
       ) : error ? (
         <p className="text-sm text-warn">{error}</p>
       ) : stories.length === 0 ? (
-        <p className="text-sm text-muted">No stories yet — share your day and it will be archived here.</p>
+        <p className="text-sm text-muted">No stories yet - share your day and it will be archived here.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {stories.map((story) => (

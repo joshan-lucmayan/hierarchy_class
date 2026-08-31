@@ -5,7 +5,7 @@
  *
  * Why the file shuffling: the web app relies on edge middleware and server
  * route handlers, none of which can exist in `output: export`. They stay
- * untouched on disk — this script only moves them aside for the duration of
+ * untouched on disk - this script only moves them aside for the duration of
  * the export build and restores them in a `finally` block (Ctrl-C safe).
  *
  * Moved aside during the build:

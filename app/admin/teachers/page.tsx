@@ -330,7 +330,7 @@ export default function AdminTeachersPage() {
                                   {sectionName(c.sectionId)} · {getStudentsByCourse(c.id).length} students
                                 </p>
                               </div>
-                              <p className="shrink-0 text-sm font-bold text-gold-token">{avg ?? "—"}</p>
+                              <p className="shrink-0 text-sm font-bold text-gold-token">{avg ?? "-"}</p>
                             </div>
                           );
                         })

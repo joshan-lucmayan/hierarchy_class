@@ -1,11 +1,11 @@
 -- ===========================================================================
--- 060: v1.7.66 hardening — account restriction & appeals, feedback
+-- 060: v1.7.66 hardening - account restriction & appeals, feedback
 --      attachments, actionable message notifications.
 --
 -- Applied AFTER 059 (already live). Never touches CSA data, the school set,
 -- or the authorization model:
 --
---   1) profiles.restricted_at — a NEW lifecycle state, deliberately separate
+--   1) profiles.restricted_at - a NEW lifecycle state, deliberately separate
 --      from deactivated_at. Deactivation stays self-service (a user can
 --      reactivate themselves). Restriction is a controlled school-admin
 --      action for suspicious accounts: the user can still authenticate, but
@@ -13,11 +13,11 @@
 --      RLS (profiles_admin_update from 059) already limits WHO can set it:
 --      a same-school admin, and never on an admin account.
 --
---   2) account_appeals — the appeal queue. Users write their own row while
+--   2) account_appeals - the appeal queue. Users write their own row while
 --      restricted (one open appeal per user, enforced by a partial unique
 --      index); same-school admins read and resolve appeals.
 --
---   3) feedback_reports + the private "feedback" bucket — report
+--   3) feedback_reports + the private "feedback" bucket - report
 --      attachments are uploaded by the authenticated reporter into a
 --      school/user folder and referenced from a feedback row that only
 --      same-school admins (and developers) can read.

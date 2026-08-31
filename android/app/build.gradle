@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// Release signing (gitignored keystore.properties — never committed):
+// Release signing (gitignored keystore.properties - never committed):
 //   storeFile, storePassword, keyAlias, keyPassword
 // The keystore is the SAME android.keystore the Bubblewrap TWA used, so the
 // app identity/signing continuity is preserved across the migration.
@@ -17,8 +17,8 @@ android {
         applicationId "com.hierarchyclass.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 125113
-        versionName "1.25.113"
+        versionCode 126114
+        versionName "1.26.114"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

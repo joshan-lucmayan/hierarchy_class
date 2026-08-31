@@ -9,7 +9,7 @@ import { RankTriangle } from "@/components/ui/RankTriangle";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 /**
- * Phone hero profile/rank card for student Home — now back to normal sizing.
+ * Phone hero profile/rank card for student Home - now back to normal sizing.
  * Reuses the same data as ProfileRankCard but keeps the phone hero position
  * and weakest-subject inset. Previously scaled to 36px radius / 96-112px avatar;
  * reverted to the original compact metrics (10px radius, 64px avatar) per request.
@@ -58,7 +58,7 @@ export function ProfileHeroCard() {
           <p className="text-sm text-warn">{error}</p>
         ) : (
           <>
-            {/* Top row: avatar left, name/meta/rank + 0/100 right — layout only, visual tokens back to normal */}
+            {/* Top row: avatar left, name/meta/rank + 0/100 right - layout only, visual tokens back to normal */}
             <div className="flex gap-4">
               <UserAvatar
                 name={profile?.full_name}
@@ -101,7 +101,7 @@ export function ProfileHeroCard() {
               <div className="h-full rounded-full bg-sealion" style={{ width: `${trackWidth}%` }} />
             </div>
 
-            {/* Weakest-subject inset — typography matches desktop WeakestSubjectCard (desktop is source of truth) */}
+            {/* Weakest-subject inset - typography matches desktop WeakestSubjectCard (desktop is source of truth) */}
             {weakest ? (
               <div className="mt-4 w-full rounded-[10px] border border-base bg-[var(--surface-strong)] p-3.5 text-left">
                 <div className="flex items-center justify-between gap-2">

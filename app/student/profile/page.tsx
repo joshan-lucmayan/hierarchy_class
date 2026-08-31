@@ -18,6 +18,7 @@ import { useFriendsStore } from "@/lib/friendsStore";
 import { useMyEnrollment } from "@/lib/useEnrollment";
 import { useRankStore } from "@/lib/rankStore";
 import { useShop } from "@/lib/shopStore";
+import { useStories } from "@/lib/storiesStore";
 import { EnrolledBadge } from "@/components/ui/EnrolledBadge";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { Modal } from "@/components/ui/Modal";
@@ -29,6 +30,7 @@ export default function StudentProfilePage() {
   const { effective: enrollment, loading: enrollmentLoading } = useMyEnrollment();
   const { rankOf } = useRankStore();
   const { equippedProfileCard } = useShop();
+  const { createStory } = useStories();
 
   const [bio, setBio] = useState("");
   const [isEditingBio, setIsEditingBio] = useState(false);
@@ -38,6 +40,16 @@ export default function StudentProfilePage() {
 
   const [hobbies, setHobbies] = useState("");
   const [isEditingHobbies, setIsEditingHobbies] = useState(false);
+
+  // Facebook-style "Edit profile" toggles the whole About block into edit mode.
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+
+  // Story creation (Facebook-style "Create story" button on the profile).
+  const [storyFile, setStoryFile] = useState<File | null>(null);
+  const [storyCaption, setStoryCaption] = useState("");
+  const [publishingStory, setPublishingStory] = useState(false);
+  const [storyError, setStoryError] = useState<string | null>(null);
+  const storyInputRef = useRef<HTMLInputElement>(null);
 
   const [uploading, setUploading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -95,6 +107,36 @@ export default function StudentProfilePage() {
     await updateProfile({ hobbies: hobbies.split(",").map((h) => h.trim()).filter(Boolean) });
     setIsEditingHobbies(false);
   }
+  async function toggleAboutEditing() {
+    if (isEditingAbout) {
+      // Save all three fields at once.
+      await updateProfile({ bio });
+      await updateProfile({ favorite_subject: favoriteSubject });
+      await updateProfile({ hobbies: hobbies.split(",").map((h) => h.trim()).filter(Boolean) });
+      setIsEditingBio(false);
+      setIsEditingSubject(false);
+      setIsEditingHobbies(false);
+    } else {
+      setIsEditingBio(true);
+      setIsEditingSubject(true);
+      setIsEditingHobbies(true);
+    }
+    setIsEditingAbout(!isEditingAbout);
+  }
+
+  async function handleStoryPublish() {
+    if (!storyFile) return;
+    setPublishingStory(true);
+    setStoryError(null);
+    const storyId = await createStory(storyFile, storyCaption || undefined);
+    if (storyId) {
+      setStoryFile(null);
+      setStoryCaption("");
+    } else {
+      setStoryError("Couldn't publish your story. Please try again.");
+    }
+    setPublishingStory(false);
+  }
 
   const { friends, loading: friendsLoading, error: friendsError } = useFriendsStore();
 
@@ -103,7 +145,6 @@ export default function StudentProfilePage() {
   const overallRank = myRank?.current_rank ?? "D";
   const rankBar = myRank && myRank.current_rank !== "EX" ? myRank.current_bar : null;
   const rankExScore = myRank?.current_rank === "EX" ? myRank.ex_score : null;
-  const hobbiesList = hobbies.split(",").map((h) => h.trim()).filter(Boolean);
 
   const academicInfo = useMemo(() => {
     if (!profile) return null;
@@ -184,8 +225,8 @@ export default function StudentProfilePage() {
               <button
                 type="button"
                 onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
-                aria-label="Edit profile"
-                title="Edit profile"
+                aria-label="Edit profile photo"
+                title="Edit profile photo"
                 className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -205,11 +246,16 @@ export default function StudentProfilePage() {
                 .filter(Boolean)
                 .join(" · ")}
             </p>
-            {/* Bio sits right under the course/year line, like a social profile. */}
+            {/* Bio, favorite subject, and hobbies displayed inline, like a social profile. */}
             {bio.trim() && <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">{bio}</p>}
-            {hobbiesList.length > 0 && (
+            {favoriteSubject.trim() && (
+              <p className="mt-3 text-sm text-navy">
+                <span className="font-semibold text-gold-token">Favorite subject:</span> {favoriteSubject}
+              </p>
+            )}
+            {hobbies.split(",").map((h) => h.trim()).filter(Boolean).length > 0 && (
               <div className="mt-3 flex flex-wrap justify-center gap-2">
-                {hobbiesList.map((h) => (
+                {hobbies.split(",").map((h) => h.trim()).filter(Boolean).map((h) => (
                   <span key={h} className="rounded-full border border-line bg-tile px-2.5 py-0.5 text-[11px] text-muted">
                     {h}
                   </span>
@@ -219,87 +265,123 @@ export default function StudentProfilePage() {
           </div>
         </div>
 
-        <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-5 text-center">
-          {/* Rank is the hero; the bar/excellence value renders smaller underneath. */}
-          <RankBadge rank={overallRank} size="lg" bar={rankBar} exScore={rankExScore} />
-        </div>
-
-        {/* About section — editable profile fields inside the hero area. */}
-        {!viewAs && (
+        {/* About edit card - only visible when "Edit profile" is active.
+            When hidden, bio/favorite subject/hobbies are displayed inline
+            in the hero section above. Saving is done by the "Save profile"
+            action button in the row below. */}
+        {isEditingAbout && !viewAs && (
           <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-4 text-left">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">About</p>
-            </div>
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-muted">About</p>
             <div className="space-y-3">
               <div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-wide text-muted">Bio</p>
-                  <button
-                    type="button"
-                    onClick={() => (isEditingBio ? saveBio() : setIsEditingBio(true))}
-                    className="text-[10px] font-semibold text-navy underline decoration-gold underline-offset-2"
-                  >
-                    {isEditingBio ? "Done" : "Edit"}
-                  </button>
-                </div>
-                {isEditingBio ? (
-                  <textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    rows={3}
-                    className="mt-1.5 w-full rounded-[10px] border border-base bg-surface p-3 text-sm text-navy outline-none focus:border-gold"
-                  />
-                ) : (
-                  <p className="mt-1.5 text-sm leading-6 text-muted">{bio || "No bio yet."}</p>
-                )}
+                <p className="text-[10px] uppercase tracking-wide text-muted">Bio</p>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  rows={3}
+                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface p-3 text-sm text-navy outline-none focus:border-gold"
+                />
               </div>
               <div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-wide text-muted">Favorite subject</p>
-                  <button
-                    type="button"
-                    onClick={() => (isEditingSubject ? saveFavoriteSubject() : setIsEditingSubject(true))}
-                    className="text-[10px] font-semibold text-navy underline decoration-gold underline-offset-2"
-                  >
-                    {isEditingSubject ? "Done" : "Edit"}
-                  </button>
-                </div>
-                {isEditingSubject ? (
-                  <input
-                    value={favoriteSubject}
-                    onChange={(e) => setFavoriteSubject(e.target.value)}
-                    placeholder="e.g. Physics"
-                    className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                  />
-                ) : (
-                  <p className="mt-1.5 text-sm text-navy">{favoriteSubject || "Not set"}</p>
-                )}
+                <p className="text-[10px] uppercase tracking-wide text-muted">Favorite subject</p>
+                <input
+                  value={favoriteSubject}
+                  onChange={(e) => setFavoriteSubject(e.target.value)}
+                  placeholder="e.g. Physics"
+                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                />
               </div>
               <div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-wide text-muted">Hobbies</p>
-                  <button
-                    type="button"
-                    onClick={() => (isEditingHobbies ? saveHobbies() : setIsEditingHobbies(true))}
-                    className="text-[10px] font-semibold text-navy underline decoration-gold underline-offset-2"
-                  >
-                    {isEditingHobbies ? "Done" : "Edit"}
-                  </button>
-                </div>
-                {isEditingHobbies ? (
-                  <input
-                    value={hobbies}
-                    onChange={(e) => setHobbies(e.target.value)}
-                    placeholder="Hobbies — separate multiple hobbies with commas"
-                    className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
-                  />
-                ) : (
-                  <p className="mt-1.5 text-sm text-navy">{hobbies || "Not set"}</p>
-                )}
+                <p className="text-[10px] uppercase tracking-wide text-muted">Hobbies</p>
+                <input
+                  value={hobbies}
+                  onChange={(e) => setHobbies(e.target.value)}
+                  placeholder="Hobbies - separate multiple hobbies with commas"
+                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                />
               </div>
             </div>
           </div>
         )}
+
+        {/* Facebook-style action row: Edit profile + Create story (owner only),
+            aligned as two equal-width buttons. */}
+        {!viewAs && (
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={toggleAboutEditing}
+              className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm font-semibold text-navy transition hover:border-gold-soft active:scale-[0.98]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              {isEditingAbout ? "Save profile" : "Edit profile"}
+            </button>
+            <button
+              type="button"
+              onClick={() => storyInputRef.current?.click()}
+              className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm font-semibold text-navy transition hover:border-gold-soft active:scale-[0.98]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v8M8 12h8" />
+              </svg>
+              Create story
+            </button>
+            <input
+              ref={storyInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setStoryFile(file);
+                  setStoryError(null);
+                }
+                e.target.value = "";
+              }}
+              className="hidden"
+            />
+          </div>
+        )}
+
+        {/* Story publish panel (Facebook-style) once an image is picked. */}
+        {!viewAs && storyFile && (
+          <div className="flex flex-col gap-2 rounded-[10px] border border-gold bg-[var(--surface-strong)] p-2.5 sm:flex-row sm:items-center sm:p-3">
+            <input
+              value={storyCaption}
+              onChange={(e) => setStoryCaption(e.target.value)}
+              placeholder="Add a caption for your story (optional)"
+              maxLength={120}
+              className="min-w-0 flex-1 rounded-full border border-base bg-surface px-3 py-1.5 text-xs text-navy outline-none focus:border-gold sm:px-4 sm:py-2 sm:text-sm"
+            />
+            <div className="flex gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={handleStoryPublish}
+                disabled={publishingStory}
+                className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50 sm:px-4 sm:py-2"
+              >
+                {publishingStory ? "Publishing..." : "Publish story"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setStoryFile(null)}
+                className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-gold sm:px-4 sm:py-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        {!viewAs && storyError && <p className="text-xs text-warn">{storyError}</p>}
+
+        {/* Rank is the hero; the bar/excellence value renders smaller underneath. */}
+        <div className="rounded-[10px] border border-base bg-[var(--surface-strong)] p-5 text-center">
+          <RankBadge rank={overallRank} size="lg" bar={rankBar} exScore={rankExScore} />
+        </div>
 
         {/* Tabbed Achievements / Music / Photos / History section, inside the profile card. */}
         <Achievements viewer={viewAs} />
@@ -360,7 +442,7 @@ export default function StudentProfilePage() {
       </div>
 
       <div className="min-w-0 space-y-6">
-        {/* Friends Section — moved above Wardrobe per profile hierarchy. */}
+        {/* Friends Section - moved above Wardrobe per profile hierarchy. */}
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Friends</h2>

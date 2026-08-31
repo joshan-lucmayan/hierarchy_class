@@ -40,7 +40,7 @@ export default function WeakestSubjectCard() {
     const prior = scores.slice(-4, -2);
     const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
     return avg(recent) < avg(prior)
-      ? "Trending down over the last 3 gradings \u2014 flagged for review."
+      ? "Trending down over the last 3 gradings - flagged for review."
       : "Holding steady across recent gradings.";
   }, [weakest]);
 

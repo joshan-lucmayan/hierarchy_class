@@ -10,7 +10,7 @@ import { consumeNativeBack } from "@/lib/nativeBackHandler";
  * THE single Android hardware/system back-button listener for the app.
  *
  * Mounted once from the root layout. There was no other backButton listener
- * in the codebase before this (audited) — overlays like MobileDrawer already
+ * in the codebase before this (audited) - overlays like MobileDrawer already
  * participate via history.pushState, and everything using Modal/SearchOverlay/
  * FlorinPurchaseModal/ProfileModal registers in lib/nativeBackHandler.ts.
  *
@@ -37,7 +37,7 @@ export function NativeBackButton() {
       //    MIUI) it reported false while Next.js pushState entries existed,
       //    so hardware back would exit the app instead of going back. The
       //    Navigation API (Chromium WebView 102+) exposes the joint session
-      //    history including same-document (SPA) entries — use it when
+      //    history including same-document (SPA) entries - use it when
       //    present and fall back to the payload elsewhere.
       const nav = (window as { navigation?: { canGoBack: boolean } }).navigation;
       const hasHistory = nav ? nav.canGoBack : canGoBack;

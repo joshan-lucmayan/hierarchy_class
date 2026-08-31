@@ -133,7 +133,7 @@ export default function LibraryManagementPage() {
         <div className="flex flex-wrap items-end gap-2">
           <Stat
             label="Books out"
-            value={loading ? "—" : borrowedBooks.length}
+            value={loading ? "-" : borrowedBooks.length}
             tone="gold"
             hint="Currently borrowed"
           />

@@ -1,5 +1,5 @@
 -- ===========================================================================
--- 061: deactivation is SELF-SERVICE ONLY — close the raw-API path.
+-- 061: deactivation is SELF-SERVICE ONLY - close the raw-API path.
 --
 -- v1.7.66 removed the admin "Deactivate" button and the adminSetUserDeactivation
 -- server action, but the DB still allowed a same-school admin to set another
@@ -35,7 +35,7 @@ BEGIN
   END IF;
 
   -- Deactivation is a self-service lifecycle state only. Nobody (including a
-  -- school admin) may set OR clear another user's deactivated_at — the
+  -- school admin) may set OR clear another user's deactivated_at - the
   -- restricted_at state (plus the appeal flow) is the admin-controlled
   -- alternative for suspicious accounts.
   IF NEW.deactivated_at IS DISTINCT FROM OLD.deactivated_at

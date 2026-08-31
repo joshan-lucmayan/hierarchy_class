@@ -21,26 +21,26 @@ import type { Role } from "@/types/supabase";
  *
  * The Android export has no edge middleware and no server: "/" is the static
  * NativeEntry boot HTML, and this client gate owns the cold-start auth
- * decision — the exact equivalent of the web's app/page.tsx redirect +
+ * decision - the exact equivalent of the web's app/page.tsx redirect +
  * middleware rules (lib/authz.ts decideAuthRoute), so both platforms follow
  * one flow:
  *
- *   1. getSession()            — local, no network. No session → Login screen
+ *   1. getSession()            - local, no network. No session → Login screen
  *                                (fresh install / signed out) with zero delay.
- *   2. getUser()               — network validation + token refresh of the
+ *   2. getUser()               - network validation + token refresh of the
  *                                persisted session.
- *   3. profiles row            — database truth for role/deactivated/
+ *   3. profiles row            - database truth for role/deactivated/
  *                                restricted (never user_metadata), mirroring
  *                                decideAuthRoute's priority: restricted →
  *                                /auth/restricted, deactivated →
  *                                /auth/reactivate, no profile →
  *                                /auth/incomplete, unverified email →
  *                                /login?unverified=1, else → role home.
- *   4. Offline with a session  — getUser() can't be validated, so the last
+ *   4. Offline with a session  - getUser() can't be validated, so the last
  *                                known role (lib/native.ts role cache) routes
  *                                the user to their home; the role pages show
  *                                their own offline errors. No logout happens.
- *   5. Online auth rejection   — the stored session is expired/invalid:
+ *   5. Online auth rejection   - the stored session is expired/invalid:
  *                                signOut() clears it (plus the role cache)
  *                                and the Login screen is shown.
  *
@@ -50,7 +50,7 @@ import type { Role } from "@/types/supabase";
  * boot state (logo + spinner) while the session resolves.
  *
  * Hydration: the FIRST client render is the static export HTML of "/"
- * (NativeEntry boot state) — no mismatch, no landing flash. Every state
+ * (NativeEntry boot state) - no mismatch, no landing flash. Every state
  * change happens after mount.
  *
  * Rendered by app/page.tsx ONLY in the Android export build (CAPACITOR_EXPORT
@@ -146,7 +146,7 @@ export function NativeRootGate() {
           router.replace(homePathForRole(role));
           return;
         }
-        // Authenticated but no usable profile row — same destination the web
+        // Authenticated but no usable profile row - same destination the web
         // middleware picks (never silently allow, never auto-create).
         router.replace("/auth/incomplete");
         return;

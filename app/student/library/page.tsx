@@ -123,7 +123,7 @@ export default function LibraryPage() {
         </div>
         <Stat
           label="Available"
-          value={loading ? "—" : statusCounts.available}
+          value={loading ? "-" : statusCounts.available}
           tone="gold"
           hint={`${books.length} in catalog`}
         />

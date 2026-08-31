@@ -89,7 +89,7 @@ export function StoriesRail() {
         </div>
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1.5 sm:gap-4">
-          {/* Your stories — single circle, first position. Small accent + badge on bottom-right. */}
+          {/* Your stories - single circle, first position. Small accent + badge on bottom-right. */}
           <div className="flex shrink-0 flex-col items-center gap-1 sm:gap-1.5">
             <div className="relative h-14 w-14 shrink-0 sm:h-16 sm:w-16">
               <button
@@ -120,7 +120,7 @@ export function StoriesRail() {
                   )}
                 </span>
               </button>
-              {/* Small accent + badge — bottom-right of the story ring.
+              {/* Small accent + badge - bottom-right of the story ring.
                   Positioned absolute bottom-0 right-0 relative to the exact circle wrapper.
                   No aria-label: the global button[aria-label] rule in globals.css
                   forces min-width/min-height: 44px on mobile, which would balloon

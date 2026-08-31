@@ -6,11 +6,11 @@ import { useMyProfile } from "@/lib/useMyProfile";
 import { randomId } from "@/lib/randomId";
 
 /**
- * Story Archive — the student's own previously-posted MyDay stories.
+ * Story Archive - the student's own previously-posted MyDay stories.
  *
  * The live feed (lib/storiesStore.tsx) only loads stories that have not yet
  * expired (`expires_at > now()`). This hook loads the SAME `stories` table but
- * includes the owner's expired entries too — the RLS policy in migration 015
+ * includes the owner's expired entries too - the RLS policy in migration 015
  * already allows an owner to read their own stories regardless of expiry, so
  * nothing here reaches outside the existing data model. No fake data, no new
  * tables: the archive is the student's real story history.

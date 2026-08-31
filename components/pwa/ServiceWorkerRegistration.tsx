@@ -14,7 +14,7 @@ import { isNativeApp } from "@/lib/native";
 /**
  * Global app-update orchestrator (mounted once in the root layout).
  *
- * Detection — two independent signals:
+ * Detection - two independent signals:
  *   1. Service worker: a new /sw.js installs a waiting worker → update exists.
  *      Activation stays consent-gated (sw.js only skips waiting on our message).
  *   2. Version endpoint: GET /api/version returns the deployment build
@@ -29,13 +29,13 @@ import { isNativeApp } from "@/lib/native";
  *   - The applied flag suppresses re-prompting within the same session for the
  *     build we left, preventing loops if /api/version briefly lags a deploy.
  *
- * Dismissal ("Later") is remembered PER detected build in localStorage — a
+ * Dismissal ("Later") is remembered PER detected build in localStorage - a
  * newer deployment always prompts again.
  */
 
 const VERSION_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
-// localStorage/sessionStorage may throw (private mode, disabled) — never let
+// localStorage/sessionStorage may throw (private mode, disabled) - never let
 // update plumbing break the app over storage access.
 const safeLocal: Pick<Storage, "getItem" | "setItem" | "removeItem"> = {
   getItem: (k) => {
@@ -159,7 +159,7 @@ export function ServiceWorkerRegistration() {
         });
       })
       .catch(() => {
-        // Registration failed — silently ignore (offline, insecure dev, etc.)
+        // Registration failed - silently ignore (offline, insecure dev, etc.)
       });
 
     // --- Version endpoint checks -------------------------------------------
@@ -174,13 +174,13 @@ export function ServiceWorkerRegistration() {
         if (build === null) return;
         remoteBuildRef.current = build;
         if (build === currentBuild) {
-          // We are up to date — clear any transient pure-SW dismissal so a
+          // We are up to date - clear any transient pure-SW dismissal so a
           // FUTURE waiting worker can prompt again (stale-key sweep).
           safeLocal.removeItem(dismissedKey("sw"));
         }
         evaluate(build, checkWaitingWorker(), !!navigator.serviceWorker.controller);
       } catch {
-        // Offline or endpoint unavailable — SW detection still covers updates.
+        // Offline or endpoint unavailable - SW detection still covers updates.
       }
     };
 
@@ -246,7 +246,7 @@ export function ServiceWorkerRegistration() {
 
   function handleDismiss() {
     setOpen(false);
-    // Remember dismissal FOR THIS DETECTED BUILD only — a newer deployment
+    // Remember dismissal FOR THIS DETECTED BUILD only - a newer deployment
     // prompts again. Pure-SW signals (remote unknown yet) dismiss under the
     // stable "sw" identity; that key is swept once /api/version confirms we
     // are up to date, so it never blocks future updates.
@@ -258,7 +258,7 @@ export function ServiceWorkerRegistration() {
     <AppUpdatePrompt
       open={open}
       busy={busy}
-      note={offlineNote ? "You're offline — reconnect to update." : undefined}
+      note={offlineNote ? "You're offline - reconnect to update." : undefined}
       onUpdate={handleUpdate}
       onDismiss={() => {
         setOfflineNote(false);

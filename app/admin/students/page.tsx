@@ -439,7 +439,7 @@ export default function AdminStudentsPage() {
                     <Stat label="Courses" value={enrolledCourses.length} />
                     <Stat
                       label="Average"
-                      value={getStudentAverageByProfile(selectedStudent.id) ?? "—"}
+                      value={getStudentAverageByProfile(selectedStudent.id) ?? "-"}
                       tone={getStudentAverageByProfile(selectedStudent.id) !== null ? "gold" : "muted"}
                     />
                   </div>

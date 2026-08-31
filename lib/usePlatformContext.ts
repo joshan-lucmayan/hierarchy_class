@@ -11,7 +11,7 @@ import {
  *
  * Server render and the first client render return `ready: false` with a
  * neutral context (installedLike: true) so install CTAs stay hidden until we
- * can prove a normal-browser context — installed users must never see a flash
+ * can prove a normal-browser context - installed users must never see a flash
  * of install UI, and unknown contexts err on the side of hiding it.
  *
  * Collects signals only after mount:

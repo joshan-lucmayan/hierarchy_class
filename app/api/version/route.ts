@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * - Locally / outside Vercel it falls back to the package.json version.
  *
  * no-store: the whole point is that clients must never see a stale answer.
- * No secrets, no database, no auth — safe to call from any client.
+ * No secrets, no database, no auth - safe to call from any client.
  */
 export function GET() {
   const build = process.env.VERCEL_GIT_COMMIT_SHA || `v${version}`;

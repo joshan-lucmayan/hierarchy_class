@@ -175,14 +175,14 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
   async function handleSend() {
     if (!active || !draft.trim() || sending || isBlocked) return;
     if (!isOnline) {
-      setActionError("You’re offline — connect to send messages. Your draft is still here.");
+      setActionError("You’re offline - connect to send messages. Your draft is still here.");
       return;
     }
     setSending(true);
     const ok = await sendMessage(active.id, draft);
     setSending(false);
     if (ok) setDraft("");
-    else if (!navigator.onLine) setActionError("You’re offline — message wasn’t sent.");
+    else if (!navigator.onLine) setActionError("You’re offline - message wasn’t sent.");
   }
 
   return (
@@ -452,7 +452,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
             </div>
 
             <div className="border-t border-base p-4 pb-[max(1rem,env(safe-area-inset-bottom))] max-[767px]:pb-[max(1rem,env(safe-area-inset-bottom))]">
-              {!isOnline && <OfflineBanner message="You’re offline — messages need a connection. Your draft is saved." />}
+              {!isOnline && <OfflineBanner message="You’re offline - messages need a connection. Your draft is saved." />}
               {isBlocked ? (
                 <p className="rounded-full border border-warn-soft bg-warn-soft px-4 py-2.5 text-center text-xs font-semibold text-warn">
                   You&apos;ve blocked this user - unblock them to send messages.

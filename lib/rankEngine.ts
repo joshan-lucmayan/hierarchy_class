@@ -25,7 +25,7 @@
 export const RANK_ORDER = ["D", "C", "B", "A", "S", "S+", "S++", "EX"] as const;
 export type Rank = (typeof RANK_ORDER)[number];
 
-/** Human-readable display names — codes remain D/C/B/A/S/S+/S++/EX. */
+/** Human-readable display names - codes remain D/C/B/A/S/S+/S++/EX. */
 export const RANK_DISPLAY_NAMES: Record<Rank, string> = {
   D: "D",
   C: "C",

@@ -12,7 +12,7 @@ import { Modal } from "@/components/ui/Modal";
  * surface shares exactly one implementation.
  *
  * Signing out reuses the existing Supabase browser session. The navigation
- * uses location.replace("/") — same full-state reset as before, but it
+ * uses location.replace("/") - same full-state reset as before, but it
  * REPLACES the current history entry so the hardware/app back button never
  * re-enters the now-unauthenticated pages.
  */

@@ -1,5 +1,5 @@
 -- ===========================================================================
--- 062: FIX appeals_own_create — variable shadowing made appeals unsubmittable.
+-- 062: FIX appeals_own_create - variable shadowing made appeals unsubmittable.
 --
 -- Migration 060 defined the policy as:
 --
@@ -10,7 +10,7 @@
 --
 -- Inside the subquery, the unqualified `user_id` resolved to the INNER
 -- table's own column (profiles.user_id), so the check became
--- `p.id = p.user_id` — profile ids are UUIDs, user ids are auth UUIDs,
+-- `p.id = p.user_id` - profile ids are UUIDs, user ids are auth UUIDs,
 -- never equal. The restriction gate could never pass, so restricted users
 -- could not submit an appeal at all (RLS 42501 on every insert).
 --

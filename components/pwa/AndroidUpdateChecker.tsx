@@ -10,11 +10,11 @@ import { APP_VERSION } from "@/lib/version";
  *
  * Fetches the release metadata from the production domain and compares the
  * installed version against the latest using proper numeric MAJOR/MINOR/BUG_FIX
- * comparison (never lexicographic — 1.10.0 must beat 1.9.0). The project
+ * comparison (never lexicographic - 1.10.0 must beat 1.9.0). The project
  * versionCode convention is MAJOR×100000 + MINOR×1000 + BUG_FIX (1.23.110 →
  * 123110); the metadata's versionCode is compared too as a secondary guard.
  * If a newer version is available, a non-blocking banner directs the user to
- * the official download page. Does NOT silently install — the user must
+ * the official download page. Does NOT silently install - the user must
  * manually download and install the APK.
  *
  * Gracefully handles:
@@ -22,7 +22,7 @@ import { APP_VERSION } from "@/lib/version";
  * - metadata unavailable (parse error → quiet)
  * - same version (quiet)
  * - newer version (banner)
- * - forced/minimum version (not implemented — banner still shows)
+ * - forced/minimum version (not implemented - banner still shows)
  */
 
 interface AndroidVersionMeta {
@@ -43,7 +43,7 @@ function parseVersion(v: string): [number, number, number] | null {
 
 /**
  * Numeric three-part comparison. Returns 1 when a > b, -1 when a < b, 0 when
- * equal. Compares MAJOR first, then MINOR, then BUG_FIX numerically — so
+ * equal. Compares MAJOR first, then MINOR, then BUG_FIX numerically - so
  * 1.10.0 > 1.9.0 correctly.
  */
 function compareVersions(a: string, b: string): number {
@@ -81,7 +81,7 @@ export function AndroidUpdateChecker() {
         if (cancelled) return;
         setMeta(data);
       } catch {
-        // Offline or metadata unavailable — quiet
+        // Offline or metadata unavailable - quiet
       }
     }
 
@@ -94,7 +94,7 @@ export function AndroidUpdateChecker() {
   if (!isNativeApp() || dismissed || !meta) return null;
 
   // The banner must appear ONLY when the remote is strictly newer than the
-  // installed app — never when they match (the false-update bug) and never
+  // installed app - never when they match (the false-update bug) and never
   // when the remote is older. Numeric string comparison is authoritative;
   // versionCode is compared as a secondary guard.
   const remoteNewer =

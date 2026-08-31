@@ -145,30 +145,30 @@ cannot set or clear it on any account (migration 061).
 **Permanent deletion** is deliberately server-side because Supabase Auth user
 deletion (`auth.admin.deleteUser`) requires privileged access:
 
-1. **Same-school authorization** — the server action verifies the admin's
+1. **Same-school authorization** - the server action verifies the admin's
    `school_id` matches both the request's `school_id` and the target
    profile's `school_id`.
-2. **Admin-only approval** — only users with `role = 'admin'` can approve
+2. **Admin-only approval** - only users with `role = 'admin'` can approve
    deletion requests.
-3. **Server-side verification** — the admin's identity is verified via
+3. **Server-side verification** - the admin's identity is verified via
    `supabase.auth.getUser()` and the `profiles` table (RLS + server action).
-4. **Service-role isolation** — the `SUPABASE_SERVICE_ROLE_KEY` is used
+4. **Service-role isolation** - the `SUPABASE_SERVICE_ROLE_KEY` is used
    ONLY for the irreversible step (`auth.admin.deleteUser` + storage
    cleanup). It is server-only, never `NEXT_PUBLIC_`, never committed, and
    callers must authorize BEFORE using it.
-5. **Storage ownership cleanup** — after auth deletion (which cascades the
+5. **Storage ownership cleanup** - after auth deletion (which cascades the
    profile and personal data), storage objects (avatars, certificates,
    stories, materials, feed images) are collected and removed using the
    service-role client.
-6. **RLS** — all pre-deletion reads (request lookup, profile verification,
+6. **RLS** - all pre-deletion reads (request lookup, profile verification,
    storage path collection) go through the admin's own session with normal
    RLS policies.
-7. **Deactivated-user middleware enforcement** — deactivated users are
+7. **Deactivated-user middleware enforcement** - deactivated users are
    redirected by `middleware.ts` on every request and cannot reach any app
    page except `/auth/reactivate`, login, signup, and callback routes.
 
 **Data export** (`/api/export-account`) uses the caller's own session with
-normal RLS — no service role, no bypass. A user can only export their own
+normal RLS - no service role, no bypass. A user can only export their own
 data.
 
 ## 6. Known deployment caveats

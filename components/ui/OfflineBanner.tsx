@@ -3,7 +3,7 @@
 import { useOnline } from "@/lib/useOnline";
 
 /**
- * Minimal, reusable offline indicator — not a blanket banner.
+ * Minimal, reusable offline indicator - not a blanket banner.
  * Render near the action that requires network (e.g., above send button, above grade submit).
  * Preserves Hierarchy Class styling: faint border, warm warning soft bg, centered text.
  */
@@ -20,13 +20,13 @@ export function OfflineBanner({ message }: { message?: string }) {
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
         <path d="M1 1l22 22" />
       </svg>
-      <span>{message ?? "You’re offline — connect to continue. Your input is saved, but nothing was sent."}</span>
+      <span>{message ?? "You’re offline - connect to continue. Your input is saved, but nothing was sent."}</span>
     </div>
   );
 }
 
 /**
- * Inline offline dot for headers — shows only when offline.
+ * Inline offline dot for headers - shows only when offline.
  */
 export function OfflineDot() {
   const online = useOnline();

@@ -67,7 +67,7 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
 
   // Android only: selecting a nav item closes the drawer and navigates. The
   // drawer pushed a history entry on open; REPLACING it with the destination
-  // keeps the stack clean — the next back goes to the page before the menu
+  // keeps the stack clean - the next back goes to the page before the menu
   // (no stale drawer entry, no back loop when the Android back arrow reopens
   // the menu). On the web the nav items are <Link>s (original behavior), so
   // this path is never taken there.

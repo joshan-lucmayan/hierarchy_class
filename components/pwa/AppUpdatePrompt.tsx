@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
  * Global "New version available" prompt.
  *
  * UPDATE = refresh the running web app to the newest deployment.
- * This is deliberately unrelated to PWA INSTALL prompts — never mix them.
+ * This is deliberately unrelated to PWA INSTALL prompts - never mix them.
  *
  * Placement: bottom sheet above the BottomNav on phones/tablets (safe-area
  * aware), floating card bottom-right on desktop. z-[60] sits above modals

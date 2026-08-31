@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * Network status hook — single source of truth for offline awareness.
+ * Network status hook - single source of truth for offline awareness.
  * Students/teachers must never see fake success for network-required actions;
  * this hook lets callers block mutations and show a clear explanation instead.
  */

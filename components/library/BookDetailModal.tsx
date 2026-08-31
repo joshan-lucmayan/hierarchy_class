@@ -39,7 +39,7 @@ export function bookStatusLine(book: LibraryBook, isMine: boolean, context: "stu
   // Teacher context - loan information is part of the librarian's data.
   if (book.status === "requested") return "Pickup request pending approval";
   return book.borrowedByName
-    ? `Loaned to ${book.borrowedByName} · borrowed ${book.borrowedDate ?? "—"} · due ${book.dueDate ?? "—"}`
+    ? `Loaned to ${book.borrowedByName} · borrowed ${book.borrowedDate ?? "-"} · due ${book.dueDate ?? "-"}`
     : "Currently borrowed";
 }
 

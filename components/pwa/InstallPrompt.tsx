@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { isNativeApp } from "@/lib/native";
 
 /**
- * SILENT install-prompt capture — renders NOTHING and never calls prompt().
+ * SILENT install-prompt capture - renders NOTHING and never calls prompt().
  *
  * Policy: the app must never show unsolicited "Install" UI. Installation will
  * later be offered from dedicated /download pages; those pages can consume the
@@ -37,7 +37,7 @@ export function InstallPromptCapture() {
     // Standalone Android app: browser install prompts do not apply.
     if (isNativeApp()) return;
     const onBeforeInstall = (e: Event) => {
-      // Suppress ALL automatic install prompting — capture for manual use only.
+      // Suppress ALL automatic install prompting - capture for manual use only.
       e.preventDefault();
       captured = e as DeferredInstallPromptEvent;
       window.dispatchEvent(new Event("hc-install-available"));

@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
         </div>
         <Stat
           label="Students"
-          value={loading ? "—" : counts.student}
+          value={loading ? "-" : counts.student}
           tone="gold"
           hint={`${counts.teacher} teachers registered`}
         />

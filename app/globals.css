@@ -107,7 +107,7 @@ body {
   border-color: var(--border);
 }
 
-/* Viewport + safe-area — modern units with 100vh fallback; env() is 0 on
+/* Viewport + safe-area - modern units with 100vh fallback; env() is 0 on
    desktop so no visible spacing change except on notched / home-indicator devices. */
 @supports (min-height: 100dvh) {
   body {
@@ -694,14 +694,14 @@ body {
     font-size: 16px !important;
   }
 
-  /* Icon-only controls (close, bell, etc.) — give a 44px hit area on
+  /* Icon-only controls (close, bell, etc.) - give a 44px hit area on
      touch without changing desktop sizing. */
   button[aria-label] {
     min-height: 44px;
     min-width: 44px;
   }
 
-  /* Prevent text overlap on small screens — allow wrapping and ensure flex children can shrink */
+  /* Prevent text overlap on small screens - allow wrapping and ensure flex children can shrink */
   * {
     overflow-wrap: break-word;
   }

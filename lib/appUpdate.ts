@@ -46,9 +46,9 @@ export interface UpdateDecisionInput {
   waitingWorker: boolean;
   /** True when the page is currently controlled by a service worker (i.e. not first install). */
   hasController: boolean;
-  /** Persistent store (localStorage) — remembers per-build dismissals. */
+  /** Persistent store (localStorage) - remembers per-build dismissals. */
   dismissalStore: KeyValueStore;
-  /** Session-scoped store (sessionStorage) — reload-loop guards. */
+  /** Session-scoped store (sessionStorage) - reload-loop guards. */
   guardStore: KeyValueStore;
 }
 

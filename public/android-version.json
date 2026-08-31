@@ -1,8 +1,8 @@
 {
-  "latestVersion": "1.25.113",
-  "versionCode": 125113,
-  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.25.113.apk",
-  "releaseNotes": "Scope Android drawer history/navigation to the native app; restore original web drawer behavior.",
+  "latestVersion": "1.26.114",
+  "versionCode": 126114,
+  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.26.114.apk",
+  "releaseNotes": "Profile editing and story creation, Android collapsible-header rewrite, web security headers, and messenger offline handling.",
   "minimumSupportedVersion": "1.24.111",
   "minimumVersionCode": 124111
 }

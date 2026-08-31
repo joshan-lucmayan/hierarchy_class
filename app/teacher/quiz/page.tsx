@@ -83,7 +83,7 @@ export default function TeacherQuizPage() {
             Create timed quizzes · published to your courses
           </h2>
         </div>
-        <Stat label="My quizzes" value={loading ? "—" : myQuizzes.length} tone="gold" hint="Published" />
+        <Stat label="My quizzes" value={loading ? "-" : myQuizzes.length} tone="gold" hint="Published" />
       </div>
 
       {loading ? (

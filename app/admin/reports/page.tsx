@@ -128,7 +128,7 @@ export default function AdminReportsPage() {
         </div>
         <Stat
           label="School excellence"
-          value={loading ? "—" : schoolAverage !== null ? schoolAverage : "—"}
+          value={loading ? "-" : schoolAverage !== null ? schoolAverage : "-"}
           tone="gold"
           hint="Weighted across all students"
         />
@@ -166,7 +166,7 @@ export default function AdminReportsPage() {
           {/* SNAPSHOT                                                  */}
           {/* ========================================================== */}
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Stat label="School academic excellence" value={schoolAverage !== null ? schoolAverage : "—"} tone="gold" />
+            <Stat label="School academic excellence" value={schoolAverage !== null ? schoolAverage : "-"} tone="gold" />
             <Stat label="Students with recorded grades" value={`${gradedStudentCount} / ${students.length}`} />
             <Stat label="Total grade entries logged" value={gradeEntries.length} />
             <Stat label="Courses tracked" value={courses.length} />

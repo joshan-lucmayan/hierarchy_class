@@ -224,11 +224,11 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
 
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-      {/* Profile-section tabs — a compact social-profile navigation strip
+      {/* Profile-section tabs - a compact social-profile navigation strip
           (Facebook-style UX, not the visual). Text-only tabs with a gold
           bottom indicator on the active one; muted text when inactive. No
           heavy borders, no oversized segmented buttons. On very narrow
-          screens ONLY this strip scrolls horizontally — never the page. */}
+          screens ONLY this strip scrolls horizontally - never the page. */}
       <div className="mb-5 -mx-5 flex items-stretch gap-1 overflow-x-auto border-b border-base px-5 pb-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((t) => {
           const active = tab === t.key;
@@ -278,7 +278,7 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
             <p className="text-sm text-warn">{error}</p>
           ) : achievements.length === 0 ? (
             <p className="text-sm text-muted">
-              {isOwner ? "No achievements yet — share your first one." : "No achievements yet."}
+              {isOwner ? "No achievements yet - share your first one." : "No achievements yet."}
             </p>
           ) : (
             <>

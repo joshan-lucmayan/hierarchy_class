@@ -53,7 +53,7 @@ export function Music({ studentId, viewer = false }: { studentId?: string; viewe
         <p className="py-8 text-center text-sm text-warn">{error}</p>
       ) : music.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted">
-          {isOwner ? "No music yet — share a song by link." : "No music yet."}
+          {isOwner ? "No music yet - share a song by link." : "No music yet."}
         </p>
       ) : (
         <>

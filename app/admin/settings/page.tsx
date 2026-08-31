@@ -93,7 +93,7 @@ export default function AdminSettingsPage() {
         </div>
         <Stat
           label="Pending requests"
-          value={requestsLoading ? "—" : pendingCount}
+          value={requestsLoading ? "-" : pendingCount}
           tone={pendingCount > 0 ? "warn" : "muted"}
           hint="Awaiting your decision"
         />
