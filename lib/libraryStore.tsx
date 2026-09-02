@@ -3,8 +3,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
-import { LibraryBook, LibraryBorrowLogEntry, LibraryBorrowRequest } from "@/types/student";
+import { LibraryBook, LibraryBorrowLogEntry, LibraryBorrowRequest, BorrowReceipt } from "@/types/student";
 import { notifyUser } from "@/lib/notify";
+import { FINE_PER_DAY, fineFor, overdueDays } from "@/lib/libraryUtils";
 
 // TEMP: library messages go out under whichever teacher is flagged
 // is_librarian for this school. Falls back to no message if none is set.
@@ -49,16 +50,19 @@ interface LibraryContextValue {
   books: LibraryBook[];
   requests: LibraryBorrowRequest[];
   log: LibraryBorrowLogEntry[];
+  schoolName: string;
   loading: boolean;
   error: string | null;
-  addBook: (book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; isbn?: string }) => Promise<void>;
-  updateBook: (id: string, book: { title: string; author: string; genre: string; description?: string; coverUrl?: string }) => Promise<void>;
+  addBook: (book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; isbn?: string; location?: string }) => Promise<void>;
+  updateBook: (id: string, book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; location?: string }) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
-  requestBorrow: (book: LibraryBook, borrower: Borrower) => Promise<void>;
+  requestBorrow: (book: LibraryBook, borrower: Borrower, days?: number) => Promise<void>;
   approveRequest: (requestId: string, pickupWindow: string) => Promise<void>;
   declineRequest: (requestId: string) => Promise<void>;
   returnBook: (bookId: string) => Promise<void>;
   historyForBook: (bookTitle: string) => LibraryBorrowLogEntry[];
+  receiptForBook: (book: LibraryBook) => BorrowReceipt;
+  receiptForLog: (entry: LibraryBorrowLogEntry) => BorrowReceipt;
 }
 
 const LibraryContext = createContext<LibraryContextValue | null>(null);
@@ -70,6 +74,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   const [books, setBooks] = useState<LibraryBook[]>([]);
   const [requests, setRequests] = useState<LibraryBorrowRequest[]>([]);
   const [log, setLog] = useState<LibraryBorrowLogEntry[]>([]);
+  const [schoolName, setSchoolName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchTick, setRefetchTick] = useState(0);
@@ -85,6 +90,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     }
     if (!profile) return;
 
+    const schoolId = profile.school_id;
     let cancelled = false;
     const supabase = createClient();
 
@@ -95,6 +101,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         { data: booksData, error: booksErr },
         { data: requestsData, error: requestsErr },
         { data: logData, error: logErr },
+        { data: schoolData, error: schoolErr },
       ] = (await Promise.all([
         supabase.from("library_books").select("*").order("title"),
         supabase
@@ -106,15 +113,18 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
           .from("library_borrow_log")
           .select("*, student:profiles!student_id(full_name, level_label, section)")
           .order("date", { ascending: true }),
+        supabase.from("schools").select("name").eq("id", schoolId).maybeSingle(),
       ])) as any[];
 
       if (cancelled) return;
 
-      if (booksErr || requestsErr || logErr) {
+      if (booksErr || requestsErr || logErr || schoolErr) {
         setError("Couldn't load library data. Please refresh and try again.");
         setLoading(false);
         return;
       }
+
+      if (schoolData?.name) setSchoolName(schoolData.name);
 
       setBooks(
         ((booksData ?? []) as any[]).map((b: any) => ({
@@ -130,6 +140,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
           dueDate: b.due_date ? b.due_date.slice(0, 10) : undefined,
           coverUrl: b.cover_url ?? undefined,
           isbn: b.isbn ?? undefined,
+          location: b.location ?? undefined,
         }))
       );
 
@@ -147,6 +158,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
             hour: "numeric",
             minute: "2-digit",
           }),
+          requestedDays: r.requested_days ?? 7,
         }))
       );
 
@@ -178,7 +190,10 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
             studentName: borrowRow.student?.full_name ?? "Unknown student",
             gradeSection: [borrowRow.student?.level_label, borrowRow.student?.section].filter(Boolean).join(" · "),
             borrowedDate: borrowRow.date ? borrowRow.date.slice(0, 10) : "",
+            dueDate: borrowRow.due_date ? borrowRow.due_date.slice(0, 10) : undefined,
             returnedDate: returnRow?.date ? returnRow.date.slice(0, 10) : undefined,
+            overdueDays: returnRow?.overdue_days ?? 0,
+            fineAmount: returnRow?.fine_amount ?? 0,
           });
         });
 
@@ -197,7 +212,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
   const addBook = useCallback(
-    async (book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; isbn?: string }) => {
+    async (book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; isbn?: string; location?: string }) => {
       if (!profile) return;
       const supabase = createClient();
       await (supabase.from("library_books") as any).insert({
@@ -208,6 +223,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         description: book.description ?? null,
         cover_url: book.coverUrl ?? null,
         isbn: book.isbn ?? null,
+        location: book.location ?? null,
         status: "available",
       });
       refetch();
@@ -216,7 +232,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateBook = useCallback(
-    async (id: string, book: { title: string; author: string; genre: string; description?: string; coverUrl?: string }) => {
+    async (id: string, book: { title: string; author: string; genre: string; description?: string; coverUrl?: string; location?: string }) => {
       const supabase = createClient();
       await (supabase.from("library_books") as any)
         .update({
@@ -225,6 +241,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
           genre: book.genre,
           description: book.description ?? null,
           cover_url: book.coverUrl ?? null,
+          location: book.location ?? null,
         })
         .eq("id", id);
       refetch();
@@ -242,28 +259,25 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   );
 
   const requestBorrow = useCallback(
-    async (book: LibraryBook, borrower: Borrower) => {
+    async (book: LibraryBook, borrower: Borrower, days?: number) => {
       if (!profile) return;
       const supabase = createClient();
 
-      await (supabase.from("library_borrow_requests") as any).insert({
-        school_id: profile.school_id,
-        book_id: book.id,
-        student_id: borrower.id,
-        status: "pending",
+      // Privileged two-step write (insert request + flip book to "requested")
+      // runs server-side in a SECURITY DEFINER function - students cannot
+      // UPDATE library_books under RLS (books_teacher_update is teacher-only).
+      await (supabase as any).rpc("request_library_book", {
+        p_book_id: book.id,
+        p_days: days ?? 7,
       });
-
-      await (supabase.from("library_books") as any)
-        .update({ status: "requested", borrowed_by: borrower.id, borrowed_by_name: borrower.name })
-        .eq("id", book.id);
 
       if (librarian) {
         await notifyUser(
           librarian.id,
           "library",
           "New book request",
-          `${borrower.name} requested "${book.title}".`,
-          "/teacher/library-management"
+          `${borrower.name} requested "${book.title}" for ${days ?? 7} days.`,
+          `/teacher/library-management?book=${book.id}`
         );
       }
 
@@ -279,8 +293,11 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       if (!request) return;
       const supabase = createClient();
 
+      const days = Math.max(1, request.requestedDays ?? 7);
+      const dueDate = addDaysISO(days);
+
       await (supabase.from("library_books") as any)
-        .update({ status: "borrowed", borrowed_date: todayISO(), due_date: addDaysISO(14) })
+        .update({ status: "borrowed", borrowed_date: todayISO(), due_date: dueDate })
         .eq("id", request.bookId);
 
       await (supabase.from("library_borrow_log") as any).insert({
@@ -288,23 +305,27 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         book_id: request.bookId,
         student_id: request.studentId,
         action: "borrowed",
+        due_date: dueDate,
       });
 
       await (supabase.from("library_borrow_requests") as any)
         .update({ status: "approved" })
         .eq("id", requestId);
 
+      const book = books.find((b) => b.id === request.bookId);
       await notifyUser(
         request.studentId,
         "library",
         "Book ready for pickup",
-        `"${request.bookTitle}" is ready: ${pickupWindow}.`,
-        "/student/library"
+        `"${request.bookTitle}" is ready: ${pickupWindow}. Due in ${days} days${
+          book?.location ? ` · Located at ${book.location}` : ""
+        }.`,
+        `/student/library?book=${request.bookId}`
       );
 
       refetch();
     },
-    [profile, requests, refetch]
+    [profile, requests, books, refetch]
   );
 
   const declineRequest = useCallback(
@@ -326,7 +347,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         "library",
         "Book request declined",
         `We couldn't approve "${request.bookTitle}" right now. Please check back later.`,
-        "/student/library"
+        `/student/library?book=${request.bookId}`
       );
 
       refetch();
@@ -339,6 +360,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
       if (!profile) return;
       const supabase = createClient();
 
+      const book = books.find((b) => b.id === bookId);
       const openLogEntry = log.find((entry) => entry.bookId === bookId && !entry.returnedDate);
 
       await (supabase.from("library_books") as any)
@@ -346,17 +368,58 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         .eq("id", bookId);
 
       if (openLogEntry) {
+        const dueDate = openLogEntry.dueDate ?? book?.dueDate;
+        const fine = fineFor(dueDate);
+        const overdue = fine > 0 ? Math.ceil(fine / FINE_PER_DAY) : 0;
+
         await (supabase.from("library_borrow_log") as any).insert({
           school_id: profile.school_id,
           book_id: bookId,
           student_id: openLogEntry.studentId,
           action: "returned",
+          overdue_days: overdue,
+          fine_amount: fine,
         });
       }
 
       refetch();
     },
-    [profile, log, refetch]
+    [profile, books, log, refetch]
+  );
+
+  const receiptForBook = useCallback(
+    (book: LibraryBook): BorrowReceipt => ({
+      receiptNo: book.id,
+      schoolName,
+      bookTitle: book.title,
+      bookAuthor: book.author,
+      genre: book.genre,
+      location: book.location,
+      studentName: book.borrowedByName ?? "—",
+      borrowedDate: book.borrowedDate ?? "",
+      dueDate: book.dueDate,
+      overdueDays: overdueDays(book.dueDate),
+      fineAmount: fineFor(book.dueDate),
+    }),
+    [schoolName]
+  );
+
+  const receiptForLog = useCallback(
+    (entry: LibraryBorrowLogEntry): BorrowReceipt => ({
+      receiptNo: entry.id,
+      schoolName,
+      bookTitle: entry.bookTitle,
+      bookAuthor: "",
+      genre: "",
+      studentName: entry.studentName,
+      gradeSection: entry.gradeSection,
+      borrowedDate: entry.borrowedDate,
+      dueDate: entry.dueDate,
+      returnedDate: entry.returnedDate,
+      overdueDays: entry.overdueDays ?? 0,
+      fineAmount: entry.fineAmount ?? 0,
+    }),
+    [schoolName]
   );
 
   const historyForBook = useCallback(
@@ -369,8 +432,25 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ books, requests, log, loading, error, addBook, updateBook, deleteBook, requestBorrow, approveRequest, declineRequest, returnBook, historyForBook }),
-    [books, requests, log, loading, error, addBook, updateBook, deleteBook, requestBorrow, approveRequest, declineRequest, returnBook, historyForBook]
+    () => ({
+      books,
+      requests,
+      log,
+      schoolName,
+      loading,
+      error,
+      addBook,
+      updateBook,
+      deleteBook,
+      requestBorrow,
+      approveRequest,
+      declineRequest,
+      returnBook,
+      historyForBook,
+      receiptForBook,
+      receiptForLog,
+    }),
+    [books, requests, log, schoolName, loading, error, addBook, updateBook, deleteBook, requestBorrow, approveRequest, declineRequest, returnBook, historyForBook, receiptForBook, receiptForLog]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

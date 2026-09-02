@@ -27,6 +27,7 @@ export interface LibraryBook {
   dueDate?: string;
   coverUrl?: string;
   isbn?: string;
+  location?: string;
 }
 
 export interface BorrowRecord {
@@ -46,6 +47,7 @@ export interface LibraryBorrowRequest {
   studentName: string;
   gradeSection: string;
   requestedAt: string;
+  requestedDays: number;
 }
 
 export interface LibraryBorrowLogEntry {
@@ -56,6 +58,27 @@ export interface LibraryBorrowLogEntry {
   studentName: string;
   gradeSection: string;
   borrowedDate: string;
+  dueDate?: string;
   returnedDate?: string;
+  overdueDays?: number;
+  fineAmount?: number;
+}
+
+/** Printable/displayable borrow receipt payload. */
+export interface BorrowReceipt {
+  receiptNo: string;
+  schoolName: string;
+  bookTitle: string;
+  bookAuthor: string;
+  genre: string;
+  location?: string;
+  studentName: string;
+  gradeSection?: string;
+  borrowedDate: string;
+  dueDate?: string;
+  returnedDate?: string;
+  requestedDays?: number;
+  overdueDays: number;
+  fineAmount: number;
 }
 

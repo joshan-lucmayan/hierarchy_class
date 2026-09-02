@@ -285,7 +285,7 @@ webhook or checkout flow changes.
 
 ### Prerequisites
 
-- Local dev environment working and **all migrations applied** through 069
+- Local dev environment working and **all migrations applied** through 072
   (see [`database/README.md`](../database/README.md)).
 - A PayMongo account with test keys enabled (Dashboard -> Developers).
 - Your **test secret key** (`sk_test_xxxxxxxxx` - placeholder; use your own).

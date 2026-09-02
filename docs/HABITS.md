@@ -96,11 +96,18 @@ target does not retroactively change past days.
 
 ## History
 
-The history calendar at the bottom shows, per habit:
+The history calendar at the bottom is a **contribution-style grid** - weeks
+as columns, days as rows, month labels across the top. It always shows the
+full trackable window (from January 1 of the current year, or the habit's
+first entry if it started earlier, up to today). The only control is the
+habit picker.
 
-- **This week / 30 days / 90 days / All** ranges.
-- Cell states: ✓ completed, ✕ a scheduled day that passed without a
-  record, · not scheduled (or paused), ○ future, and today is outlined.
+Cell states:
+- **gold box** = completed that day
+- **red box** = a scheduled day that passed without a record
+- **bordered empty box** = off-schedule or paused (not filled yet)
+- **light bordered box** = future
+- **ring outline** = today
 
 ---
 

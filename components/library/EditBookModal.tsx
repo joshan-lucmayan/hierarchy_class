@@ -16,6 +16,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
     genre: book.genre,
     description: book.description ?? "",
     coverUrl: book.coverUrl ?? "",
+    location: book.location ?? "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -30,6 +31,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
       genre: draft.genre.trim() || "Uncategorized",
       description: draft.description.trim() || undefined,
       coverUrl: draft.coverUrl.trim() || undefined,
+      location: draft.location.trim() || undefined,
     });
     setSubmitting(false);
     onClose();
@@ -97,6 +99,14 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
           value={draft.coverUrl}
           onChange={(e) => setDraft((d) => ({ ...d, coverUrl: e.target.value }))}
           placeholder="Cover image URL (optional)"
+          className={inputCls}
+        />
+        <label htmlFor="edit-book-location" className={fieldLabel}>Location in library</label>
+        <input
+          id="edit-book-location"
+          value={draft.location}
+          onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
+          placeholder="Shelf A2, Rack 3 (optional)"
           className={inputCls}
         />
 

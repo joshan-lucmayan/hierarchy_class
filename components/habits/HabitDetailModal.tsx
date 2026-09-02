@@ -65,7 +65,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
     [entries, habit.id]
   );
 
-  const wp = weekProgress(habit, entriesForHabit, start, end);
+  const wp = weekProgress(habit, entriesForHabit, start, end, pauses);
   const streak = currentStreak(habit, pauses, entriesForHabit, today);
   const best = bestStreak(habit, pauses, entriesForHabit, today);
   const rate = completionRate(habit, pauses, entriesForHabit, today);

@@ -925,24 +925,27 @@ flat token dashboard look, but built on the same tokens and fonts):
    the nav shows an unread dot (`MessagesBadge`) until all threads are read.
 4. **Grades** - teacher submits (pending) -> admin approves/rejects -> approved
    grades flow to student stats and the leaderboard in realtime.
-5. **Habits** - a full personal habit tracker (`/student/habits`): five
-   default habits per student (Study 5x/week Mon-Fri, Exercise 4x/week,
-   Reading 30 min/day, Sleep 8 h/day, Focus 60 min/day) plus custom habits
-   with a goal type (completion / count / duration / quantity), a target,
-   daily vs weekly frequency, and Mon-Sun scheduled days. The dashboard shows
-   the current week, weekly completion %, completed/remaining targets, best
-   habit, a Today list, a Mon-Sun week grid, per-habit details (target,
-   schedule, this week, historical completion rate, current + best streak),
-   pause/resume/archive, and delete (hard delete cascades through entries and
-   pause windows), plus a history calendar (This week / 30 / 90 days / All).
-   Archived habits land in an **Archived** section on the same page where they
-   can be restored (history preserved) or deleted forever. Streaks follow the habit's scheduled days (a missed scheduled day
-   breaks; unscheduled days and pause windows never do). Weekly targets sum
-   across the week; daily targets require each scheduled day to hit the
-   target. Stats are computed from real `habit_entries` rows by the pure
-   `lib/habitLogic.ts` module (unit-tested). Entries upsert on
-   `(student_id, habit_id, entry_date)` - duplicates are impossible at the
-   DB level. Habits never touch the rank engine or grades.
+ 5. **Habits** - a full personal habit tracker (`/student/habits`): five
+    default habits per student (Study 5x/week Mon-Fri, Exercise 4x/week,
+    Reading 30 min/day, Sleep 8 h/day, Focus 60 min/day) plus custom habits
+    with a goal type (completion / count / duration / quantity), a target,
+    daily vs weekly frequency, and Mon-Sun scheduled days. The dashboard shows
+    the current week, weekly completion %, current + best streak, a Today list,
+    per-habit details (target, schedule, this week, historical completion rate,
+    current + best streak), pause/resume/archive, and delete (hard delete
+    cascades through entries and pause windows), plus a contribution-style
+    history calendar - weeks as columns, days as rows, month labels across the
+    top, and every day box visible (gold = completed, red = missed, bordered
+    empty = not filled, light = future) from the start of the year or the
+    habit's first entry, with a habit picker as the only control.
+    Archived habits land in an **Archived** section on the same page where they
+    can be restored (history preserved) or deleted forever. Streaks follow the habit's scheduled days (a missed scheduled day
+    breaks; unscheduled days and pause windows never do). Weekly targets sum
+    across the week; daily targets require each scheduled day to hit the
+    target. Stats are computed from real `habit_entries` rows by the pure
+    `lib/habitLogic.ts` module (unit-tested). Entries upsert on
+    `(student_id, habit_id, entry_date)` - duplicates are impossible at the
+    DB level. Habits never touch the rank engine or grades.
 
    Reliability details (1.4.25): the habits page derives the detail modal's
    habit live from the store, so after **Edit** the modal immediately shows

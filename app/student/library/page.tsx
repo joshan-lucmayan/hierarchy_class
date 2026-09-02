@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -9,9 +10,11 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { IconPost, IconBack, IconChevronRight, IconCheck } from "@/components/ui/icons";
 import { BookCover } from "@/components/library/BookCover";
 import { BookDetailModal, bookStatusChip, bookStatusLine } from "@/components/library/BookDetailModal";
+import { BorrowReceiptModal } from "@/components/library/BorrowReceiptModal";
 import { useMyProfile } from "@/lib/useMyProfile";
 import { LibraryBook, LibraryStatus } from "@/types/student";
 import { useLibraryStore } from "@/lib/libraryStore";
+import { overdueLine } from "@/lib/libraryUtils";
 
 // Librarians sometimes type multiple genres separated by commas into the
 // single "genre" field (e.g. "Dystopian, political fiction, sci-fi").
@@ -24,15 +27,35 @@ function splitGenres(genre: string): string[] {
 }
 
 export default function LibraryPage() {
-  const { books, log, requestBorrow, loading, error } = useLibraryStore();
+  return (
+    <Suspense fallback={null}>
+      <LibraryPageContent />
+    </Suspense>
+  );
+}
+
+function LibraryPageContent() {
+  const { books, log, requestBorrow, receiptForLog, loading, error } = useLibraryStore();
   const { profile } = useMyProfile();
+  const searchParams = useSearchParams();
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
+  const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [genreFilter, setGenreFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState<"all" | LibraryStatus>("all");
   const [sortBy, setSortBy] = useState<"title-asc" | "title-desc" | "author-asc" | "author-desc">("title-asc");
   const [page, setPage] = useState(1);
+  const [requestDays, setRequestDays] = useState(7);
   const PAGE_SIZE = 25;
+
+  // Deep link from a library notification (e.g. "Book ready for pickup") -
+  // ?book=<id> auto-opens that book's detail modal.
+  useEffect(() => {
+    const bookId = searchParams.get("book");
+    if (!bookId) return;
+    const target = books.find((b) => b.id === bookId);
+    if (target) setSelectedBook(target);
+  }, [books, searchParams]);
 
   const genres = useMemo(
     () => ["All", ...Array.from(new Set(books.flatMap((b) => splitGenres(b.genre)))).sort()],
@@ -100,13 +123,13 @@ export default function LibraryPage() {
     setPage(1);
   }
 
-  function handleRequestBorrow(book: LibraryBook) {
+  function handleRequestBorrow(book: LibraryBook, days: number) {
     if (!profile) return;
     requestBorrow(book, {
       id: profile.id,
       name: profile.full_name,
       gradeSection: [profile.educational_level, profile.level_label].filter(Boolean).join(" · "),
-    });
+    }, days);
   }
 
   return (
@@ -370,6 +393,18 @@ export default function LibraryPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
                         <p className="mt-1 text-xs text-muted">{bookStatusLine(book, true, "student")}</p>
+                        {book.location && (
+                          <p className="mt-1 flex items-center gap-1 truncate text-[11px] text-muted">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gold-token">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {book.location}
+                          </p>
+                        )}
+                        {book.status === "borrowed" && overdueLine(book.dueDate) && (
+                          <p className="mt-1 text-xs font-semibold text-warn">{overdueLine(book.dueDate)}</p>
+                        )}
                       </div>
                       <span className="shrink-0 text-muted transition group-hover:text-gold-token">
                         <IconChevronRight size={16} />
@@ -407,12 +442,23 @@ export default function LibraryPage() {
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-navy">{record.bookTitle}</p>
                       <p className="mt-1 text-xs text-muted">
-                        {record.returnedDate ? `Returned ${record.returnedDate}` : "Still out"}
+                        {record.returnedDate
+                          ? `Returned ${record.returnedDate}${record.fineAmount && record.fineAmount > 0 ? ` · Fine ${record.fineAmount.toFixed(0)} pesos` : ""}`
+                          : "Still out"}
                       </p>
                     </div>
-                    <span className="shrink-0 font-mono-ui text-[10px] uppercase tracking-[0.1em] text-muted">
-                      {record.borrowedDate}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="font-mono-ui text-[10px] uppercase tracking-[0.1em] text-muted">
+                        {record.borrowedDate}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedReceiptId(record.id)}
+                      >
+                        Receipt
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -425,26 +471,48 @@ export default function LibraryPage() {
         <BookDetailModal
           book={selectedBook}
           isMine={selectedBook.borrowedBy === profile?.id}
-          onClose={() => setSelectedBook(null)}
+          onClose={() => { setSelectedBook(null); setRequestDays(7); }}
           action={
             selectedBook.status === "available" ? (
-              <Button
-                variant="gold"
-                className="w-full"
-                icon={<IconCheck size={13} />}
-                onClick={() => {
-                  handleRequestBorrow(selectedBook);
-                  setSelectedBook(null);
-                }}
-              >
-                Request to borrow
-              </Button>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2">
+                  <span className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Borrow for</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={requestDays}
+                    onChange={(e) => setRequestDays(Math.max(1, Math.min(30, parseInt(e.target.value) || 7)))}
+                    className="w-16 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-center text-xs text-navy outline-none focus:border-gold"
+                  />
+                  <span className="text-xs text-muted">days</span>
+                </label>
+                <Button
+                  variant="gold"
+                  className="w-full"
+                  icon={<IconCheck size={13} />}
+                  onClick={() => {
+                    handleRequestBorrow(selectedBook, requestDays);
+                    setSelectedBook(null);
+                    setRequestDays(7);
+                  }}
+                >
+                  Request to borrow
+                </Button>
+              </div>
             ) : (
               <Button variant="ghost" disabled className="w-full">
                 {selectedBook.borrowedBy === profile?.id ? "Request already sent" : "Not available right now"}
               </Button>
             )
           }
+        />
+      )}
+
+      {selectedReceiptId && (
+        <BorrowReceiptModal
+          receipt={receiptForLog(log.find((e) => e.id === selectedReceiptId)!)}
+          onClose={() => setSelectedReceiptId(null)}
         />
       )}
     </div>

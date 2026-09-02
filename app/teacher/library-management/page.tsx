@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CornerFrame } from "@/components/ui/CornerFrame";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -13,6 +14,8 @@ import { AddBookModal } from "@/components/library/AddBookModal";
 import { EditBookModal } from "@/components/library/EditBookModal";
 import { BookCover } from "@/components/library/BookCover";
 import { BookDetailModal } from "@/components/library/BookDetailModal";
+import { BorrowReceiptModal } from "@/components/library/BorrowReceiptModal";
+import { overdueLine, formatPeso } from "@/lib/libraryUtils";
 
 function ApproveRow({
   request,
@@ -33,6 +36,9 @@ function ApproveRow({
           <p className="mt-1 text-xs text-muted">
             {request.studentName} · {request.gradeSection} · requested {request.requestedAt}
           </p>
+          <Chip variant="gold" className="mt-2">
+            {request.requestedDays} day{request.requestedDays === 1 ? "" : "s"}
+          </Chip>
         </div>
       </div>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -62,17 +68,35 @@ function ApproveRow({
 }
 
 export default function LibraryManagementPage() {
-  const { books, requests, approveRequest, declineRequest, returnBook, historyForBook, loading, error } =
+  return (
+    <Suspense fallback={null}>
+      <LibraryManagementContent />
+    </Suspense>
+  );
+}
+
+function LibraryManagementContent() {
+  const { books, requests, log, approveRequest, declineRequest, returnBook, historyForBook, receiptForBook, receiptForLog, loading, error } =
     useLibraryStore();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddBook, setShowAddBook] = useState(false);
   const [editingBook, setEditingBook] = useState<LibraryBook | null>(null);
   const [viewingBook, setViewingBook] = useState<LibraryBook | null>(null);
+  const [viewingReceiptId, setViewingReceiptId] = useState<string | null>(null);
   const [catalogQuery, setCatalogQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | LibraryStatus>("all");
   const [sortBy, setSortBy] = useState<"title-asc" | "title-desc" | "author-asc" | "author-desc">("title-asc");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 25;
+
+  // Deep link from a library notification - ?book=<id> auto-opens the detail modal.
+  useEffect(() => {
+    const bookId = searchParams.get("book");
+    if (!bookId) return;
+    const target = books.find((b) => b.id === bookId);
+    if (target) setViewingBook(target);
+  }, [books, searchParams]);
 
   const borrowedBooks = books.filter((book) => book.status === "borrowed");
   const searchResults = historyForBook(searchQuery);
@@ -333,6 +357,15 @@ export default function LibraryManagementPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
                         <p className="mt-0.5 truncate text-xs text-muted">{book.author} · {book.genre}</p>
+                        {book.location && (
+                          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gold-token">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {book.location}
+                          </p>
+                        )}
                         <div className="mt-1.5">
                           <Chip
                             variant={
@@ -409,25 +442,42 @@ export default function LibraryManagementPage() {
               </div>
             ) : (
               <div className="mt-4 space-y-3">
-                {borrowedBooks.map((book) => (
-                  <div key={book.id} className="flex flex-col gap-2 rounded-[10px] border border-base bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
-                      <p className="mt-1 text-xs text-muted">
-                        {book.borrowedByName} · borrowed {book.borrowedDate} · due {book.dueDate}
-                      </p>
+                {borrowedBooks.map((book) => {
+                  const overdue = overdueLine(book.dueDate);
+                  return (
+                    <div key={book.id} className="flex flex-col gap-2 rounded-[10px] border border-base bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-navy">{book.title}</p>
+                        <p className="mt-1 text-xs text-muted">
+                          {book.borrowedByName} · borrowed {book.borrowedDate} · due {book.dueDate}
+                        </p>
+                        {overdue && (
+                          <p className="mt-1 rounded-[6px] border border-warn-soft bg-warn-soft px-2 py-1 text-xs font-semibold text-warn">
+                            {overdue}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewingReceiptId(book.id)}
+                        >
+                          Receipt
+                        </Button>
+                        <Button
+                          variant="gold"
+                          size="sm"
+                          icon={<IconCheck size={12} />}
+                          onClick={() => returnBook(book.id)}
+                          className="shrink-0"
+                        >
+                          Mark returned
+                        </Button>
+                      </div>
                     </div>
-                    <Button
-                      variant="gold"
-                      size="sm"
-                      icon={<IconCheck size={12} />}
-                      onClick={() => returnBook(book.id)}
-                      className="shrink-0"
-                    >
-                      Mark returned
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CornerFrame>
@@ -460,12 +510,26 @@ export default function LibraryManagementPage() {
                   searchResults.map((entry) => (
                     <div key={entry.id} className="rounded-[10px] border border-base bg-surface p-4">
                       <div className="flex items-center justify-between gap-4 text-sm">
-                        <p className="font-semibold text-navy">{entry.studentName}</p>
-                        <span className="text-muted">{entry.gradeSection}</span>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-navy">{entry.studentName}</p>
+                          <p className="mt-0.5 text-xs text-muted">{entry.gradeSection}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setViewingReceiptId(entry.id)}
+                          className="shrink-0"
+                        >
+                          Receipt
+                        </Button>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-3 font-mono-ui text-[10px] uppercase tracking-[0.1em] text-muted">
                         <span>Borrowed {entry.borrowedDate}</span>
                         <span>{entry.returnedDate ? `Returned ${entry.returnedDate}` : "Still out"}</span>
+                        {entry.dueDate && <span>Due {entry.dueDate}</span>}
+                        {entry.fineAmount ? (
+                          <span className="text-warn">Fine {formatPeso(entry.fineAmount)}</span>
+                        ) : null}
                       </div>
                     </div>
                   ))
@@ -474,6 +538,22 @@ export default function LibraryManagementPage() {
             )}
           </CornerFrame>
         </>
+      )}
+
+      {/* Receipt for a currently-borrowed book (by book id) */}
+      {viewingReceiptId && books.find((b) => b.id === viewingReceiptId) && (
+        <BorrowReceiptModal
+          receipt={receiptForBook(books.find((b) => b.id === viewingReceiptId)!)}
+          onClose={() => setViewingReceiptId(null)}
+        />
+      )}
+
+      {/* Receipt for a history entry (by log entry id) */}
+      {viewingReceiptId && !books.find((b) => b.id === viewingReceiptId) && log.find((e) => e.id === viewingReceiptId) && (
+        <BorrowReceiptModal
+          receipt={receiptForLog(log.find((e) => e.id === viewingReceiptId)!)}
+          onClose={() => setViewingReceiptId(null)}
+        />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Chip } from "@/components/ui/Chip";
 import { BookCover } from "@/components/library/BookCover";
 import { LibraryBook } from "@/types/student";
+import { overdueLine } from "@/lib/libraryUtils";
 
 /**
  * Shared status presentation for library books. Single source of truth for
@@ -97,8 +98,25 @@ export function BookDetailModal({
       <div className="mt-5 border-t border-base pt-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Chip variant={chip.variant}>{chip.label}</Chip>
-          {line && <span className="text-xs leading-5 text-muted">{line}</span>}
+          {line && line !== chip.label && <span className="text-xs leading-5 text-muted">{line}</span>}
         </div>
+        {book.location && (
+          <div className="mt-3 flex items-start gap-2 rounded-[10px] border border-base bg-[var(--surface-strong)] p-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-gold-token">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <div className="min-w-0">
+              <p className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Find it at</p>
+              <p className="mt-0.5 text-sm font-semibold text-navy">{book.location}</p>
+            </div>
+          </div>
+        )}
+        {book.status === "borrowed" && overdueLine(book.dueDate) && (
+          <p className="mt-3 rounded-[10px] border border-warn-soft bg-warn-soft px-3 py-2.5 text-xs font-semibold text-warn">
+            {overdueLine(book.dueDate)} — fine applies until returned
+          </p>
+        )}
       </div>
 
       {action && <div className="mt-5">{action}</div>}

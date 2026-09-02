@@ -216,3 +216,38 @@ test("weekly stats: paused habits are excluded from the aggregate", () => {
   assert.equal(s.completed, 3);
   assert.equal(s.rows.length, 1);
 });
+
+test("weekProgress: daily paused days are excluded from the denominator", () => {
+  const h = habit({
+    id: "rd",
+    goalType: "duration",
+    targetValue: 30,
+    frequencyType: "daily",
+    scheduledDays: [0, 1, 2, 3, 4, 5, 6],
+  });
+  const week = "2026-08-10";
+  const pauses: PauseShape[] = [{ habitId: "rd", startedAt: "2026-08-12", endedAt: "2026-08-14" }];
+  const entries = [entry("rd", "2026-08-10", 40), entry("rd", "2026-08-11", 35)]; // Mon-Tue complete
+  // Wed-Fri paused -> only Mon, Tue, Sat, Sun are scheduled = 4. 2/4.
+  const p = weekProgress(h, entries, week, addDays(week, 6), pauses);
+  assert.equal(p.completed, 2);
+  assert.equal(p.target, 4);
+  assert.equal(p.pct, 0.5);
+});
+
+test("weekProgress: weekly habits ignore pauses (sum of values)", () => {
+  const h = habit({ id: "ex", goalType: "count", targetValue: 4, frequencyType: "weekly", scheduledDays: [0, 1, 2, 3, 4, 5, 6] });
+  const week = "2026-08-10";
+  const pauses: PauseShape[] = [{ habitId: "ex", startedAt: "2026-08-12", endedAt: "2026-08-14" }];
+  const entries = [entry("ex", "2026-08-10"), entry("ex", "2026-08-11"), entry("ex", "2026-08-12")];
+  const p = weekProgress(h, entries, week, addDays(week, 6), pauses);
+  assert.equal(p.completed, 3);
+  assert.equal(p.target, 4);
+});
+
+test("weekly stats: best habit is null when nothing is complete", () => {
+  const study = habit({ id: "study", targetValue: 5, scheduledDays: [0, 1, 2, 3, 4] });
+  const week = "2026-08-10";
+  const s = weeklyStats([study], [], [], week, addDays(week, 6), "2026-08-14");
+  assert.equal(s.best, null);
+});

@@ -111,7 +111,8 @@ export function weekProgress(
   habit: HabitShape,
   entries: EntryShape[],
   weekStart: string,
-  weekEnd: string
+  weekEnd: string,
+  pauses: PauseShape[] = []
 ): WeekProgress {
   if (habit.frequencyType === "weekly") {
     let sum = 0;
@@ -130,11 +131,13 @@ export function weekProgress(
   }
 
   // Daily frequency: completed scheduled days / scheduled days in the week.
+  // Paused days are treated as not scheduled - they are neither required nor
+  // missed, so they drop out of both the numerator and the denominator.
   let scheduled = 0;
   let done = 0;
   let d = weekStart;
   while (d <= weekEnd) {
-    if (isScheduled(habit, d)) {
+    if (isScheduled(habit, d) && !isPausedOn(pauses, habit.id, d)) {
       scheduled += 1;
       if (dayComplete(habit, d, entries)) done += 1;
     }
@@ -280,7 +283,7 @@ export function weeklyStats(
     .filter((h) => h.status === "active")
     .map((habit) => ({
       habit,
-      progress: weekProgress(habit, entries, weekStart, weekEnd),
+      progress: weekProgress(habit, entries, weekStart, weekEnd, pauses),
       currentStreak: currentStreak(habit, pauses, entries, today),
     }));
 
@@ -289,6 +292,7 @@ export function weeklyStats(
 
   let best: HabitWeekly | null = null;
   for (const r of rows) {
+    if (r.progress.pct <= 0) continue;
     if (!best) {
       best = r;
       continue;

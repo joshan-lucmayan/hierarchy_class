@@ -10,6 +10,7 @@ const TYPE_DOT: Record<string, string> = {
   task: "bg-purple-500",
   grade: "bg-gold-token",
   friend: "bg-[var(--warn-fill)]",
+  library: "bg-gold-token",
   system: "bg-gray-400",
 };
 

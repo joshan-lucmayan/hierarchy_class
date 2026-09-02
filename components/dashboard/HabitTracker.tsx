@@ -21,7 +21,7 @@ function isBinary(habit: Habit): boolean {
  * a row opens the habits page.
  */
 export default function HabitTracker() {
-  const { habits, entries, loading, error, toggleDay } = useHabits();
+  const { habits, entries, pauses, loading, error, toggleDay } = useHabits();
   const today = toISODate(new Date());
   const { start, end } = getCurrentWeek();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export default function HabitTracker() {
       ) : (
         <div className="mt-3.5 space-y-3.5">
           {active.slice(0, 5).map((habit) => {
-            const wp = weekProgress(habit, entries, start, end);
+            const wp = weekProgress(habit, entries, start, end, pauses);
             const done = dayComplete(habit, today, entries);
             const binary = isBinary(habit);
             return (

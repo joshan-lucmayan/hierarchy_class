@@ -19,9 +19,10 @@ interface BookDraft {
   description: string;
   coverUrl: string;
   isbn: string;
+  location: string;
 }
 
-const EMPTY_DRAFT: BookDraft = { title: "", author: "", genre: "", description: "", coverUrl: "", isbn: "" };
+const EMPTY_DRAFT: BookDraft = { title: "", author: "", genre: "", description: "", coverUrl: "", isbn: "", location: "" };
 const SCANNER_ELEMENT_ID = "book-barcode-scanner";
 
 export function AddBookModal({ onClose }: { onClose: () => void }) {
@@ -111,6 +112,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
         description: info.notes ? (typeof info.notes === "string" ? info.notes : "") : "",
         coverUrl: info.cover?.large ?? info.cover?.medium ?? "",
         isbn,
+        location: "",
       });
       setScanState("found");
     } catch {
@@ -151,6 +153,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
       description: draft.description.trim() || undefined,
       coverUrl: draft.coverUrl.trim() || undefined,
       isbn: draft.isbn.trim() || undefined,
+      location: draft.location.trim() || undefined,
     });
     setSubmitting(false);
     onClose();
@@ -328,6 +331,14 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
             className={inputCls}
           />
           {draft.isbn && <p className="font-mono-ui text-[10px] uppercase tracking-[0.1em] text-muted">ISBN · {draft.isbn}</p>}
+          <label htmlFor="add-book-location" className={fieldLabel}>Location in library</label>
+          <input
+            id="add-book-location"
+            value={draft.location}
+            onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))}
+            placeholder="e.g. Shelf A2, Rack 3 (optional)"
+            className={inputCls}
+          />
 
           <div className="flex gap-2 pt-2">
             <Button

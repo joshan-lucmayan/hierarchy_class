@@ -7,6 +7,7 @@ import {
   weeklyStats,
   weekProgress,
   currentStreak,
+  bestStreak,
   dayComplete,
   isScheduled,
 } from "@/lib/habitLogic";
@@ -14,8 +15,8 @@ import { CornerFrame } from "@/components/ui/CornerFrame";
 import { HabitIcon } from "@/components/habits/HabitIcon";
 import { HabitDetailModal } from "@/components/habits/HabitDetailModal";
 import { HabitFormModal } from "@/components/habits/HabitFormModal";
+import { scheduleLabel, targetLabel } from "@/components/habits/habitFormat";
 import { HabitHistoryView } from "@/components/habits/HabitHistoryView";
-import { DAY_LETTERS, scheduleLabel, targetLabel, dayMark } from "@/components/habits/habitFormat";
 
 function StatCard({ label, value, sub, bar }: { label: string; value: string; sub?: string; bar?: number }) {
   return (
@@ -139,7 +140,7 @@ export default function StudentHabitsPage() {
     deleteHabit,
   } = useHabits();
   const today = toISODate(new Date());
-  const { start, end, days } = getCurrentWeek();
+  const { start, end } = getCurrentWeek();
 
   const [selected, setSelected] = useState<Habit | null>(null);
   const [creating, setCreating] = useState(false);
@@ -160,7 +161,22 @@ export default function StudentHabitsPage() {
   const dueToday = active.filter((h) => isScheduled(h, today));
   const doneToday = dueToday.filter((h) => dayComplete(h, today, entries)).length;
 
-  const progressOf = (habit: Habit) => weekProgress(habit, entries, start, end);
+  // Best current streak across all active habits + the all-time best.
+  const streak = useMemo(
+    () =>
+      active.reduce(
+        (max, h) => Math.max(max, currentStreak(h, pauses, entries, today)),
+        0
+      ),
+    [active, pauses, entries, today]
+  );
+  const bestStreakAll = useMemo(
+    () =>
+      active.reduce((max, h) => Math.max(max, bestStreak(h, pauses, entries, today)), 0),
+    [active, pauses, entries, today]
+  );
+
+  const progressOf = (habit: Habit) => weekProgress(habit, entries, start, end, pauses);
 
   async function run(action: () => Promise<string | null>, habitId: string) {
     setBusyId(habitId);
@@ -219,18 +235,13 @@ export default function StudentHabitsPage() {
 
       {/* Summary stats */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Weekly completion" value={`${Math.round(stats.pct * 100)}%`} bar={stats.pct} sub={`${stats.completed} of ${stats.target} targets`} />
-        <StatCard label="Targets completed" value={String(stats.completed)} sub={`${stats.remaining} remaining`} />
+        <StatCard label="Current streak" value={`${streak} day${streak === 1 ? "" : "s"}`} sub={streak > 0 ? "Keep the chain alive!" : "Complete a habit today to start one"} />
+        <StatCard label="Best streak" value={`${bestStreakAll} day${bestStreakAll === 1 ? "" : "s"}`} sub="Your longest run yet" />
+        <StatCard label="Weekly completion" value={`${Math.round(stats.pct * 100)}%`} bar={stats.pct} sub={`${stats.completed} of ${stats.target} targets done`} />
         <StatCard
           label="Active habits"
           value={String(active.length)}
-          sub={bestHabit ? `Best: ${bestHabit.name}` : "No habits yet"}
-        />
-        <StatCard
-          label="Best habit"
-          value={bestHabit ? bestHabit.name : "-"}
-          sub={stats.best ? `${Math.round(stats.best.progress.pct * 100)}% this week` : "Log something to find out"}
-          bar={stats.best?.progress.pct}
+          sub={bestHabit ? `Best this week: ${bestHabit.name}` : "Add a habit to get started"}
         />
       </div>
 
@@ -267,73 +278,18 @@ export default function StudentHabitsPage() {
         )}
       </CornerFrame>
 
-      {/* This week grid */}
+      {/* History - contribution-style day grid */}
       <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="section-label">This week</h2>
-          <span className="text-[11.5px] text-faint">Mon - Sun</span>
+          <h2 className="section-label">History</h2>
+          <span className="text-[11.5px] text-faint">Every box is one day</span>
         </div>
-        {habits.length === 0 ? (
-          <p className="mt-3 text-sm text-muted">No habits yet - add one below.</p>
-        ) : (
-          <div className="mt-3.5 overflow-x-auto overscroll-contain [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
-            <div className="min-w-[520px] max-[767px]:min-w-[520px]">
-              <div className="grid grid-cols-[1.4fr_repeat(7,1fr)] items-center gap-1 px-1 pb-2">
-                <span />
-                {DAY_LETTERS.map((l, i) => (
-                  <span key={`${l}-${i}`} className="text-center text-[9.5px] font-semibold uppercase tracking-wide text-faint">
-                    {l}
-                  </span>
-                ))}
-              </div>
-              <div className="space-y-1">
-                {habits.map((habit) => {
-                  const wp = progressOf(habit);
-                  const paused = habit.status === "paused";
-                  return (
-                    <button
-                      key={habit.id}
-                      type="button"
-                      onClick={() => setSelected(habit)}
-                      className={`grid w-full grid-cols-[1.4fr_repeat(7,1fr)] items-center gap-1 rounded-[8px] px-1 py-2 text-left transition hover:bg-[var(--surface-strong)] ${
-                        paused ? "opacity-60" : ""
-                      }`}
-                      aria-label={`${habit.name} - ${wp.completed} of ${wp.target} this week`}
-                    >
-                      <span className="min-w-0 pr-2">
-                        <span className="block truncate text-[12.5px] font-semibold text-navy">{habit.name}</span>
-                        <span className="mt-0.5 flex items-center gap-1.5">
-                          <span className="h-0.5 flex-1 overflow-hidden rounded-full bg-line">
-                            <span
-                              className="block h-full rounded-full bg-sealion"
-                              style={{ width: `${Math.round(wp.pct * 100)}%` }}
-                            />
-                          </span>
-                          <span className="shrink-0 text-[10px] tabular-nums text-faint">
-                            {wp.completed}/{wp.target}
-                          </span>
-                        </span>
-                      </span>
-                      {days.map((d) => {
-                        const m = dayMark(habit, d.date, today, entries, pauses);
-                        return (
-                          <span
-                            key={d.date}
-                            className={`flex h-7 items-center justify-center rounded-[6px] text-[12px] font-bold ${
-                              d.date === today ? "border border-sealion text-navy" : m.cls
-                            }`}
-                          >
-                            {m.mark}
-                          </span>
-                        );
-                      })}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+        <p className="mt-1 text-[11.5px] text-muted">
+          Pick a habit to see every day from when you started to today.
+        </p>
+        <div className="mt-4">
+          <HabitHistoryView habits={habits} entries={entries} pauses={pauses} />
+        </div>
       </CornerFrame>
 
       {/* Habits list */}
@@ -501,17 +457,6 @@ export default function StudentHabitsPage() {
           </div>
         </CornerFrame>
       )}
-
-      {/* History */}
-      <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
-        <h2 className="section-label">History</h2>
-        <p className="mt-1 text-[11.5px] text-muted">
-          Checked = completed, cross = a scheduled day that passed without a record. Paused days are not scheduled.
-        </p>
-        <div className="mt-4">
-          <HabitHistoryView habits={habits} entries={entries} pauses={pauses} />
-        </div>
-      </CornerFrame>
 
       {/* Modals */}
       {selectedLive && <HabitDetailModal habit={selectedLive} onClose={() => setSelected(null)} />}

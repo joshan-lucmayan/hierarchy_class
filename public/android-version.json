@@ -1,8 +1,8 @@
 {
-  "latestVersion": "1.26.114",
-  "versionCode": 126114,
-  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.26.114.apk",
-  "releaseNotes": "Profile editing and story creation, Android collapsible-header rewrite, web security headers, and messenger offline handling.",
+  "latestVersion": "1.27.115",
+  "versionCode": 127115,
+  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.27.115.apk",
+  "releaseNotes": "Library overhaul (location, receipts, loan days, fines, notification deep-links) + habit tracker improvements (pause-aware progress, contribution-style history grid, streak stats, simplified UI).",
   "minimumSupportedVersion": "1.24.111",
   "minimumVersionCode": 124111
 }
