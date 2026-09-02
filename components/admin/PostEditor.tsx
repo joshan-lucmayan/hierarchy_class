@@ -68,7 +68,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={isAnnouncement ? "e.g. Enrollment for the new semester is open" : "e.g. School Sports Festival"}
-              className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
             />
           </label>
 
@@ -79,7 +79,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               onChange={(e) => setBody(e.target.value)}
               placeholder={isAnnouncement ? "Write the announcement..." : "Write your post..."}
               rows={4}
-              className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
             />
           </label>
 
@@ -89,7 +89,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               <select
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
-                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
               >
                 {TAGS.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -101,7 +101,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
               <select
                 value={audience}
                 onChange={(e) => setAudience(e.target.value as typeof audience)}
-                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
               >
                 {AUDIENCES.map((a) => (
                   <option key={a.value} value={a.value}>{a.label}</option>
@@ -121,7 +121,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
                 >
                   Choose image
                 </button>
@@ -157,7 +157,7 @@ export function PostEditor({ kind, post, onClose }: PostEditorProps) {
 
           <div className="flex gap-3">
             <Button
-              variant="gold"
+              variant="accent"
               size="lg"
               onClick={handleSave}
               disabled={submitting}

@@ -4,7 +4,7 @@ export default function OfflinePage() {
   return (
     <main className="dark flex min-h-[60vh] flex-col items-center justify-center px-6 py-16 text-center">
       <div className="mx-auto max-w-md rounded-[10px] border border-base bg-surface p-8">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent-token">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
             <path d="M1 1l22 22" />

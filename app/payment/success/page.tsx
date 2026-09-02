@@ -116,7 +116,7 @@ export default function PaymentSuccessPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
           <p className="text-muted">Loading payment status...</p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function PaymentSuccessPage() {
           <p className="text-muted mb-6">{error || 'Transaction not found'}</p>
           <Link
             href="/student/shop"
-            className="inline-block px-6 py-2.5 rounded-full bg-navy text-white font-semibold hover:bg-gold transition-colors"
+            className="inline-block px-6 py-2.5 rounded-full bg-navy text-white font-semibold hover:bg-accent transition-colors"
           >
             Return to Shop
           </Link>
@@ -147,7 +147,7 @@ export default function PaymentSuccessPage() {
       title: 'Verifying Payment',
       message: 'Your payment is being verified. This may take a few moments.',
       icon: (
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gold mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-accent mx-auto mb-4"></div>
       ),
       bgColor: 'bg-[var(--surface)]',
       textColor: 'text-navy',
@@ -249,7 +249,7 @@ export default function PaymentSuccessPage() {
         <div className="flex flex-col gap-3">
           <Link
             href="/student/shop"
-            className="inline-block px-6 py-2.5 rounded-full bg-navy text-white font-semibold hover:bg-gold transition-colors"
+            className="inline-block px-6 py-2.5 rounded-full bg-navy text-white font-semibold hover:bg-accent transition-colors"
           >
             {payment.status === 'completed' ? 'View Shop' : 'Return to Shop'}
           </Link>

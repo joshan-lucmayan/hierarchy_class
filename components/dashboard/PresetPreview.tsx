@@ -38,7 +38,7 @@ function Line({ w = "w-3/4", tone = "bg-tile" }: { w?: string; tone?: string }) 
 
 /** A small filled stat block (the accent tint, like real Stat chips). */
 function Stat({ w = "w-[18px]", h = "h-[9px]" }: { w?: string; h?: string }) {
-  return <div className={`shrink-0 rounded-[2px] bg-gold-soft ${h} ${w}`} />;
+  return <div className={`shrink-0 rounded-[2px] bg-accent-soft ${h} ${w}`} />;
 }
 
 /** A tiny bordered chip (status tags, audience pills). */
@@ -48,7 +48,7 @@ function Chip({ text, tone = "accent" }: { text: string; tone?: "accent" | "warn
       ? "bg-warn-soft text-warn"
       : tone === "plain"
         ? "bg-tile text-faint"
-        : "bg-gold-soft text-gold-token";
+        : "bg-accent-soft text-accent-token";
   return (
     <span className={`shrink-0 rounded-[2px] px-[3px] py-[1px] text-[4.5px] font-semibold uppercase leading-none tracking-wide ${cls}`}>
       {text}
@@ -70,7 +70,7 @@ function Row({ children }: { children: React.ReactNode }) {
 function Progress({ w = "w-full", fill = "w-3/5" }: { w?: string; fill?: string }) {
   return (
     <div className={`h-[4px] overflow-hidden rounded-full bg-tile ${w}`}>
-      <div className={`h-full rounded-full bg-gold-token ${fill}`} />
+      <div className={`h-full rounded-full bg-accent-token ${fill}`} />
     </div>
   );
 }
@@ -159,19 +159,19 @@ function MiniContent({ id, deep, wide }: { id: string; deep: boolean; wide: bool
       return (
         <>
           <Row>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+            <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
             <Line w="w-1/2" />
             <Chip text="Pending" tone="warn" />
           </Row>
           {deep && (
             <>
               <Row>
-                <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
                 <Line w="w-2/5" />
                 <Chip text="Done" />
               </Row>
               <Row>
-                <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
                 <Line w="w-3/5" />
               </Row>
             </>
@@ -287,7 +287,7 @@ function MiniContent({ id, deep, wide }: { id: string; deep: boolean; wide: bool
           <Row>
             <span className="flex gap-[2px]">
               {[3, 5, 4, 7, 6, 4, 5].map((h, i) => (
-                <span key={i} className="w-[3px] rounded-full bg-gold-soft" style={{ height: `${h}px` }} />
+                <span key={i} className="w-[3px] rounded-full bg-accent-soft" style={{ height: `${h}px` }} />
               ))}
             </span>
           </Row>
@@ -367,14 +367,14 @@ function MiniContent({ id, deep, wide }: { id: string; deep: boolean; wide: bool
           <Row>
             <Avatar />
             <Line w="w-2/5" />
-            <span className="h-[7px] w-[7px] rounded-[2px] bg-gold-soft" />
+            <span className="h-[7px] w-[7px] rounded-[2px] bg-accent-soft" />
             <span className="h-[7px] w-[7px] rounded-[2px] bg-tile" />
           </Row>
           {deep && (
             <Row>
               <Avatar />
               <Line w="w-1/2" />
-              <span className="h-[7px] w-[7px] rounded-[2px] bg-gold-soft" />
+              <span className="h-[7px] w-[7px] rounded-[2px] bg-accent-soft" />
               <span className="h-[7px] w-[7px] rounded-[2px] bg-tile" />
             </Row>
           )}
@@ -386,19 +386,19 @@ function MiniContent({ id, deep, wide }: { id: string; deep: boolean; wide: bool
       return (
         <>
           <Row>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+            <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
             <Chip text="Approved" />
             <Line w="w-1/2" />
           </Row>
           {deep && (
             <>
               <Row>
-                <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
                 <Chip text="Assigned" tone="plain" />
                 <Line w="w-2/5" />
               </Row>
               <Row>
-                <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
                 <Chip text="Pending" tone="warn" />
                 <Line w="w-1/2" />
               </Row>
@@ -431,12 +431,12 @@ function MiniContent({ id, deep, wide }: { id: string; deep: boolean; wide: bool
       return (
         <>
           <Row>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+            <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
             <Line w="w-4/5" />
           </Row>
           {deep && (
             <Row>
-              <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+              <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
               <Line w="w-3/5" />
             </Row>
           )}
@@ -503,7 +503,7 @@ export function PresetPreview({
     return (
       <div className="flex aspect-[16/9] items-center justify-center rounded-[10px] border border-dashed border-line bg-[var(--bg)]">
         <div className="flex flex-col items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-base bg-surface text-gold-token">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-base bg-surface text-accent-token">
             <IconPlus size={15} />
           </span>
           <p className="font-mono-ui text-[8px] font-medium uppercase tracking-[0.18em] text-faint">
@@ -530,7 +530,7 @@ export function PresetPreview({
             >
               {/* Mini card header - accent dot + the real widget label */}
               <div className="flex items-center gap-1">
-                <span className="h-1 w-1 shrink-0 rounded-full bg-gold-token" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-accent-token" />
                 <p className="min-w-0 flex-1 truncate text-[6.5px] font-semibold uppercase tracking-[0.06em] text-navy">
                   {label ?? "Widget"}
                 </p>

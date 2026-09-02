@@ -98,7 +98,7 @@ export default function TeacherStudentsPage() {
         <Stat
           label="Roster average"
           value={studentsLoading ? "-" : overallAvg !== null ? `${overallAvg} / 100` : "No grades yet"}
-          tone="gold"
+          tone="accent"
           hint="Weighted across all students"
         />
       </div>
@@ -115,7 +115,7 @@ export default function TeacherStudentsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search students..."
-              className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-accent"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
               {filteredStudents.length}
@@ -176,8 +176,8 @@ export default function TeacherStudentsPage() {
                     onClick={() => setSelectedId(student.id)}
                     className={`flex w-full items-center gap-3 rounded-[10px] border px-3 py-3 text-left transition ${
                       selectedStudent?.id === student.id
-                        ? "border-gold-token bg-[var(--surface-strong)]"
-                        : "border-base bg-surface hover:border-gold-soft"
+                        ? "border-accent-token bg-[var(--surface-strong)]"
+                        : "border-base bg-surface hover:border-accent-soft"
                     }`}
                   >
                     <UserAvatar name={student.full_name} src={student.avatar_url} size="md" profileId={student.id} />
@@ -239,7 +239,7 @@ export default function TeacherStudentsPage() {
                 <Stat
                   label="Average"
                   value={getStudentAverageByProfile(selectedStudent.id) ?? "-"}
-                  tone={getStudentAverageByProfile(selectedStudent.id) !== null ? "gold" : "muted"}
+                  tone={getStudentAverageByProfile(selectedStudent.id) !== null ? "accent" : "muted"}
                   hint="Across approved grades"
                 />
                 <Stat
@@ -253,7 +253,7 @@ export default function TeacherStudentsPage() {
                           : "Revoked"
                       : "-"
                   }
-                  tone={!enrollLoading && effectiveOf(selectedStudent.id) === "enrolled" ? "gold" : "muted"}
+                  tone={!enrollLoading && effectiveOf(selectedStudent.id) === "enrolled" ? "accent" : "muted"}
                   hint="Current status"
                 />
               </div>

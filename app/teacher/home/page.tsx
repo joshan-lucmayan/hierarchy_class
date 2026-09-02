@@ -417,7 +417,7 @@ export default function TeacherHomePage() {
   const workspaceLink = (href: string, label: string) => (
     <Link
       href={href}
-      className="mt-3 inline-flex items-center gap-1 rounded-full border border-base bg-surface px-4 py-1.5 text-xs font-semibold text-navy transition hover-border-gold-soft hover-text-gold-token"
+      className="mt-3 inline-flex items-center gap-1 rounded-full border border-base bg-surface px-4 py-1.5 text-xs font-semibold text-navy transition hover-border-accent-soft hover-text-accent-token"
     >
       {label}
       <IconChevronRight size={12} />
@@ -437,7 +437,7 @@ export default function TeacherHomePage() {
               <h2 className="section-label">My Teaching State</h2>
               {nextClass && (
                 <span className="truncate text-[11px] text-muted">
-                  Up next: <span className="font-semibold text-gold-token">{formatTimeLabel(nextClass.startTime)} · {nextClass.subject}</span>
+                  Up next: <span className="font-semibold text-accent-token">{formatTimeLabel(nextClass.startTime)} · {nextClass.subject}</span>
                 </span>
               )}
             </div>
@@ -457,13 +457,13 @@ export default function TeacherHomePage() {
           <div className="min-h-full">
             <div className="flex items-center justify-between gap-2">
               <h2 className="section-label">My Classes</h2>
-              <Chip variant="gold">
+              <Chip variant="accent">
                 {myCourses.length} course{myCourses.length === 1 ? "" : "s"}
               </Chip>
             </div>
             {myCourses.length === 0 ? (
               <div className="pt-4 text-center">
-                <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+                <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent-token">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
@@ -480,7 +480,7 @@ export default function TeacherHomePage() {
                   <Link
                     key={row.course.id}
                     href="/teacher/classroom"
-                    className="flex items-center gap-3 rounded-[10px] border border-base bg-tile p-3.5 transition hover-border-gold-soft"
+                    className="flex items-center gap-3 rounded-[10px] border border-base bg-tile p-3.5 transition hover-border-accent-soft"
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-line bg-surface text-muted">
                       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -690,7 +690,7 @@ export default function TeacherHomePage() {
           <div className="min-h-full">
             <div className="flex items-center justify-between gap-2">
               <h2 className="section-label">Today&apos;s Schedule</h2>
-              <Chip variant="gold">{todaySchedule.length} remaining</Chip>
+              <Chip variant="accent">{todaySchedule.length} remaining</Chip>
             </div>
             <div className="mt-4 space-y-2">
               {todaySchedule.length === 0 ? (
@@ -716,7 +716,7 @@ export default function TeacherHomePage() {
           <div className="min-h-full">
             <div className="flex items-center justify-between gap-2">
               <h2 className="section-label">Today&apos;s Lesson Plans</h2>
-              <Chip variant="gold">{todayLessonPlans.length} today</Chip>
+              <Chip variant="accent">{todayLessonPlans.length} today</Chip>
             </div>
             <div className="mt-4 space-y-2">
               {todayLessonPlans.length === 0 ? (
@@ -729,7 +729,7 @@ export default function TeacherHomePage() {
                   <div key={plan.id} className="rounded-[8px] border border-line bg-tile px-3 py-2">
                     <p className="truncate text-[12.5px] font-semibold text-navy">{plan.title}</p>
                     {plan.startTime && plan.endTime && (
-                      <p className="text-[11px] text-gold-token">{formatTimeLabel(plan.startTime)} - {formatTimeLabel(plan.endTime)}</p>
+                      <p className="text-[11px] text-accent-token">{formatTimeLabel(plan.startTime)} - {formatTimeLabel(plan.endTime)}</p>
                     )}
                   </div>
                 ))
@@ -754,7 +754,7 @@ export default function TeacherHomePage() {
                 </div>
               ) : (
                 pinnedNotes.slice(0, 3).map((note) => (
-                  <div key={note.id} className="rounded-[8px] border border-gold-soft bg-[var(--surface-strong)] px-3 py-2">
+                  <div key={note.id} className="rounded-[8px] border border-accent-soft bg-[var(--surface-strong)] px-3 py-2">
                     <p className="line-clamp-2 text-[12.5px] text-navy">{note.text}</p>
                   </div>
                 ))
@@ -769,7 +769,7 @@ export default function TeacherHomePage() {
           <div className="min-h-full">
             <div className="flex items-center justify-between gap-2">
               <h2 className="section-label">Upcoming Lesson Plans</h2>
-              <Chip variant="gold">{upcomingLessonPlans.length} ahead</Chip>
+              <Chip variant="accent">{upcomingLessonPlans.length} ahead</Chip>
             </div>
             <div className="mt-4 space-y-2">
               {upcomingLessonPlans.length === 0 ? (
@@ -842,7 +842,7 @@ export default function TeacherHomePage() {
           <Link
             key={action.href}
             href={action.href}
-            className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover-border-gold-soft hover-text-gold-token"
+            className="rounded-full border border-base bg-surface px-4 py-2 text-xs font-semibold text-navy transition hover-border-accent-soft hover-text-accent-token"
           >
             {action.label}
           </Link>
@@ -862,7 +862,7 @@ export default function TeacherHomePage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="section-label">Editing your Home</span>
-                <Chip variant="gold">
+                <Chip variant="accent">
                   {gridPlacements.length} tile{gridPlacements.length === 1 ? "" : "s"}
                 </Chip>
               </div>
@@ -899,7 +899,7 @@ export default function TeacherHomePage() {
                   Cancel
                 </Button>
                 <Button
-                  variant="gold"
+                  variant="accent"
                   size="sm"
                   icon={<IconCheck size={13} />}
                   loading={saving}
@@ -941,7 +941,7 @@ export default function TeacherHomePage() {
             desc="Add a widget to start building your command center. Widgets flow row by row in the order you arrange them."
           />
           <div className="mt-5 flex justify-center">
-            <Button variant="gold" icon={<IconPlus size={13} />} onClick={() => setPickerOpen(true)}>
+            <Button variant="accent" icon={<IconPlus size={13} />} onClick={() => setPickerOpen(true)}>
               Add a widget
             </Button>
           </div>
@@ -987,7 +987,7 @@ export default function TeacherHomePage() {
           />
           <div className="mt-5 flex justify-center">
             <Link href="/teacher/settings">
-              <Button variant="gold" icon={<IconPlus size={13} />}>
+              <Button variant="accent" icon={<IconPlus size={13} />}>
                 Customize in Settings
               </Button>
             </Link>

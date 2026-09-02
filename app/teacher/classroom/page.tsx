@@ -261,11 +261,11 @@ export default function TeacherClassroomPage() {
         </div>
         <div className="flex flex-wrap items-end gap-2">
           {activeSemester && (
-            <Chip variant="gold">
+            <Chip variant="accent">
               {activeSemester.school_year} · {activeSemester.semester_label}
             </Chip>
           )}
-          <Stat label="My courses" value={myCourses.length} tone="gold" hint="Assigned to you" />
+          <Stat label="My courses" value={myCourses.length} tone="accent" hint="Assigned to you" />
         </div>
       </div>
 
@@ -286,13 +286,13 @@ export default function TeacherClassroomPage() {
                 <button
                   key={prog.id}
                   onClick={() => { setSelectedProgram(prog.id); setStep("sections"); }}
-                  className="group flex items-start justify-between gap-3 rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-gold-soft"
+                  className="group flex items-start justify-between gap-3 rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-accent-soft"
                 >
                   <div className="min-w-0">
                     <p className="font-bold text-navy">{prog.name}</p>
                     {prog.description && <p className="mt-1.5 text-xs text-muted">{prog.description}</p>}
                   </div>
-                  <IconChevronRight size={14} className="mt-1 shrink-0 text-faint transition group-hover:text-gold-token" />
+                  <IconChevronRight size={14} className="mt-1 shrink-0 text-faint transition group-hover:text-accent-token" />
                 </button>
               ))}
             </div>
@@ -321,7 +321,7 @@ export default function TeacherClassroomPage() {
                 <button
                   key={sec.id}
                   onClick={() => { setSelectedSection(sec.id); setStep("courses"); }}
-                  className="flex items-center justify-center rounded-[10px] border border-base bg-surface p-8 text-center transition hover:border-gold-soft"
+                  className="flex items-center justify-center rounded-[10px] border border-base bg-surface p-8 text-center transition hover:border-accent-soft"
                 >
                   <p className="text-2xl font-bold text-navy">{sec.name}</p>
                 </button>
@@ -352,13 +352,13 @@ export default function TeacherClassroomPage() {
                 <button
                   key={crs.id}
                   onClick={() => { setSelectedCourse(crs.id); setStep("students"); setSubmitted(false); }}
-                  className="group flex items-start justify-between gap-3 rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-gold-soft"
+                  className="group flex items-start justify-between gap-3 rounded-[10px] border border-base bg-surface p-5 text-left transition hover:border-accent-soft"
                 >
                   <div className="min-w-0">
                     <p className="font-bold text-navy">{crs.name}</p>
                     {crs.code && <p className="mt-1 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-muted">{crs.code}</p>}
                   </div>
-                  <IconChevronRight size={14} className="mt-1 shrink-0 text-faint transition group-hover:text-gold-token" />
+                  <IconChevronRight size={14} className="mt-1 shrink-0 text-faint transition group-hover:text-accent-token" />
                 </button>
               ))}
             </div>
@@ -378,7 +378,7 @@ export default function TeacherClassroomPage() {
           <CornerFrame className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="section-label">Course categories</h3>
-              <Chip variant={Math.abs(weightsTotal - 100) > 0.01 ? "warn" : "gold"}>
+              <Chip variant={Math.abs(weightsTotal - 100) > 0.01 ? "warn" : "accent"}>
                 Total: {weightsTotal}%
               </Chip>
             </div>
@@ -393,7 +393,7 @@ export default function TeacherClassroomPage() {
                     value={c.label}
                     onChange={(e) => updateDraft(i, { label: e.target.value })}
                     placeholder="Category label (e.g. Quiz)"
-                    className="flex-1 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold max-[767px]:py-2.5"
+                    className="flex-1 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-accent max-[767px]:py-2.5"
                   />
                   <div className="flex items-center gap-1 sm:shrink-0">
                     <input
@@ -403,7 +403,7 @@ export default function TeacherClassroomPage() {
                       inputMode="numeric"
                       value={c.weight}
                       onChange={(e) => updateDraft(i, { weight: e.target.value })}
-                      className="w-20 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-right text-sm text-navy outline-none focus:border-gold max-[767px]:min-h-[44px] max-[767px]:py-2.5"
+                      className="w-20 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-right text-sm text-navy outline-none focus:border-accent max-[767px]:min-h-[44px] max-[767px]:py-2.5"
                     />
                     <span className="text-xs text-muted">%</span>
                     <Button
@@ -431,7 +431,7 @@ export default function TeacherClassroomPage() {
                 Add category
               </Button>
               <Button
-                variant="gold"
+                variant="accent"
                 size="sm"
                 icon={<IconCheck size={13} />}
                 onClick={handleSaveWeights}
@@ -439,7 +439,7 @@ export default function TeacherClassroomPage() {
                 Save categories
               </Button>
               {weightsMsg && (
-                <p className={`text-xs ${weightsMsg.kind === "ok" ? "text-gold-token" : "text-warn"}`}>{weightsMsg.text}</p>
+                <p className={`text-xs ${weightsMsg.kind === "ok" ? "text-accent-token" : "text-warn"}`}>{weightsMsg.text}</p>
               )}
             </div>
           </CornerFrame>
@@ -459,8 +459,8 @@ export default function TeacherClassroomPage() {
             )}
 
             {submitted && (
-              <div className="mt-3 rounded-[10px] border border-gold-soft bg-gold-soft px-4 py-2">
-                <p className="text-sm font-semibold text-gold-token">Grades submitted and sent for admin approval.</p>
+              <div className="mt-3 rounded-[10px] border border-accent-soft bg-accent-soft px-4 py-2">
+                <p className="text-sm font-semibold text-accent-token">Grades submitted and sent for admin approval.</p>
               </div>
             )}
             {submitError && (
@@ -486,8 +486,8 @@ export default function TeacherClassroomPage() {
                           onClick={() => setGradeType(c.label)}
                           className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                             gradeType === c.label
-                              ? "bg-gold-token text-on-accent"
-                              : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+                              ? "bg-accent-token text-on-accent"
+                              : "border border-base text-muted hover:border-accent-soft hover:text-accent-token"
                           }`}
                         >
                           {c.label || "Untitled"}
@@ -502,7 +502,7 @@ export default function TeacherClassroomPage() {
                       value={gradeLabel}
                       onChange={(e) => setGradeLabel(e.target.value)}
                       placeholder={`e.g. ${gradeType} 1`}
-                      className="w-full rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                      className="w-full rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                     />
                   </div>
 
@@ -512,7 +512,7 @@ export default function TeacherClassroomPage() {
                       type="date"
                       value={gradeDate}
                       onChange={(e) => setGradeDate(e.target.value)}
-                      className="w-full rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                      className="w-full rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                     />
                   </div>
                 </div>
@@ -547,7 +547,7 @@ export default function TeacherClassroomPage() {
                               value={scoreInputs[std.id] ?? ""}
                               onChange={(e) => setScoreInputs((prev) => ({ ...prev, [std.id]: e.target.value }))}
                               placeholder="Score"
-                              className="w-24 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-gold max-[767px]:min-h-[44px] max-[767px]:py-2.5 max-[767px]:w-28"
+                              className="w-24 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-accent max-[767px]:min-h-[44px] max-[767px]:py-2.5 max-[767px]:w-28"
                             />
                             <span className="text-xs text-muted">/</span>
                             <input
@@ -558,7 +558,7 @@ export default function TeacherClassroomPage() {
                               value={maxInputs[std.id] ?? "100"}
                               onChange={(e) => setMaxInputs((prev) => ({ ...prev, [std.id]: e.target.value }))}
                               placeholder="out of"
-                              className="w-20 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-gold max-[767px]:min-h-[44px] max-[767px]:py-2.5"
+                              className="w-20 rounded-[8px] border border-base bg-surface px-2 py-1.5 text-center text-sm text-navy outline-none focus:border-accent max-[767px]:min-h-[44px] max-[767px]:py-2.5"
                             />
                           </div>
                         </div>
@@ -569,7 +569,7 @@ export default function TeacherClassroomPage() {
 
                 <Button
                   type="button"
-                  variant="gold"
+                  variant="accent"
                   size="lg"
                   className="w-full"
                   onClick={handleSubmitGrades}
@@ -596,7 +596,7 @@ export default function TeacherClassroomPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-navy">{entry.student.name}</p>
                     </div>
-                    <p className="shrink-0 text-sm font-bold text-gold-token">
+                    <p className="shrink-0 text-sm font-bold text-accent-token">
                       {entry.avg > 0 ? `${entry.avg}%` : "-"}
                     </p>
                     <RankBadge
@@ -630,7 +630,7 @@ export default function TeacherClassroomPage() {
                               <p className="font-mono-ui text-[10px] text-muted">{e.date}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-bold text-gold-token">
+                              <p className="text-sm font-bold text-accent-token">
                                 {e.score} / {e.maxScore} · {Math.round((e.score / Math.max(1, e.maxScore)) * 100)}%
                               </p>
                               <Chip

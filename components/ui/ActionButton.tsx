@@ -3,7 +3,7 @@
 /**
  * Shared primary-action button (the design from the admin programs page):
  * a bordered tile with a small circular icon chip + label. Variants keep the
- * accent/gold, neutral, navy, and danger states consistent across every page.
+ * accent/accent, neutral, navy, and danger states consistent across every page.
  *
  * Usage:
  *   <ActionButton icon={<PlusIcon />} onClick={...}>Add program</ActionButton>
@@ -12,7 +12,7 @@ export interface ActionButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit";
-  variant?: "gold" | "navy" | "neutral" | "danger";
+  variant?: "accent" | "navy" | "neutral" | "danger";
   icon?: React.ReactNode;
   disabled?: boolean;
   title?: string;
@@ -20,14 +20,14 @@ export interface ActionButtonProps {
 }
 
 const VARIANTS = {
-  gold: "border-gold-soft bg-gold-soft text-gold-token hover-bg-gold-token hover-text-on-accent",
+  accent: "border-accent-soft bg-accent-soft text-accent-token hover-bg-accent-token hover-text-on-accent",
   navy: "border-[var(--btn)]/50 bg-[var(--btn)]/10 text-navy hover:bg-[var(--btn)] hover:text-white",
-  neutral: "border-base bg-surface text-muted hover:border-gold hover:text-navy",
+  neutral: "border-base bg-surface text-muted hover:border-accent hover:text-navy",
   danger: "border-warn-soft bg-surface text-warn hover-bg-warn-soft",
 } as const;
 
 const TILES = {
-  gold: "bg-gold text-on-accent",
+  accent: "bg-accent text-on-accent",
   navy: "bg-[var(--btn)] text-white",
   neutral: "bg-tile text-muted",
   danger: "bg-warn-soft text-warn",
@@ -37,7 +37,7 @@ export function ActionButton({
   children,
   onClick,
   type = "button",
-  variant = "gold",
+  variant = "accent",
   icon,
   disabled,
   title,

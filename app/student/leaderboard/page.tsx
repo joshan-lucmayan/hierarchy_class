@@ -33,7 +33,7 @@ function FilterChips({
     : "shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold transition";
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-gold sm:text-xs sm:tracking-[0.2em]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-accent sm:text-xs sm:tracking-[0.2em]">
         {label}
       </p>
       <div className="mt-1.5 flex items-center gap-1.5 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] sm:mt-2 sm:gap-2">
@@ -47,8 +47,8 @@ function FilterChips({
               aria-pressed={isActive}
               className={`${chipClass} ${
                 isActive
-                  ? "border-gold bg-gold text-on-accent"
-                  : "border-base bg-[var(--surface-strong)] text-muted hover:border-gold-soft hover:text-gold-token"
+                  ? "border-accent bg-accent text-on-accent"
+                  : "border-base bg-[var(--surface-strong)] text-muted hover:border-accent-soft hover:text-accent-token"
               }`}
             >
               {o.label}
@@ -139,9 +139,9 @@ export default function LeaderboardPage() {
         <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Leaderboard</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Leaderboard</p>
               <h1 className="mt-1 text-2xl font-bold text-navy sm:text-3xl">School rankings</h1>
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-gold sm:text-xs">
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-accent sm:text-xs">
                 Live, based on approved grades only
               </p>
             </div>
@@ -150,7 +150,7 @@ export default function LeaderboardPage() {
             {(schoolName || entries.length > 0) && (
               <div className="flex flex-wrap items-center gap-1.5">
                 {schoolName && (
-                  <span className="rounded-full border border-gold bg-gold/10 px-3 py-1 text-[11px] font-semibold text-navy sm:text-xs">
+                  <span className="rounded-full border border-accent bg-accent/10 px-3 py-1 text-[11px] font-semibold text-navy sm:text-xs">
                     {schoolName}
                   </span>
                 )}
@@ -177,7 +177,7 @@ export default function LeaderboardPage() {
                   </svg>
                   Filters
                   {activeFilterCount > 0 && (
-                    <span className="rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-on-accent">
+                    <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-on-accent">
                       {activeFilterCount}
                     </span>
                   )}
@@ -319,7 +319,7 @@ export default function LeaderboardPage() {
               Live standings from the rank engine. Category percentages combine into a composite
               score, the power curve maps it to the rank bar, and EX is the open-ended top tier.
             </p>
-            <div className="rounded-[10px] border border-gold bg-[var(--surface-strong)] p-4">
+            <div className="rounded-[10px] border border-accent bg-[var(--surface-strong)] p-4">
               <p className="text-xs uppercase tracking-wide text-muted">You are</p>
               <p className="mt-2 text-2xl font-bold text-navy">
                 {myPosition > 0 ? `Rank ${myPosition} of ${entries.length}` : "Not ranked yet"}

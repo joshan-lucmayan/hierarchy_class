@@ -13,7 +13,7 @@ export function CoinIcon({ size = 18, className = "" }: { size?: number; classNa
       className={`shrink-0 ${className}`}
       aria-hidden
     >
-      <circle cx="12" cy="12" r="11" fill="var(--gold)" />
+      <circle cx="12" cy="12" r="11" fill="var(--accent)" />
       <circle
         cx="12"
         cy="12"

@@ -50,7 +50,7 @@ function StudentCard({
           {student.favorite_subject && <span className="text-xs text-muted">{student.favorite_subject}</span>}
         </div>
       </div>
-      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-gold">
+      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-accent">
         {isFriend ? "Friend" : "View profile"}
       </span>
     </button>
@@ -71,9 +71,9 @@ function StaffCard({
       <UserAvatar name={person.full_name} src={person.avatar_url} size="lg" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-navy">{person.full_name}</p>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gold">{roleLabel}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent">{roleLabel}</p>
       </div>
-      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-gold">View profile</span>
+      <span className="shrink-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-accent">View profile</span>
     </button>
   );
 }
@@ -158,7 +158,7 @@ function SearchPageInner() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search"
-        className="w-full max-w-md border-b border-base bg-transparent px-1 py-2 text-sm text-navy placeholder:text-[var(--muted)] outline-none focus:border-gold"
+        className="w-full max-w-md border-b border-base bg-transparent px-1 py-2 text-sm text-navy placeholder:text-[var(--muted)] outline-none focus:border-accent"
       />
 
       {loading ? (

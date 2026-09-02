@@ -88,8 +88,8 @@ export default function IncompletePage() {
       <LandingBackground />
       <div className="relative z-[2] flex w-full max-w-md justify-center">
         <div className="w-full rounded-[10px] border border-base bg-surface p-7">
-          <div className="mb-3 h-1 w-10 rounded-full bg-gold-token" />
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Account not ready</p>
+          <div className="mb-3 h-1 w-10 rounded-full bg-accent-token" />
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-token">Account not ready</p>
           <h1 className="mt-2 text-2xl font-bold text-navy">Your account isn&apos;t set up yet.</h1>
           <p className="mt-3 text-sm leading-6 text-muted">
             We couldn&apos;t find a school profile for this account. Please contact your school

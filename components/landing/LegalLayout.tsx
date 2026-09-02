@@ -20,12 +20,12 @@ export function LegalLayout({
       <div className="relative z-[2] mx-auto max-w-[760px] px-6 py-16">
         <header className="mb-12 flex flex-col items-center gap-5 text-center">
           <a href="/" className="flex items-center gap-2.5">
-            <CrownMark height={26} className="text-[var(--gold)]" />
+            <CrownMark height={26} className="text-[var(--accent)]" />
             <span className="font-display text-[15px] font-semibold uppercase tracking-[0.12em] text-[#eceef1]">
               Hierarchy Class
             </span>
           </a>
-          <a href="/" className="font-mono-ui text-[11px] uppercase tracking-[0.18em] text-[var(--gold)] transition hover:text-[#eceef1]">
+          <a href="/" className="font-mono-ui text-[11px] uppercase tracking-[0.18em] text-[var(--accent)] transition hover:text-[#eceef1]">
             Back to home
           </a>
         </header>

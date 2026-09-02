@@ -13,7 +13,7 @@ import type { Rank } from "@/lib/rankEngine";
  * the rank token palette in tailwind.config.ts (rank / rankBorder), so the
  * hierarchy and tier colors are unchanged.
  *
- * EX gets the "glory" treatment: a gold gradient fill, layered inner facets,
+ * EX gets the "glory" treatment: a accent gradient fill, layered inner facets,
  * and a soft controlled glow (drop-shadows, never neon). When the glow is
  * reduced or disabled the triangle stays minimalist, exactly like the lower
  * tiers.
@@ -41,7 +41,7 @@ const RANK_BORDER: Record<Rank, string> = {
   EX: "#c2c7cf",
 };
 
-// The gold gradient used for the EX tier (same values as the landing hero).
+// The accent gradient used for the EX tier (same values as the landing hero).
 const EX_GRADIENT = { from: "#c2c7cf", to: "#9ea7b3" };
 
 const SIZE_PRESETS = { sm: 18, md: 26, lg: 44 } as const;

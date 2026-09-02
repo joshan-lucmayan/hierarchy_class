@@ -172,7 +172,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
             let cls = "text-faint";
             let mark = scheduled ? "○" : "·";
             if (complete) {
-              cls = "text-gold";
+              cls = "text-accent";
               mark = "✓";
             } else if (scheduled && !future && d.date !== today) {
               cls = "text-[var(--warn)]";
@@ -222,7 +222,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
                   type="button"
                   onClick={saveValue}
                   disabled={busy === "value"}
-                  className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
+                  className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-60"
                 >
                   {busy === "value" ? "Saving..." : "Save"}
                 </button>
@@ -240,8 +240,8 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
                 aria-pressed={binaryDone}
                 className={`mt-2 rounded-full px-4 py-2 text-xs font-semibold transition disabled:opacity-60 ${
                   binaryDone
-                    ? "border border-sealion bg-gold text-on-accent"
-                    : "bg-navy text-white hover-bg-gold-token hover-text-on-accent"
+                    ? "border border-sealion bg-accent text-on-accent"
+                    : "bg-navy text-white hover-bg-accent-token hover-text-on-accent"
                 }`}
               >
                 {busy === "toggle" ? "Saving..." : binaryDone ? "Done today ✓" : todayLabel}
@@ -311,7 +311,7 @@ export function HabitDetailModal({ habit, onClose }: { habit: Habit; onClose: ()
                 type="button"
                 onClick={() => run(() => archiveHabit(habit.id), "archive")}
                 disabled={busy === "archive"}
-                className="rounded-full bg-navy px-3 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
+                className="rounded-full bg-navy px-3 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-60"
               >
                 {busy === "archive" ? "Archiving..." : "Archive"}
               </button>

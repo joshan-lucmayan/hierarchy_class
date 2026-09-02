@@ -5,19 +5,19 @@
 export interface BarProps {
   /** 0-100 */
   value: number;
-  tone?: "gold" | "sealion" | "warn" | "muted";
+  tone?: "accent" | "sealion" | "warn" | "muted";
   size?: "sm" | "md";
   className?: string;
 }
 
 const TONES = {
-  gold: "bg-gold-token",
+  accent: "bg-accent-token",
   sealion: "bg-sealion",
   warn: "bg-warn",
   muted: "bg-muted",
 } as const;
 
-export function Bar({ value, tone = "gold", size = "sm", className = "" }: BarProps) {
+export function Bar({ value, tone = "accent", size = "sm", className = "" }: BarProps) {
   const clamped = Math.min(Math.max(value, 0), 100);
   return (
     <div className={`overflow-hidden rounded-full bg-line ${size === "sm" ? "h-1.5" : "h-2"} ${className}`}>

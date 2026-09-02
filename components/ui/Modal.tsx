@@ -7,7 +7,7 @@ import { registerBackHandler } from "@/lib/nativeBackHandler";
 
 /**
  * Shared modal shell, matching the PostEditor visual language: dimmed
- * backdrop (click to close), surface panel with the gold hairline accent and
+ * backdrop (click to close), surface panel with the accent hairline accent and
  * a mono eyebrow, close button, and the app's entrance animation.
  *
  * The overlay is rendered through a portal to `document.body` so it is always
@@ -103,8 +103,8 @@ export function Modal({ onClose, eyebrow, description, children, maxWidth = "max
             <div className="min-w-0">
               {eyebrow && (
                 <>
-                  <div className="mb-3 h-1 w-10 rounded-full bg-gold-token" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">{eyebrow}</p>
+                  <div className="mb-3 h-1 w-10 rounded-full bg-accent-token" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-token">{eyebrow}</p>
                 </>
               )}
               {description && <p className="mt-1 text-[11px] leading-5 text-muted">{description}</p>}

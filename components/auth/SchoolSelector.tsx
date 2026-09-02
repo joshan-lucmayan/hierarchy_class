@@ -32,7 +32,7 @@ function Crest({ school }: { school: School }) {
 
   return (
     <span
-      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-navy text-[9px] font-bold text-gold"
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-navy text-[9px] font-bold text-accent"
       style={{ clipPath: HEX_CLIP }}
     >
       {school.abbreviation}
@@ -106,7 +106,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search schools..."
-                className="w-full rounded-md border border-base px-3 py-2 text-sm outline-none transition-all focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"
+                className="w-full rounded-md border border-base px-3 py-2 text-sm outline-none transition-all focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"
               />
             </div>
 
@@ -132,7 +132,7 @@ export function SchoolSelector({ schools, value, onChange, error }: SchoolSelect
                         <span className="text-navy">{school.name}</span>
                       </span>
                       {isSelected && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-gold">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-accent">
                           <path d="M20 6L9 17l-5-5" />
                         </svg>
                       )}

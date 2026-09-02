@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
         <Stat
           label="Students"
           value={loading ? "-" : counts.student}
-          tone="gold"
+          tone="accent"
           hint={`${counts.teacher} teachers registered`}
         />
       </div>
@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name, level, or ID..."
-            className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-14 text-sm text-navy outline-none focus:border-gold"
+            className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-14 text-sm text-navy outline-none focus:border-accent"
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
             {filtered.length}
@@ -138,8 +138,8 @@ export default function AdminUsersPage() {
               onClick={() => setRoleFilter(tab.value)}
               className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
                 roleFilter === tab.value
-                  ? "border-gold-token bg-[var(--surface-strong)] text-navy"
-                  : "border-base bg-surface text-muted hover:border-gold-soft"
+                  ? "border-accent-token bg-[var(--surface-strong)] text-navy"
+                  : "border-base bg-surface text-muted hover:border-accent-soft"
               }`}
             >
               {tab.label} ({counts[tab.value]})
@@ -158,7 +158,7 @@ export default function AdminUsersPage() {
               className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
                 accountFilter === opt.value
                   ? "border-warn bg-[var(--surface-strong)] text-warn"
-                  : "border-base bg-surface text-muted hover:border-gold-soft"
+                  : "border-base bg-surface text-muted hover:border-accent-soft"
               }`}
             >
               {opt.label}
@@ -169,8 +169,8 @@ export default function AdminUsersPage() {
             onClick={() => setSortMode((prev) => (prev === "recent" ? "name" : "recent"))}
             className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
               sortMode === "recent"
-                ? "border-gold-token bg-[var(--surface-strong)] text-navy"
-                : "border-base bg-surface text-muted hover:border-gold-soft"
+                ? "border-accent-token bg-[var(--surface-strong)] text-navy"
+                : "border-base bg-surface text-muted hover:border-accent-soft"
             }`}
             title="Sort by newest registrations or by name"
           >
@@ -273,12 +273,12 @@ export default function AdminUsersPage() {
                         Restricted {person.restricted_at ? new Date(person.restricted_at).toLocaleDateString() : ""}
                       </Chip>
                     )}
-                    <Chip variant={person.role === "teacher" ? "gold" : "neutral"}>{person.role}</Chip>
+                    <Chip variant={person.role === "teacher" ? "accent" : "neutral"}>{person.role}</Chip>
                     {person.role === "student" && (
                       <RankBadge rank={rankOf(person.id)?.current_rank ?? "D"} size="sm" />
                     )}
                     <Button
-                      variant={restricted ? "gold" : "danger"}
+                      variant={restricted ? "accent" : "danger"}
                       size="sm"
                       loading={busyId === person.id}
                       disabled={busyId !== null}
@@ -326,7 +326,7 @@ export default function AdminUsersPage() {
             rows={3}
             maxLength={500}
             placeholder="e.g. Possible unauthorized account activity"
-            className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-gold"
+            className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-accent"
           />
           <div className="mt-5 flex gap-2">
             <Button

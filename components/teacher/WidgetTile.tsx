@@ -343,7 +343,7 @@ export function WidgetTile({
     >
       <div
         className={`h-full overflow-hidden rounded-[10px] border bg-surface ${
-          isDragging ? "border-gold-token ring-1 ring-gold-token" : "border-gold-soft"
+          isDragging ? "border-accent-token ring-1 ring-accent-token" : "border-accent-soft"
         }`}
       >
         {/* Drag handle strip - reorder only, never a saved position. */}
@@ -353,10 +353,10 @@ export function WidgetTile({
           role="button"
           tabIndex={0}
           aria-label={`Move ${label}. Press Space to pick up, then use arrow keys to change its position, Space to drop.`}
-          className="widget-drag-handle flex cursor-grab touch-none items-center gap-1.5 border-b border-line bg-gold-soft px-2.5 py-1.5 active:cursor-grabbing"
+          className="widget-drag-handle flex cursor-grab touch-none items-center gap-1.5 border-b border-line bg-accent-soft px-2.5 py-1.5 active:cursor-grabbing"
         >
-          <IconGrip size={13} className="shrink-0 text-gold-token" />
-          <span className="min-w-0 flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-gold-token">
+          <IconGrip size={13} className="shrink-0 text-accent-token" />
+          <span className="min-w-0 flex-1 truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-token">
             {label}
           </span>
           <button
@@ -367,7 +367,7 @@ export function WidgetTile({
               onRemove();
             }}
             aria-label={`Remove ${label} from Home`}
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gold-token transition hover:bg-surface hover:text-warn"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-accent-token transition hover:bg-surface hover:text-warn"
           >
             <IconX size={12} />
           </button>
@@ -401,7 +401,7 @@ export function WidgetTile({
               Small by size (24x3 / 3x24), not by opacity, so it stays traceable
               on both Midnight and Rose. */}
           <span
-            className={`block rounded-full bg-gold-token opacity-80 transition-opacity group-hover:opacity-100 ${h.bar}`}
+            className={`block rounded-full bg-accent-token opacity-80 transition-opacity group-hover:opacity-100 ${h.bar}`}
           />
         </button>
       ))}
@@ -417,7 +417,7 @@ export function WidgetTile({
           aria-label={c.aria}
           title="Drag to resize both dimensions"
           tabIndex={cornerVisible(c.c) ? 0 : -1}
-          className={`absolute z-10 flex h-5 w-5 touch-none items-center justify-center rounded-md border border-line bg-surface text-gold-token shadow-sm transition-opacity hover:border-gold-soft hover:bg-gold-soft ${c.position} ${c.cursor} ${visibility(
+          className={`absolute z-10 flex h-5 w-5 touch-none items-center justify-center rounded-md border border-line bg-surface text-accent-token shadow-sm transition-opacity hover:border-accent-soft hover:bg-accent-soft ${c.position} ${c.cursor} ${visibility(
             cornerVisible(c.c)
           )}`}
         >

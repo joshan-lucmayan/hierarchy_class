@@ -2,14 +2,14 @@
 
 /**
  * Shared button - the Hierarchy Class action language. Variants cover every
- * action without hardcoding emerald / blue / red: primary (navy), gold
+ * action without hardcoding emerald / blue / red: primary (navy), accent
  * (featured / creation), outline (quiet secondary), danger (destructive,
  * warn token), ghost (minimal, for grouped controls).
  *
  * `shape` lets the same component serve both pill actions (default) and the
  * square segmented command group on the admin header. Hover/pressed/focus
  * states are built in and theme-aware (token hover utilities from
- * globals.css, subtle 0.98 press, gold focus ring).
+ * globals.css, subtle 0.98 press, accent focus ring).
  */
 export interface ButtonProps {
   /** Optional - icon-only square buttons render fine with no label. */
@@ -17,7 +17,7 @@ export interface ButtonProps {
   /** Accepts the mouse event so nested row actions can stopPropagation. */
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   type?: "button" | "submit";
-  variant?: "primary" | "gold" | "outline" | "danger" | "ghost";
+  variant?: "primary" | "accent" | "outline" | "danger" | "ghost";
   size?: "sm" | "md" | "lg";
   shape?: "pill" | "square";
   icon?: React.ReactNode;
@@ -28,9 +28,9 @@ export interface ButtonProps {
 }
 
 const VARIANTS = {
-  primary: "bg-navy text-white hover-bg-gold-token hover-text-on-accent",
-  gold: "bg-gold-token text-on-accent hover:opacity-90",
-  outline: "border border-base bg-surface text-navy hover-border-gold-soft",
+  primary: "bg-navy text-white hover-bg-accent-token hover-text-on-accent",
+  accent: "bg-accent-token text-on-accent hover:opacity-90",
+  outline: "border border-base bg-surface text-navy hover-border-accent-soft",
   danger: "border border-warn-soft bg-surface text-warn hover-bg-warn-soft",
   ghost: "border border-transparent text-muted hover-bg-tile hover:text-navy",
 } as const;
@@ -65,7 +65,7 @@ export function Button({
       onClick={(e) => onClick?.(e)}
       disabled={disabled || loading}
       title={title}
-      className={`inline-flex items-center justify-center font-semibold touch-manipulation transition duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 ${SHAPES[shape]} ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-semibold touch-manipulation transition duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-50 ${SHAPES[shape]} ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
     >
       {loading ? (
         <span aria-hidden className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />

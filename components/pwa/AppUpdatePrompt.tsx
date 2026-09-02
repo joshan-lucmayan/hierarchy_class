@@ -34,7 +34,7 @@ export function AppUpdatePrompt({
       aria-modal="false"
       aria-labelledby="hc-update-title"
       aria-describedby="hc-update-desc"
-      className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] mx-auto flex max-w-md items-center justify-between gap-3 rounded-[10px] border border-gold-soft bg-surface p-3.5 shadow-xl sm:inset-x-4 md:inset-x-auto md:bottom-6 md:right-6 md:max-w-sm md:p-4"
+      className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[60] mx-auto flex max-w-md items-center justify-between gap-3 rounded-[10px] border border-accent-soft bg-surface p-3.5 shadow-xl sm:inset-x-4 md:inset-x-auto md:bottom-6 md:right-6 md:max-w-sm md:p-4"
     >
       <div className="min-w-0">
         <p id="hc-update-title" className="text-sm font-semibold text-navy">

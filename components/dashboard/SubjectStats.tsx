@@ -65,7 +65,7 @@ export default function SubjectStats() {
                       {r.avg === null ? "No grades yet" : "Average score"}
                     </p>
                   </div>
-                  <p className="shrink-0 text-[15px] font-bold tabular-nums text-gold">
+                  <p className="shrink-0 text-[15px] font-bold tabular-nums text-accent">
                     {fmt}
                     {isLowest ? (
                       <span className="ml-1 text-[10px] font-semibold normal-case tracking-normal text-warn">

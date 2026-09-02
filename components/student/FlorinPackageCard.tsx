@@ -58,8 +58,8 @@ export function FlorinPackageCard({
       className={`
         relative w-full rounded-[10px] border p-4 text-center transition-all
         ${isSelected 
-          ? 'border-gold bg-gold/10' 
-          : 'border-base bg-surface hover:border-gold/50'
+          ? 'border-accent bg-accent/10' 
+          : 'border-base bg-surface hover:border-accent/50'
         }
         ${isLoading || disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
@@ -73,21 +73,21 @@ export function FlorinPackageCard({
       <p className="text-xs text-muted">Florin</p>
       
       {/* Price */}
-      <p className="mt-2 text-sm font-semibold text-gold">
+      <p className="mt-2 text-sm font-semibold text-accent">
         ₱{pkg.price_php.toFixed(2)}
       </p>
       
       {/* Loading indicator */}
       {isLoading && isSelected && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface/80 rounded-[10px]">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gold"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
         </div>
       )}
       
       {/* Selected indicator */}
       {isSelected && !isLoading && (
         <div className="absolute top-2 right-2">
-          <div className="w-5 h-5 rounded-full bg-gold flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center">
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>

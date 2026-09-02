@@ -6,13 +6,13 @@
 export interface MiniBarsProps {
   data: { label: string; value: number }[];
   height?: number;
-  tone?: "sealion" | "gold";
+  tone?: "sealion" | "accent";
   ariaLabel?: string;
 }
 
 export function MiniBars({ data, height = 56, tone = "sealion", ariaLabel = "Trend over time" }: MiniBarsProps) {
   const max = Math.max(...data.map((d) => d.value), 1);
-  const fill = tone === "gold" ? "bg-gold-token" : "bg-sealion";
+  const fill = tone === "accent" ? "bg-accent-token" : "bg-sealion";
   return (
     <div className="flex items-end gap-1.5" role="img" aria-label={ariaLabel}>
       {data.map((d) => (

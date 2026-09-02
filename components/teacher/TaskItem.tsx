@@ -33,7 +33,7 @@ export function TaskItem({ task, onAccept, onDecline, onMarkDone, onReopen, onDe
             {task.title}
           </p>
           {task.description && <p className="mt-0.5 text-xs text-muted">{task.description}</p>}
-          {task.dueDate && <p className="mt-0.5 text-xs text-gold-token">Due {task.dueDate}</p>}
+          {task.dueDate && <p className="mt-0.5 text-xs text-accent-token">Due {task.dueDate}</p>}
           {task.status === "declined" && task.declineReason && (
             <p className="mt-1 text-xs text-warn">Declined: {task.declineReason}</p>
           )}
@@ -92,7 +92,7 @@ export function TaskItem({ task, onAccept, onDecline, onMarkDone, onReopen, onDe
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g. Conflicts with my class schedule"
             rows={2}
-            className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
           />
           <div className="flex gap-2">
             <Button

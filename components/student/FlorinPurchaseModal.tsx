@@ -176,8 +176,8 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Buy Florin</p>
+        <div className="mb-3 h-1 w-10 rounded-full bg-accent" />
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Buy Florin</p>
         <h2 className="mt-2 text-xl font-bold text-navy">Top up your coins</h2>
         <p className="mt-2 text-sm text-muted">
           Your current balance is <span className="font-semibold text-navy">{balance.toLocaleString()} Florin</span>.
@@ -239,7 +239,7 @@ export function FlorinPurchaseModal({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={handleClose}
           disabled={isProcessing}
-          className="mt-5 w-full rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-gold disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+          className="mt-5 w-full rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
         >
           {isProcessing ? 'Processing...' : 'Close'}
         </button>

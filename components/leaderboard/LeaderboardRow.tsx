@@ -25,7 +25,7 @@ export function LeaderboardRow({
   return (
     <div
       className={`flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 ${
-        isCurrentUser ? "border-gold bg-gold/10" : "border-base"
+        isCurrentUser ? "border-accent bg-accent/10" : "border-base"
       }`}
     >
       <span className="w-5 text-center text-sm font-bold text-muted">{rank}</span>

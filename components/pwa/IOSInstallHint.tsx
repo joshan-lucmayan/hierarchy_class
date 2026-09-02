@@ -17,7 +17,7 @@ export function IOSInstallHint() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-sm rounded-[10px] border border-gold-soft bg-surface p-4 shadow-xl supports-[bottom:env(safe-area-inset-bottom)]:bottom-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-sm rounded-[10px] border border-accent-soft bg-surface p-4 shadow-xl supports-[bottom:env(safe-area-inset-bottom)]:bottom-[calc(1rem+env(safe-area-inset-bottom))]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-navy">Install on iPhone/iPad</p>
@@ -32,7 +32,7 @@ export function IOSInstallHint() {
             setShow(false);
           }}
           aria-label="Dismiss"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-base text-muted hover:border-gold"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-base text-muted hover:border-accent"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <path d="M18 6L6 18M6 6l12 12" />

@@ -174,7 +174,7 @@ export default function AdminRanksPage() {
   const loading = studentsLoading || ranksLoading;
 
   const inputCls =
-    "mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold";
+    "mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-accent";
 
   return (
     <div className="space-y-4">
@@ -191,7 +191,7 @@ export default function AdminRanksPage() {
         <Stat
           label="EX students"
           value={exCount}
-          tone={exCount > 0 ? "gold" : "muted"}
+          tone={exCount > 0 ? "accent" : "muted"}
           hint={`${RANK_DISPLAY_NAMES["EX"]} this season`}
         />
       </div>
@@ -203,7 +203,7 @@ export default function AdminRanksPage() {
       {/* ============================================================ */}
       {/* BAND 1 - THE LADDER (hero)                                  */}
       {/* ============================================================ */}
-      <CornerFrame tone="gold" className="p-5">
+      <CornerFrame tone="accent" className="p-5">
         <h3 className="section-label">The ladder</h3>
         <p className="mt-1.5 max-w-2xl text-xs leading-5 text-muted">
           Eight ranks, one climb. Every season starts fresh - S and above land in C, A and below land in D.
@@ -332,7 +332,7 @@ export default function AdminRanksPage() {
                 </div>
                 <Button
                   type="button"
-                  variant="gold"
+                  variant="accent"
                   className="w-full justify-center"
                   icon={<IconCheck size={14} />}
                   disabled={semDeclaring}
@@ -341,7 +341,7 @@ export default function AdminRanksPage() {
                   {semDeclaring ? "Declaring..." : activeSemester ? "Update semester" : "Declare semester"}
                 </Button>
                 {semMessage && (
-                  <p className={`text-sm ${semMessage.kind === "ok" ? "text-gold-token" : "text-warn"}`}>
+                  <p className={`text-sm ${semMessage.kind === "ok" ? "text-accent-token" : "text-warn"}`}>
                     {semMessage.text}
                   </p>
                 )}
@@ -372,7 +372,7 @@ export default function AdminRanksPage() {
                   {seasonEnding ? "Ending season..." : "End season & reseed"}
                 </Button>
                 {seasonMessage && (
-                  <p className={`text-sm ${seasonMessage.kind === "ok" ? "text-gold-token" : "text-warn"}`}>
+                  <p className={`text-sm ${seasonMessage.kind === "ok" ? "text-accent-token" : "text-warn"}`}>
                     {seasonMessage.text}
                   </p>
                 )}
@@ -413,7 +413,7 @@ export default function AdminRanksPage() {
                         <p className="font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
                           final {log.final_rank_before_reset} → reset {log.reset_to_rank}
                         </p>
-                        {log.ex_achieved && <Chip variant="gold">EX achieved</Chip>}
+                        {log.ex_achieved && <Chip variant="accent">EX achieved</Chip>}
                       </div>
                     </div>
                   ))}

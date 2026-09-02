@@ -147,7 +147,7 @@ function LibraryPageContent() {
         <Stat
           label="Available"
           value={loading ? "-" : statusCounts.available}
-          tone="gold"
+          tone="accent"
           hint={`${books.length} in catalog`}
         />
       </div>
@@ -181,7 +181,7 @@ function LibraryPageContent() {
             <CornerFrame className="min-w-0 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="section-label">Catalog</h3>
-                <Chip variant="gold">
+                <Chip variant="accent">
                   {books.length} book{books.length === 1 ? "" : "s"}
                 </Chip>
               </div>
@@ -193,7 +193,7 @@ function LibraryPageContent() {
                     setPage(1);
                   }}
                   placeholder="Search by title, author, genre, or ISBN..."
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-accent"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
                   {filteredBooks.length}
@@ -219,8 +219,8 @@ function LibraryPageContent() {
                     }}
                     className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                       statusFilter === value
-                        ? "border-gold-token bg-[var(--surface-strong)] text-navy"
-                        : "border-base bg-surface text-muted hover:border-gold-soft"
+                        ? "border-accent-token bg-[var(--surface-strong)] text-navy"
+                        : "border-base bg-surface text-muted hover:border-accent-soft"
                     }`}
                   >
                     {label} ({statusCounts[value]})
@@ -235,7 +235,7 @@ function LibraryPageContent() {
                         setGenreFilter(e.target.value);
                         setPage(1);
                       }}
-                      className="min-w-0 flex-1 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold sm:flex-initial"
+                      className="min-w-0 flex-1 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-accent sm:flex-initial"
                     >
                       {genres.map((genre) => (
                         <option key={genre} value={genre}>{genre}</option>
@@ -250,7 +250,7 @@ function LibraryPageContent() {
                         setSortBy(e.target.value as typeof sortBy);
                         setPage(1);
                       }}
-                      className="min-w-0 flex-1 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold sm:flex-initial"
+                      className="min-w-0 flex-1 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-accent sm:flex-initial"
                     >
                       <option value="title-asc">Title A-Z</option>
                       <option value="title-desc">Title Z-A</option>
@@ -309,8 +309,8 @@ function LibraryPageContent() {
                             aria-current={n === safePage ? "page" : undefined}
                             className={`h-8 w-8 rounded-[8px] text-xs font-semibold transition ${
                               n === safePage
-                                ? "bg-gold-token text-on-accent"
-                                : "border border-base bg-surface text-muted hover:border-gold-soft"
+                                ? "bg-accent-token text-on-accent"
+                                : "border border-base bg-surface text-muted hover:border-accent-soft"
                             }`}
                           >
                             {n}
@@ -341,7 +341,7 @@ function LibraryPageContent() {
                           key={book.id}
                           type="button"
                           onClick={() => setSelectedBook(book)}
-                          className="group flex w-full items-center gap-3 rounded-[10px] border border-base bg-surface p-3 text-left transition hover:border-gold-soft"
+                          className="group flex w-full items-center gap-3 rounded-[10px] border border-base bg-surface p-3 text-left transition hover:border-accent-soft"
                         >
                           <BookCover book={book} />
                           <div className="min-w-0 flex-1">
@@ -353,7 +353,7 @@ function LibraryPageContent() {
                               <Chip variant={chip.variant}>{chip.label}</Chip>
                             </div>
                           </div>
-                          <span className="shrink-0 text-muted transition group-hover:text-gold-token">
+                          <span className="shrink-0 text-muted transition group-hover:text-accent-token">
                             <IconChevronRight size={16} />
                           </span>
                         </button>
@@ -395,7 +395,7 @@ function LibraryPageContent() {
                         <p className="mt-1 text-xs text-muted">{bookStatusLine(book, true, "student")}</p>
                         {book.location && (
                           <p className="mt-1 flex items-center gap-1 truncate text-[11px] text-muted">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gold-token">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent-token">
                               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                               <circle cx="12" cy="10" r="3" />
                             </svg>
@@ -406,7 +406,7 @@ function LibraryPageContent() {
                           <p className="mt-1 text-xs font-semibold text-warn">{overdueLine(book.dueDate)}</p>
                         )}
                       </div>
-                      <span className="shrink-0 text-muted transition group-hover:text-gold-token">
+                      <span className="shrink-0 text-muted transition group-hover:text-accent-token">
                         <IconChevronRight size={16} />
                       </span>
                     </button>
@@ -483,12 +483,12 @@ function LibraryPageContent() {
                     max={30}
                     value={requestDays}
                     onChange={(e) => setRequestDays(Math.max(1, Math.min(30, parseInt(e.target.value) || 7)))}
-                    className="w-16 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-center text-xs text-navy outline-none focus:border-gold"
+                    className="w-16 rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-center text-xs text-navy outline-none focus:border-accent"
                   />
                   <span className="text-xs text-muted">days</span>
                 </label>
                 <Button
-                  variant="gold"
+                  variant="accent"
                   className="w-full"
                   icon={<IconCheck size={13} />}
                   onClick={() => {

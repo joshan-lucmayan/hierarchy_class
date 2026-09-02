@@ -45,7 +45,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
   }
 
   const inputCls =
-    "w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-gold";
+    "w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-accent";
   const fieldLabel = "font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint";
 
   return (
@@ -113,7 +113,7 @@ export function EditBookModal({ book, onClose }: { book: LibraryBook; onClose: (
         <div className="flex gap-2 pt-2">
           <Button
             type="submit"
-            variant="gold"
+            variant="accent"
             className="flex-1"
             icon={<IconCheck size={13} />}
             disabled={submitting || !draft.title.trim() || !draft.author.trim()}

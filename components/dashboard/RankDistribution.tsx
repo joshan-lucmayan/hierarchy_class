@@ -62,15 +62,15 @@ export function RankDistribution({
   }, [ranks, topCount]);
 
   return (
-    <CornerFrame tone="gold" className="overflow-hidden">
+    <CornerFrame tone="accent" className="overflow-hidden">
       <div className="flex items-center justify-between gap-2 px-5 pt-5">
         <h2 className="section-label">{title}</h2>
-        <Chip variant="gold">{stats.total} ranked</Chip>
+        <Chip variant="accent">{stats.total} ranked</Chip>
       </div>
 
       {stats.total === 0 ? (
         <div className="px-5 pb-6 pt-4 text-center">
-          <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+          <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent-token">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 17l6-6 4 4 8-8" />
               <path d="M14 7h7v7" />
@@ -103,7 +103,7 @@ export function RankDistribution({
                   <p className="mt-1.5 text-[12px] font-semibold tabular-nums text-navy">{count}</p>
                   <span className="mt-1.5 block h-0.5 w-full overflow-hidden rounded-full bg-line">
                     <span
-                      className={`block h-full rounded-full ${i >= 4 ? "bg-gold-token" : "bg-sealion"}`}
+                      className={`block h-full rounded-full ${i >= 4 ? "bg-accent-token" : "bg-sealion"}`}
                       style={{ width: `${Math.round((count / stats.max) * 100)}%` }}
                     />
                   </span>
@@ -115,12 +115,12 @@ export function RankDistribution({
           {/* Mean bar + EX count */}
           <div className="mt-3 flex items-center gap-3 rounded-[8px] border border-base bg-[var(--surface-strong)] px-3 py-2.5">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">Avg bar</span>
-            <Bar value={stats.avgBar} tone="gold" className="flex-1" />
+            <Bar value={stats.avgBar} tone="accent" className="flex-1" />
             <span className="text-[13px] font-bold tabular-nums text-navy">
               {Math.round(stats.avgBar)}
               <span className="text-[10px] font-normal text-faint">/100</span>
             </span>
-            <Chip variant="gold">{stats.ex} EX</Chip>
+            <Chip variant="accent">{stats.ex} EX</Chip>
           </div>
 
           {/* Top students */}
@@ -133,7 +133,7 @@ export function RankDistribution({
                   {nameOf ? nameOf(r.student_id) : "Student"}
                 </span>
                 {r.current_rank === "EX" ? (
-                  <span className="shrink-0 text-[11px] font-bold tabular-nums text-gold-token">
+                  <span className="shrink-0 text-[11px] font-bold tabular-nums text-accent-token">
                     {Math.round(r.ex_score)}
                   </span>
                 ) : (

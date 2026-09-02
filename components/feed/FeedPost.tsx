@@ -41,7 +41,7 @@ export function FeedPost({ post }: { post: SchoolPost }) {
           <span
             className={`rounded border px-2.5 py-1 text-[10.5px] font-medium tracking-[0.5px] ${
               isAnnouncement
-                ? "border-sealion text-gold-token"
+                ? "border-sealion text-accent-token"
                 : "border-line text-muted"
             }`}
           >

@@ -123,7 +123,7 @@ export default function AdminSettingsPage() {
         </p>
         <div className="mt-4">
           <Link href="/admin/home?customize=1">
-            <Button variant="gold" icon={<IconPencil size={13} />}>
+            <Button variant="accent" icon={<IconPencil size={13} />}>
               Customize Home
             </Button>
           </Link>
@@ -152,7 +152,7 @@ export default function AdminSettingsPage() {
           <button
             type="button"
             onClick={refetchFeedback}
-            className="rounded-full border border-base px-3 py-1 text-[11px] font-semibold text-navy transition hover:border-gold"
+            className="rounded-full border border-base px-3 py-1 text-[11px] font-semibold text-navy transition hover:border-accent"
           >
             Refresh
           </button>
@@ -368,7 +368,7 @@ export default function AdminSettingsPage() {
                       ) : (
                         <>
                           <Button
-                            variant="gold"
+                            variant="accent"
                             size="sm"
                             icon={<IconCheck size={13} />}
                             loading={appealBusyId === appeal.id}

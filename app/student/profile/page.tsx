@@ -191,9 +191,9 @@ export default function StudentProfilePage() {
   return (
     <div className="space-y-6">
       {viewAs && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-gold-soft bg-surface px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-accent-soft bg-surface px-4 py-3">
           <p className="text-sm text-muted">Viewing your profile as another student would see it.</p>
-          <Button variant="gold" size="sm" onClick={() => setViewAs(false)}>
+          <Button variant="accent" size="sm" onClick={() => setViewAs(false)}>
             Exit View As
           </Button>
         </div>
@@ -227,7 +227,7 @@ export default function StudentProfilePage() {
                 onClick={() => { setEditOpen(true); setPhotoMessage(null); }}
                 aria-label="Edit profile photo"
                 title="Edit profile photo"
-                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
+                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-accent-soft hover:text-navy"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9" />
@@ -250,7 +250,7 @@ export default function StudentProfilePage() {
             {bio.trim() && <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">{bio}</p>}
             {favoriteSubject.trim() && (
               <p className="mt-3 text-sm text-navy">
-                <span className="font-semibold text-gold-token">Favorite subject:</span> {favoriteSubject}
+                <span className="font-semibold text-accent-token">Favorite subject:</span> {favoriteSubject}
               </p>
             )}
             {hobbies.split(",").map((h) => h.trim()).filter(Boolean).length > 0 && (
@@ -279,7 +279,7 @@ export default function StudentProfilePage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={3}
-                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface p-3 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface p-3 text-sm text-navy outline-none focus:border-accent"
                 />
               </div>
               <div>
@@ -288,7 +288,7 @@ export default function StudentProfilePage() {
                   value={favoriteSubject}
                   onChange={(e) => setFavoriteSubject(e.target.value)}
                   placeholder="e.g. Physics"
-                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                 />
               </div>
               <div>
@@ -297,7 +297,7 @@ export default function StudentProfilePage() {
                   value={hobbies}
                   onChange={(e) => setHobbies(e.target.value)}
                   placeholder="Hobbies - separate multiple hobbies with commas"
-                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                  className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                 />
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function StudentProfilePage() {
             <button
               type="button"
               onClick={toggleAboutEditing}
-              className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm font-semibold text-navy transition hover:border-gold-soft active:scale-[0.98]"
+              className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm font-semibold text-navy transition hover:border-accent-soft active:scale-[0.98]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M12 20h9" />
@@ -322,7 +322,7 @@ export default function StudentProfilePage() {
             <button
               type="button"
               onClick={() => storyInputRef.current?.click()}
-              className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm font-semibold text-navy transition hover:border-gold-soft active:scale-[0.98]"
+              className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-[10px] border border-base bg-[var(--surface-strong)] px-3 py-2 text-sm font-semibold text-navy transition hover:border-accent-soft active:scale-[0.98]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="12" cy="12" r="9" />
@@ -349,27 +349,27 @@ export default function StudentProfilePage() {
 
         {/* Story publish panel (Facebook-style) once an image is picked. */}
         {!viewAs && storyFile && (
-          <div className="flex flex-col gap-2 rounded-[10px] border border-gold bg-[var(--surface-strong)] p-2.5 sm:flex-row sm:items-center sm:p-3">
+          <div className="flex flex-col gap-2 rounded-[10px] border border-accent bg-[var(--surface-strong)] p-2.5 sm:flex-row sm:items-center sm:p-3">
             <input
               value={storyCaption}
               onChange={(e) => setStoryCaption(e.target.value)}
               placeholder="Add a caption for your story (optional)"
               maxLength={120}
-              className="min-w-0 flex-1 rounded-full border border-base bg-surface px-3 py-1.5 text-xs text-navy outline-none focus:border-gold sm:px-4 sm:py-2 sm:text-sm"
+              className="min-w-0 flex-1 rounded-full border border-base bg-surface px-3 py-1.5 text-xs text-navy outline-none focus:border-accent sm:px-4 sm:py-2 sm:text-sm"
             />
             <div className="flex gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={handleStoryPublish}
                 disabled={publishingStory}
-                className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50 sm:px-4 sm:py-2"
+                className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50 sm:px-4 sm:py-2"
               >
                 {publishingStory ? "Publishing..." : "Publish story"}
               </button>
               <button
                 type="button"
                 onClick={() => setStoryFile(null)}
-                className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-gold sm:px-4 sm:py-2"
+                className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-accent sm:px-4 sm:py-2"
               >
                 Cancel
               </button>
@@ -395,7 +395,7 @@ export default function StudentProfilePage() {
         onClick={() => setMenuOpen((o) => !o)}
         title="More"
         aria-label="More"
-        className="absolute right-4 top-4 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-gold-soft hover:text-navy"
+        className="absolute right-4 top-4 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-base bg-surface text-muted shadow-sm transition hover:border-accent-soft hover:text-navy"
       >
         <IconMore size={14} />
       </button>
@@ -450,7 +450,7 @@ export default function StudentProfilePage() {
               <button
                 type="button"
                 onClick={() => setFriendsOpen(true)}
-                className="rounded-full border border-base px-3 py-1 text-[11px] font-semibold text-navy transition hover:border-gold"
+                className="rounded-full border border-base px-3 py-1 text-[11px] font-semibold text-navy transition hover:border-accent"
               >
                 See All
               </button>
@@ -563,8 +563,8 @@ export default function StudentProfilePage() {
             className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold-token" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Edit profile</p>
+            <div className="mb-3 h-1 w-10 rounded-full bg-accent-token" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-token">Edit profile</p>
             <h2 className="mt-2 text-xl font-bold text-navy">Profile picture</h2>
 
             <div className="mt-5 flex flex-col items-center text-center">
@@ -574,7 +574,7 @@ export default function StudentProfilePage() {
                 size="2xl"
                 className="border-2 border-surface"
               />
-              {photoMessage && <p className="mt-3 text-xs font-semibold text-gold-token">{photoMessage}</p>}
+              {photoMessage && <p className="mt-3 text-xs font-semibold text-accent-token">{photoMessage}</p>}
               <p className="mt-2 text-xs text-muted">
                 {profile.avatar_url ? "Your current picture" : "You're using the default avatar"}
               </p>
@@ -585,7 +585,7 @@ export default function StudentProfilePage() {
                 type="button"
                 disabled={uploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full rounded-full bg-gold-token py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-full bg-accent-token py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50"
               >
                 {uploading ? "Uploading..." : profile.avatar_url ? "Change photo" : "Upload photo"}
               </button>
@@ -602,7 +602,7 @@ export default function StudentProfilePage() {
               <button
                 type="button"
                 onClick={() => setEditOpen(false)}
-                className="w-full rounded-full border border-base py-2.5 text-sm font-semibold text-muted transition hover:border-gold"
+                className="w-full rounded-full border border-base py-2.5 text-sm font-semibold text-muted transition hover:border-accent"
               >
                 Close
               </button>

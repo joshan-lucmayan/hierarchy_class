@@ -129,7 +129,7 @@ export default function AdminReportsPage() {
         <Stat
           label="School excellence"
           value={loading ? "-" : schoolAverage !== null ? schoolAverage : "-"}
-          tone="gold"
+          tone="accent"
           hint="Weighted across all students"
         />
       </div>
@@ -166,7 +166,7 @@ export default function AdminReportsPage() {
           {/* SNAPSHOT                                                  */}
           {/* ========================================================== */}
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Stat label="School academic excellence" value={schoolAverage !== null ? schoolAverage : "-"} tone="gold" />
+            <Stat label="School academic excellence" value={schoolAverage !== null ? schoolAverage : "-"} tone="accent" />
             <Stat label="Students with recorded grades" value={`${gradedStudentCount} / ${students.length}`} />
             <Stat label="Total grade entries logged" value={gradeEntries.length} />
             <Stat label="Courses tracked" value={courses.length} />
@@ -187,7 +187,7 @@ export default function AdminReportsPage() {
                     <RankBadge rank={rank as Rank} size="sm" />
                     <Bar
                       value={students.length ? (count / students.length) * 100 : 0}
-                      tone="gold"
+                      tone="accent"
                       size="md"
                       className="flex-1"
                     />
@@ -209,7 +209,7 @@ export default function AdminReportsPage() {
                       <p className="text-sm text-navy">{g.type}</p>
                       <p className="mt-0.5 text-xs text-muted">{g.count} submitted</p>
                     </div>
-                    <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-gold-token">
+                    <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-accent-token">
                       {g.avg !== null ? g.avg : "--"}
                     </p>
                   </div>
@@ -232,7 +232,7 @@ export default function AdminReportsPage() {
                   <div key={program.id} className="rounded-[10px] border border-base bg-surface p-4">
                     <p className="truncate text-sm font-semibold text-navy">{program.name}</p>
                     <p className="mt-1 text-xs text-muted">{courseCount} course{courseCount === 1 ? "" : "s"}</p>
-                    <p className="mt-2 font-mono-ui text-xl font-bold tabular-nums text-gold-token">
+                    <p className="mt-2 font-mono-ui text-xl font-bold tabular-nums text-accent-token">
                       {avg !== null ? avg : "--"}
                     </p>
                   </div>
@@ -262,7 +262,7 @@ export default function AdminReportsPage() {
                 {courseAverages.map(({ course, avg }) => (
                   <div key={course.id} className="flex items-center justify-between gap-4 py-2.5">
                     <p className="min-w-0 truncate text-sm text-navy">{course.name}</p>
-                    <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-gold-token">
+                    <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-accent-token">
                       {avg !== null ? avg : "--"}
                     </p>
                   </div>
@@ -296,7 +296,7 @@ export default function AdminReportsPage() {
                       <UserAvatar name={s.profile.full_name} src={s.profile.avatar_url} size="sm" profileId={s.profile.id} />
                       <p className="min-w-0 flex-1 truncate text-sm text-navy">{s.profile.full_name}</p>
                       {s.rank && <RankBadge rank={s.rank} size="sm" />}
-                      <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-gold-token">{s.avg}</p>
+                      <p className="shrink-0 font-mono-ui text-sm font-semibold tabular-nums text-accent-token">{s.avg}</p>
                     </div>
                   ))}
                 </div>
@@ -355,7 +355,7 @@ export default function AdminReportsPage() {
                       <p className="min-w-0 truncate text-sm text-navy">{teacher.full_name}</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-mono-ui text-sm font-semibold tabular-nums text-gold-token">
+                      <p className="font-mono-ui text-sm font-semibold tabular-nums text-accent-token">
                         {count} grade{count === 1 ? "" : "s"}
                       </p>
                       {lastDate && <p className="mt-0.5 text-[11px] text-muted">Last: {lastDate}</p>}

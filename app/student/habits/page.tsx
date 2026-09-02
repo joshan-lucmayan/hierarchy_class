@@ -62,7 +62,7 @@ function TodayRow({
     <div className="flex items-center gap-3 rounded-[10px] border border-base bg-surface px-4 py-3">
       <span
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-line bg-tile text-muted ${
-          done ? "text-gold" : ""
+          done ? "text-accent" : ""
         }`}
       >
         <HabitIcon icon={habit.icon} />
@@ -81,7 +81,7 @@ function TodayRow({
           aria-label={`${habit.name} - ${done ? "done today" : "mark done today"}`}
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition disabled:opacity-60 ${
             done
-              ? "border-sealion bg-gold text-on-accent"
+              ? "border-sealion bg-accent text-on-accent"
               : "border-line bg-tile text-faint hover:border-sealion"
           }`}
         >
@@ -114,7 +114,7 @@ function TodayRow({
               onSaveValue(habit.id, value);
             }}
             disabled={busy}
-            className="rounded-full bg-navy px-3 py-1.5 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
+            className="rounded-full bg-navy px-3 py-1.5 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-60"
           >
             {done ? "Update" : "Save"}
           </button>
@@ -211,7 +211,7 @@ export default function StudentHabitsPage() {
         <button
           type="button"
           onClick={refetch}
-          className="mt-4 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+          className="mt-4 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
         >
           Retry
         </button>
@@ -304,7 +304,7 @@ export default function StudentHabitsPage() {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="flex shrink-0 items-center gap-1.5 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
               <path d="M12 5v14M5 12h14" />
@@ -325,7 +325,7 @@ export default function StudentHabitsPage() {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="mt-4 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+              className="mt-4 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
             >
               Add your first habit
             </button>
@@ -438,7 +438,7 @@ export default function StudentHabitsPage() {
                         type="button"
                         onClick={() => run(() => restoreHabit(habit.id), habit.id)}
                         disabled={busyId === habit.id}
-                        className="rounded-full bg-navy px-3 py-1.5 text-[11px] font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
+                        className="rounded-full bg-navy px-3 py-1.5 text-[11px] font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-60"
                       >
                         Restore
                       </button>

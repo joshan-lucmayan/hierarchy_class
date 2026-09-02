@@ -224,7 +224,7 @@ SELECT * FROM (VALUES
   ('background', 'Chess Court', 'A quiet board of kings and queens behind every card.', 250, '/hc_bg/chess_bg.jpg', NULL, 10),
   ('background', 'Samurai Sword', 'A blade of light for the whole campus.', 300, '/hc_bg/sum_bg.jpg', NULL, 20),
   ('avatar_border', 'Slate Ring', 'A clean ring in the accent slate.', 80, NULL, '#9EA7B3', 30),
-  ('avatar_border', 'Pale Gold Ring', 'A brighter halo for your avatar.', 120, NULL, '#C2C7CF', 40),
+  ('avatar_border', 'Pearl Ring', 'A brighter halo for your avatar.', 120, NULL, '#C2C7CF', 40),
   ('avatar_border', 'Crimson Ring', 'A warm warning-tone ring.', 150, NULL, '#C98F8F', 50),
   ('avatar_border', 'Emerald Ring', 'A calm green ring.', 150, NULL, '#8FA88F', 60)
 ) AS s(type, name, description, price, image_url, accent, sort_order)

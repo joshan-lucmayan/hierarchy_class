@@ -129,7 +129,7 @@ export function SignupForm() {
   if (mode === "checkEmail") {
     return (
       <div className="animate-pop-in flex w-full flex-col items-center gap-4 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="4" width="20" height="16" rx="2" />
             <path className="draw-check" d="M22 7l-10 6L2 7" />
@@ -141,7 +141,7 @@ export function SignupForm() {
           Confirm your email before logging in.
         </p>
         {resendStatus && (
-          <p className={`text-xs ${resendStatus.startsWith("A new") ? "text-gold-token" : "text-warn"}`}>
+          <p className={`text-xs ${resendStatus.startsWith("A new") ? "text-accent-token" : "text-warn"}`}>
             {resendStatus}
           </p>
         )}
@@ -157,7 +157,7 @@ export function SignupForm() {
           <button
             type="button"
             onClick={() => router.push("/login")}
-            className="rounded-lg border border-base py-3 text-sm font-semibold text-navy transition hover:border-gold-soft"
+            className="rounded-lg border border-base py-3 text-sm font-semibold text-navy transition hover:border-accent-soft"
           >
             Back to login
           </button>
@@ -184,8 +184,8 @@ export function SignupForm() {
             onClick={() => setRole(option.value)}
             className={`rounded-[10px] border px-3.5 py-3 text-left transition ${
               role === option.value
-                ? "border-gold-token bg-[var(--surface-strong)]"
-                : "border-base bg-surface hover:border-gold-soft"
+                ? "border-accent-token bg-[var(--surface-strong)]"
+                : "border-base bg-surface hover:border-accent-soft"
             }`}
           >
             <span className={`block text-sm font-bold ${role === option.value ? "text-navy" : "text-muted"}`}>
@@ -211,7 +211,7 @@ export function SignupForm() {
             disabled={isLoading}
             autoComplete="given-name"
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.firstName ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.firstName ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.firstName && <p className="text-xs text-warn">{errors.firstName}</p>}
         </div>
@@ -228,7 +228,7 @@ export function SignupForm() {
             disabled={isLoading}
             autoComplete="family-name"
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.lastName ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.lastName ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.lastName && <p className="text-xs text-warn">{errors.lastName}</p>}
         </div>
@@ -246,7 +246,7 @@ export function SignupForm() {
           placeholder="Marie"
           disabled={isLoading}
           autoComplete="additional-name"
-          className="rounded-lg border border-base px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)] disabled:bg-tile disabled:text-faint"
+          className="rounded-lg border border-base px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)] disabled:bg-tile disabled:text-faint"
         />
       </div>
 
@@ -264,7 +264,7 @@ export function SignupForm() {
             disabled={isLoading}
             autoComplete="off"
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.studentId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.studentId ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.studentId && <p className="text-xs text-warn">{errors.studentId}</p>}
           <p className="text-[11px] text-faint">The ID your school issued to you - not a password, and never shared.</p>
@@ -283,7 +283,7 @@ export function SignupForm() {
             disabled={isLoading}
             autoComplete="off"
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.facultyId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.facultyId ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.facultyId && <p className="text-xs text-warn">{errors.facultyId}</p>}
         </div>
@@ -302,7 +302,7 @@ export function SignupForm() {
           disabled={isLoading}
           autoComplete="email"
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-            ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+            ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
         {errors.email && <p className="text-xs text-warn">{errors.email}</p>}
       </div>
@@ -320,7 +320,7 @@ export function SignupForm() {
           disabled={isLoading}
           autoComplete="new-password"
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-            ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+            ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
         {errors.password && <p className="text-xs text-warn">{errors.password}</p>}
       </div>
@@ -359,11 +359,11 @@ export function SignupForm() {
         />
         <span>
           I agree to the{" "}
-          <a href="/terms" className="font-semibold text-[var(--gold)] underline underline-offset-2">
+          <a href="/terms" className="font-semibold text-[var(--accent)] underline underline-offset-2">
             Terms and Conditions
           </a>{" "}
           and{" "}
-          <a href="/privacy" className="font-semibold text-[var(--gold)] underline underline-offset-2">
+          <a href="/privacy" className="font-semibold text-[var(--accent)] underline underline-offset-2">
             Privacy Policy
           </a>
           .
@@ -377,7 +377,7 @@ export function SignupForm() {
         className="group relative mt-1 flex items-center justify-center overflow-hidden rounded-lg bg-navy py-3 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-90"
       >
         {isLoading && (
-          <span className="absolute inset-y-0 left-0 w-full origin-left animate-fillbar bg-gold/90" />
+          <span className="absolute inset-y-0 left-0 w-full origin-left animate-fillbar bg-accent/90" />
         )}
         <span className="relative flex items-center gap-2 justify-center">
           {isLoading ? "Creating account" : "Create account"}

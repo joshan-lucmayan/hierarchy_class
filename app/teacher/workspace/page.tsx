@@ -75,12 +75,12 @@ function FilterPills<T extends string>({
             onClick={() => onChange(opt.id)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
               isActive
-                ? "border border-gold-soft bg-gold-soft text-gold-token"
+                ? "border border-accent-soft bg-accent-soft text-accent-token"
                 : "border border-base bg-surface text-muted hover:bg-tile hover:text-navy"
             }`}
           >
             {opt.label}
-            <span className={isActive ? "text-gold-token" : "text-faint"}>{opt.count}</span>
+            <span className={isActive ? "text-accent-token" : "text-faint"}>{opt.count}</span>
           </button>
         );
       })}
@@ -268,7 +268,7 @@ function TeacherWorkspaceInner() {
 
 
   const inputClass =
-    "w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold";
+    "w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-accent";
 
   /** Lesson plan row with inline edit support. */
   function renderLessonRow(plan: LessonPlanItem) {
@@ -312,7 +312,7 @@ function TeacherWorkspaceInner() {
             className={`${inputClass} mt-2`}
           />
           <div className="mt-2 flex gap-2">
-            <Button variant="gold" size="sm" icon={<IconCheck size={12} />} onClick={saveEditLesson} disabled={!lessonEditDraft.title.trim()}>
+            <Button variant="accent" size="sm" icon={<IconCheck size={12} />} onClick={saveEditLesson} disabled={!lessonEditDraft.title.trim()}>
               Save changes
             </Button>
             <Button variant="outline" size="sm" onClick={() => setEditingLessonId(null)}>
@@ -326,7 +326,7 @@ function TeacherWorkspaceInner() {
       <div key={plan.id} className="flex items-start justify-between gap-3 rounded-[10px] border border-base p-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-navy">{plan.title}</p>
-          <p className="text-xs text-gold-token">
+          <p className="text-xs text-accent-token">
             {plan.date}
             {plan.startTime && plan.endTime ? ` · ${formatTimeLabel(plan.startTime)} - ${formatTimeLabel(plan.endTime)}` : ""}
           </p>
@@ -367,7 +367,7 @@ function TeacherWorkspaceInner() {
           </h2>
         </div>
         {pinnedNotes.length > 0 && (
-          <Chip variant="gold">{pinnedNotes.length} pinned note{pinnedNotes.length === 1 ? "" : "s"}</Chip>
+          <Chip variant="accent">{pinnedNotes.length} pinned note{pinnedNotes.length === 1 ? "" : "s"}</Chip>
         )}
       </div>
 
@@ -396,11 +396,11 @@ function TeacherWorkspaceInner() {
                 aria-current={active ? "page" : undefined}
                 className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-[8px] px-3 py-2 text-[12.5px] font-semibold transition ${
                   active
-                    ? "border border-gold-soft bg-gold-soft text-gold-token"
+                    ? "border border-accent-soft bg-accent-soft text-accent-token"
                     : "border border-transparent text-muted hover:bg-tile hover:text-navy"
                 }`}
               >
-                <span className={active ? "text-gold-token" : "text-faint"}>{t.icon}</span>
+                <span className={active ? "text-accent-token" : "text-faint"}>{t.icon}</span>
                 {t.label}
               </button>
             );
@@ -426,7 +426,7 @@ function TeacherWorkspaceInner() {
               <CornerFrame className="p-5">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="section-label">Today&apos;s schedule</h2>
-                  <Chip variant="gold">{todaySchedule.length} remaining</Chip>
+                  <Chip variant="accent">{todaySchedule.length} remaining</Chip>
                 </div>
                 <div className="mt-4 space-y-2">
                   {todaySchedule.length === 0 ? (
@@ -454,7 +454,7 @@ function TeacherWorkspaceInner() {
               <CornerFrame className="p-5">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="section-label">Today&apos;s lesson plans</h2>
-                  <Chip variant="gold">{todayLessonPlans.length} today</Chip>
+                  <Chip variant="accent">{todayLessonPlans.length} today</Chip>
                 </div>
                 <div className="mt-4 space-y-2">
                   {todayLessonPlans.length === 0 ? (
@@ -464,7 +464,7 @@ function TeacherWorkspaceInner() {
                       <div key={plan.id} className="rounded-[8px] border border-line bg-tile px-3 py-2">
                         <p className="truncate text-[12.5px] font-semibold text-navy">{plan.title}</p>
                         {plan.startTime && plan.endTime && (
-                          <p className="text-[11px] text-gold-token">{formatTimeLabel(plan.startTime)} - {formatTimeLabel(plan.endTime)}</p>
+                          <p className="text-[11px] text-accent-token">{formatTimeLabel(plan.startTime)} - {formatTimeLabel(plan.endTime)}</p>
                         )}
                       </div>
                     ))
@@ -488,7 +488,7 @@ function TeacherWorkspaceInner() {
                     <EmptyState icon={<IconPencil />} title="No pinned notes" desc="Pin a note from the Notes tool to keep it close." />
                   ) : (
                     pinnedNotes.slice(0, 3).map((note) => (
-                      <div key={note.id} className="rounded-[8px] border border-gold-soft bg-[var(--surface-strong)] px-3 py-2">
+                      <div key={note.id} className="rounded-[8px] border border-accent-soft bg-[var(--surface-strong)] px-3 py-2">
                         <p className="line-clamp-2 text-[12.5px] text-navy">{note.text}</p>
                       </div>
                     ))
@@ -542,7 +542,7 @@ function TeacherWorkspaceInner() {
                     rows={2}
                     className={`${inputClass} min-w-0 flex-1`}
                   />
-                  <Button type="submit" variant="gold" icon={<IconPlus size={13} />} disabled={!noteDraft.trim()}>
+                  <Button type="submit" variant="accent" icon={<IconPlus size={13} />} disabled={!noteDraft.trim()}>
                     Add note
                   </Button>
                 </form>
@@ -581,7 +581,7 @@ function TeacherWorkspaceInner() {
                             autoFocus
                           />
                           <div className="mt-2 flex gap-2">
-                            <Button variant="gold" size="sm" icon={<IconCheck size={12} />} onClick={saveEditNote} disabled={!noteEditDraft.trim()}>
+                            <Button variant="accent" size="sm" icon={<IconCheck size={12} />} onClick={saveEditNote} disabled={!noteEditDraft.trim()}>
                               Save
                             </Button>
                             <Button variant="outline" size="sm" onClick={() => setEditingNoteId(null)}>
@@ -592,7 +592,7 @@ function TeacherWorkspaceInner() {
                       ) : (
                         <div key={note.id} className="flex items-start justify-between gap-3 rounded-[10px] border border-base p-3">
                           <div className="min-w-0 flex-1">
-                            {note.pinned && <Chip variant="gold" className="mb-1.5">Pinned</Chip>}
+                            {note.pinned && <Chip variant="accent" className="mb-1.5">Pinned</Chip>}
                             <p className="whitespace-pre-wrap text-sm text-navy">{note.text}</p>
                           </div>
                           <div className="flex shrink-0 items-center gap-1.5">
@@ -601,7 +601,7 @@ function TeacherWorkspaceInner() {
                               onClick={() => togglePinNote(note.id)}
                               aria-label={note.pinned ? "Unpin note" : "Pin note"}
                               className={`rounded-md px-2 py-1 text-[11px] font-semibold transition ${
-                                note.pinned ? "text-gold-token" : "text-muted hover:bg-tile hover:text-gold-token"
+                                note.pinned ? "text-accent-token" : "text-muted hover:bg-tile hover:text-accent-token"
                               }`}
                             >
                               {note.pinned ? "Pinned" : "Pin"}
@@ -675,7 +675,7 @@ function TeacherWorkspaceInner() {
                       className={inputClass}
                     />
                   </label>
-                  <Button type="submit" variant="gold" icon={<IconPlus size={13} />} className="xl:mb-0.5">
+                  <Button type="submit" variant="accent" icon={<IconPlus size={13} />} className="xl:mb-0.5">
                     Add
                   </Button>
                 </form>
@@ -690,7 +690,7 @@ function TeacherWorkspaceInner() {
                 <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                   {DAYS.map((day) => (
                     <div key={day} className="rounded-[10px] border border-base bg-tile p-3">
-                      <p className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-token">{day}</p>
+                      <p className="font-mono-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-token">{day}</p>
                       <div className="mt-2.5 space-y-2">
                         {scheduleByDay[day].length === 0 && (
                           <p className="text-[11px] text-faint">Free</p>
@@ -760,7 +760,7 @@ function TeacherWorkspaceInner() {
                     rows={2}
                     className={inputClass}
                   />
-                  <Button type="submit" variant="gold" icon={<IconPlus size={13} />} disabled={!lessonDraft.title.trim()}>
+                  <Button type="submit" variant="accent" icon={<IconPlus size={13} />} disabled={!lessonDraft.title.trim()}>
                     Add lesson plan
                   </Button>
                 </form>

@@ -91,7 +91,7 @@ export function HabitHistoryView({
 
     if (!inRange) return "bg-transparent"; // padding days before/after the window
     if (future) return "bg-[var(--tile)] border border-[var(--line)]/40";
-    if (complete) return "bg-gold/70 border border-gold/40";
+    if (complete) return "bg-accent/70 border border-accent/40";
     if (p || !scheduled) return "bg-[var(--tile)] border border-[var(--line)]/40";
     // scheduled but missed
     return "bg-[var(--warn)]/30 border border-[var(--warn)]/30";
@@ -188,7 +188,7 @@ export function HabitHistoryView({
       )}
 
       <div className="flex flex-wrap gap-x-5 gap-y-1.5 border-t border-base pt-2.5">
-        <Legend color="bg-gold/70" mark="✓" label="Completed" />
+        <Legend color="bg-accent/70" mark="✓" label="Completed" />
         <Legend color="bg-[var(--warn)]/40" mark="✕" label="Missed" />
         <Legend color="bg-[var(--line)]/40" mark="·" label="Off-schedule" />
         <Legend color="bg-[var(--line)]/20" mark="" label="Future" />

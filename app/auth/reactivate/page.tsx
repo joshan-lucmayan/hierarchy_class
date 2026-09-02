@@ -115,15 +115,15 @@ export default function ReactivatePage() {
       <LandingBackground />
       <div className="relative z-[2] flex w-full max-w-md justify-center">
         <div className="w-full rounded-[10px] border border-base bg-surface p-7">
-          <div className="mb-3 h-1 w-10 rounded-full bg-gold-token" />
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Welcome back</p>
+          <div className="mb-3 h-1 w-10 rounded-full bg-accent-token" />
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-token">Welcome back</p>
           <h1 className="mt-2 text-2xl font-bold text-navy">Your account is currently deactivated.</h1>
           <p className="mt-3 text-sm leading-6 text-muted">
             Would you like to reactivate your account and continue using Hierarchy Class?
           </p>
 
           <div className="mt-6 space-y-2">
-            <Button variant="gold" className="w-full" loading={busy === "reactivate"} disabled={busy !== null} onClick={handleReactivate}>
+            <Button variant="accent" className="w-full" loading={busy === "reactivate"} disabled={busy !== null} onClick={handleReactivate}>
               Reactivate Account
             </Button>
             <Button variant="outline" className="w-full" loading={busy === "stay"} disabled={busy !== null} onClick={handleStayDeactivated}>

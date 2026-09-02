@@ -55,14 +55,14 @@ export function ResetPasswordForm() {
   if (status === "done") {
     return (
       <div className="animate-pop-in flex flex-col items-center gap-4 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent-token">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path className="draw-check" d="M20 6L9 17l-5-5" />
           </svg>
         </span>
         <h1 className="text-lg font-bold text-navy">Password updated</h1>
         <p className="text-sm text-muted">You can now sign in with your new password.</p>
-        <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent">
+        <a href="/login" className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent">
           Go to login
         </a>
       </div>
@@ -87,7 +87,7 @@ export function ResetPasswordForm() {
               placeholder="At least 8 characters"
               disabled={status === "saving"}
               className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-surface-50
-                ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+                ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
             />
             <button
               type="button"
@@ -109,7 +109,7 @@ export function ResetPasswordForm() {
             placeholder="Repeat your new password"
             disabled={status === "saving"}
             className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-surface-50
-              ${errors.confirm ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.confirm ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           {errors.confirm && <p className="text-xs text-warn">{errors.confirm}</p>}
         </div>

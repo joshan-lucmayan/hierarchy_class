@@ -60,7 +60,7 @@ export function LandingBackground() {
           viewBox="0 0 1400 770"
           className="h-auto w-[900px] max-w-none"
           style={{
-            fill: "var(--gold)",
+            fill: "var(--accent)",
             filter: "grayscale(0.15) brightness(0.85) contrast(1.05)",
             WebkitMaskImage: "radial-gradient(ellipse 55% 60% at 50% 48%, #000 35%, transparent 78%)",
             maskImage: "radial-gradient(ellipse 55% 60% at 50% 48%, #000 35%, transparent 78%)",

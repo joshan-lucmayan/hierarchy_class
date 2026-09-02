@@ -119,7 +119,7 @@ INSERT INTO shop_items (type, name, description, price, image_url, accent, sort_
 SELECT * FROM (VALUES
   ('profile_card', 'Royal Slate', 'A quiet crown over deep slate. Your profile card, dressed.', 200, '/hc_bg/card_royal.svg', NULL, 70),
   ('profile_card', 'Midnight Board', 'A faint chessboard with a lone king. For the strategists.', 220, '/hc_bg/card_board.svg', NULL, 80),
-  ('profile_card', 'Gold Ribbon', 'Flowing ribbons and sparkles across your card.', 260, '/hc_bg/card_ribbon.svg', NULL, 90),
+  ('profile_card', 'Royal Ribbon', 'Flowing ribbons and sparkles across your card.', 260, '/hc_bg/card_ribbon.svg', NULL, 90),
   ('profile_card', 'Crown Court', 'The emblem glowing at the center of your card.', 300, '/hc_bg/card_crown.svg', NULL, 100)
 ) AS s(type, name, description, price, image_url, accent, sort_order)
 WHERE NOT EXISTS (SELECT 1 FROM shop_items WHERE type = 'profile_card');

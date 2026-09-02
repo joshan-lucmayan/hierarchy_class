@@ -167,7 +167,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
   const showReviewForm = mode === "manual" || scanState === "found" || scanState === "not-found";
 
   const inputCls =
-    "w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-gold";
+    "w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-accent";
   const fieldLabel = "font-mono-ui text-[10px] font-semibold uppercase tracking-[0.14em] text-faint";
 
   return (
@@ -178,7 +178,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={() => { setMode("scan"); setScanState("idle"); setDraft(EMPTY_DRAFT); }}
           className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-            mode === "scan" ? "bg-gold-token text-on-accent" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+            mode === "scan" ? "bg-accent-token text-on-accent" : "border border-base text-muted hover:border-accent-soft hover:text-accent-token"
           }`}
         >
           Scan barcode
@@ -187,7 +187,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={async () => { await stopScanner(); setMode("manual"); setDraft(EMPTY_DRAFT); }}
           className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-            mode === "manual" ? "bg-gold-token text-on-accent" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+            mode === "manual" ? "bg-accent-token text-on-accent" : "border border-base text-muted hover:border-accent-soft hover:text-accent-token"
           }`}
         >
           Enter manually
@@ -201,7 +201,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={() => { setScanInput("camera"); setScanState("idle"); setDraft(EMPTY_DRAFT); }}
               className={`flex-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                scanInput === "camera" ? "border border-gold-token text-gold-token" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+                scanInput === "camera" ? "border border-accent-token text-accent-token" : "border border-base text-muted hover:border-accent-soft hover:text-accent-token"
               }`}
             >
               Use camera
@@ -216,7 +216,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
                 setTimeout(() => deviceInputRef.current?.focus(), 0);
               }}
               className={`flex-1 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                scanInput === "device" ? "border border-gold-token text-gold-token" : "border border-base text-muted hover:border-gold-soft hover:text-gold-token"
+                scanInput === "device" ? "border border-accent-token text-accent-token" : "border border-base text-muted hover:border-accent-soft hover:text-accent-token"
               }`}
             >
               Use scanner device
@@ -254,7 +254,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
                 autoFocus
                 aria-label="Barcode scanner input - waiting for scan"
                 placeholder="Waiting for scan..."
-                className="w-full rounded-[10px] border-2 border-dashed border-gold-token bg-[var(--surface-strong)] px-4 py-3 text-center text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border-2 border-dashed border-accent-token bg-[var(--surface-strong)] px-4 py-3 text-center text-sm text-navy outline-none focus:border-accent"
               />
               {scanState === "looking-up" && (
                 <p className="text-center text-xs text-muted">Looking up book details...</p>
@@ -267,14 +267,14 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
       {showReviewForm && (
         <form onSubmit={handleSubmit} className="mt-5 space-y-3">
           {scanState === "not-found" && (
-            <p className="rounded-[10px] border border-gold-soft bg-gold-soft px-3 py-2.5 text-xs text-gold-token">
+            <p className="rounded-[10px] border border-accent-soft bg-accent-soft px-3 py-2.5 text-xs text-accent-token">
               Couldn&apos;t find that ISBN online - fill in the details below manually.
             </p>
           )}
           {scanState === "found" && (
-            <div className="flex items-center justify-between gap-3 rounded-[10px] border border-gold-soft bg-gold-soft px-3 py-2.5">
-              <p className="text-xs text-gold-token">Found it! Review the details below before saving.</p>
-              <button type="button" onClick={handleRetryScan} className="shrink-0 text-xs font-semibold text-gold-token underline">
+            <div className="flex items-center justify-between gap-3 rounded-[10px] border border-accent-soft bg-accent-soft px-3 py-2.5">
+              <p className="text-xs text-accent-token">Found it! Review the details below before saving.</p>
+              <button type="button" onClick={handleRetryScan} className="shrink-0 text-xs font-semibold text-accent-token underline">
                 Scan again
               </button>
             </div>
@@ -343,7 +343,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
           <div className="flex gap-2 pt-2">
             <Button
               type="submit"
-              variant="gold"
+              variant="accent"
               className="flex-1"
               icon={<IconPlus size={13} />}
               disabled={submitting || !draft.title.trim() || !draft.author.trim()}

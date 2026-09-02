@@ -112,7 +112,7 @@ export default function TeacherLearningMaterialsPage() {
         <Stat
           label="My materials"
           value={loading ? "-" : myMaterials.length}
-          tone="gold"
+          tone="accent"
           hint="Visible to your students"
         />
       </div>
@@ -135,7 +135,7 @@ export default function TeacherLearningMaterialsPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Lesson title"
-                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
               />
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -146,7 +146,7 @@ export default function TeacherLearningMaterialsPage() {
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
                 >
                   {subjectOptions.map((item) => (
                     <option key={item} value={item}>{item}</option>
@@ -161,7 +161,7 @@ export default function TeacherLearningMaterialsPage() {
                   value={levelLabel}
                   onChange={(e) => setLevelLabel(e.target.value)}
                   placeholder="e.g. Grade 10 or All Levels"
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
                 />
               </label>
             </div>
@@ -173,7 +173,7 @@ export default function TeacherLearningMaterialsPage() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
                 >
                   {["Document", "Worksheet", "Article", "Video", "Guide", "Slides"].map((t) => (
                     <option key={t} value={t}>{t}</option>
@@ -214,11 +214,11 @@ export default function TeacherLearningMaterialsPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What should students know about this resource?"
                 rows={2}
-                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
               />
             </label>
             {message && (
-              <p className={`text-sm ${message.kind === "ok" ? "text-gold-token" : "text-warn"}`}>{message.text}</p>
+              <p className={`text-sm ${message.kind === "ok" ? "text-accent-token" : "text-warn"}`}>{message.text}</p>
             )}
             <Button type="submit" variant="primary" size="md" icon={<IconPlus size={13} />} disabled={submitting}>
               {submitting ? "Uploading..." : "Add material"}
@@ -230,7 +230,7 @@ export default function TeacherLearningMaterialsPage() {
         <CornerFrame className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="section-label">Manage uploads</h3>
-            {!loading && myMaterials.length > 0 && <Chip variant="gold">{myMaterials.length} total</Chip>}
+            {!loading && myMaterials.length > 0 && <Chip variant="accent">{myMaterials.length} total</Chip>}
           </div>
 
           {loading ? (
@@ -274,7 +274,7 @@ export default function TeacherLearningMaterialsPage() {
                           href={material.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-navy transition hover-border-gold-soft hover-text-gold-token"
+                          className="inline-flex items-center rounded-full border border-base bg-surface px-3 py-2 text-xs font-semibold text-navy transition hover-border-accent-soft hover-text-accent-token"
                         >
                           Open
                         </a>

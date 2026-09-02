@@ -21,7 +21,7 @@ export function PresetCard({
   onApply: (preset: DashboardPreset) => void;
 }) {
   return (
-    <div className="flex flex-col rounded-[10px] border border-base bg-surface p-3 transition hover:-translate-y-0.5 hover-border-gold-soft">
+    <div className="flex flex-col rounded-[10px] border border-base bg-surface p-3 transition hover:-translate-y-0.5 hover-border-accent-soft">
       <PresetPreview widgets={preset.widgets} labelOf={labelOf} />
       <p className="mt-3 text-[13px] font-semibold text-navy">{preset.label}</p>
       <p className="mt-0.5 flex-1 text-[11px] leading-4 text-muted">{preset.description}</p>

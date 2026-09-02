@@ -108,7 +108,7 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
-        {requestMessage && <p className="text-sm font-semibold text-gold-token">{requestMessage}</p>}
+        {requestMessage && <p className="text-sm font-semibold text-accent-token">{requestMessage}</p>}
         {requestError && <p className="text-sm text-warn">{requestError}</p>}
       </section>
 
@@ -126,7 +126,7 @@ export default function SettingsPage() {
               Cancel
             </Button>
             <Button
-              variant="gold"
+              variant="accent"
               className="flex-1"
               loading={busy === "deactivation"}
               disabled={busy === "deactivation"}
@@ -152,7 +152,7 @@ export default function SettingsPage() {
           <div className="mt-5 space-y-2">
             <a
               href={backendUrl("/api/export-account")}
-              className="flex w-full items-center justify-center rounded-[10px] border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-gold"
+              className="flex w-full items-center justify-center rounded-[10px] border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-accent"
             >
               Download My Data
             </a>

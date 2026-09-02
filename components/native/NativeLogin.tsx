@@ -112,7 +112,7 @@ export function NativeLogin() {
     return (
       <NativeAuthShell>
         <div className="flex flex-col items-center gap-4 py-8 text-center" role="status" aria-live="polite">
-          <span className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--gold)] border-t-transparent" aria-hidden />
+          <span className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" aria-hidden />
           <div>
             <h2 className="text-base font-bold text-[var(--text)]">Signing you in</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">Loading your account and rank...</p>
@@ -128,7 +128,7 @@ export function NativeLogin() {
         <p className="text-center text-[15px] font-semibold text-[var(--text)]">Welcome back.</p>
 
         {justConfirmed && (
-          <div className="mt-4 rounded-lg border border-gold-soft bg-gold-soft px-3.5 py-2.5 text-sm text-gold-token">
+          <div className="mt-4 rounded-lg border border-accent-soft bg-accent-soft px-3.5 py-2.5 text-sm text-accent-token">
             Email confirmed! You can now log in.
           </div>
         )}
@@ -148,7 +148,7 @@ export function NativeLogin() {
           </div>
         )}
         {resendStatus && (
-          <div className={`mt-4 rounded-lg border px-3.5 py-2.5 text-sm ${resendStatus.startsWith("A new") ? "border-gold-soft bg-gold-soft text-gold-token" : "border-warn-soft bg-warn-soft text-warn"}`}>
+          <div className={`mt-4 rounded-lg border px-3.5 py-2.5 text-sm ${resendStatus.startsWith("A new") ? "border-accent-soft bg-accent-soft text-accent-token" : "border-warn-soft bg-warn-soft text-warn"}`}>
             {resendStatus}
           </div>
         )}
@@ -169,7 +169,7 @@ export function NativeLogin() {
               enterKeyHint="next"
               onKeyDown={(e) => advanceNativeInput(e, "native-password")}
               className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
           {errors.email && <p className="mt-1 text-xs text-warn">{errors.email}</p>}
         </div>
@@ -189,7 +189,7 @@ export function NativeLogin() {
               autoComplete="current-password"
               enterKeyHint="go"
               className={`h-12 w-full rounded-xl border bg-surface px-4 pr-12 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             <button
               type="button"
@@ -216,7 +216,7 @@ export function NativeLogin() {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-6 flex min-h-[52px] w-full items-center justify-center rounded-xl bg-navy text-[15px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
+          className="mt-6 flex min-h-[52px] w-full items-center justify-center rounded-xl bg-navy text-[15px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
         >
           {isLoading ? "Logging in..." : "Log In"}
         </button>
@@ -238,7 +238,7 @@ export function NativeLogin() {
                 onChange={(e) => setResendEmail(e.target.value)}
                 placeholder="you@example.com"
                 disabled={resending}
-                className="min-w-0 flex-1 rounded-lg border border-base bg-surface px-3.5 py-2.5 text-sm text-[var(--text)] outline-none focus:border-[var(--gold)] disabled:bg-tile"
+                className="min-w-0 flex-1 rounded-lg border border-base bg-surface px-3.5 py-2.5 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] disabled:bg-tile"
               />
               <button
                 type="submit"
@@ -261,7 +261,7 @@ export function NativeLogin() {
           <p className="text-sm text-[var(--muted)]">Don&apos;t have an account?</p>
           <Link
             href="/signup"
-            className="mt-1 flex min-h-[52px] w-full items-center justify-center rounded-xl border border-base bg-surface text-[15px] font-bold uppercase tracking-widest text-navy transition hover:border-gold-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] active:scale-[0.98] touch-manipulation"
+            className="mt-1 flex min-h-[52px] w-full items-center justify-center rounded-xl border border-base bg-surface text-[15px] font-bold uppercase tracking-widest text-navy transition hover:border-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:scale-[0.98] touch-manipulation"
           >
             Create an Account
           </Link>

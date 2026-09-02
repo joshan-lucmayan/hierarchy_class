@@ -36,7 +36,7 @@ function ApproveRow({
           <p className="mt-1 text-xs text-muted">
             {request.studentName} · {request.gradeSection} · requested {request.requestedAt}
           </p>
-          <Chip variant="gold" className="mt-2">
+          <Chip variant="accent" className="mt-2">
             {request.requestedDays} day{request.requestedDays === 1 ? "" : "s"}
           </Chip>
         </div>
@@ -46,11 +46,11 @@ function ApproveRow({
           value={pickupWindow}
           onChange={(e) => setPickupWindow(e.target.value)}
           placeholder="Pickup window, e.g. Today 2-4 PM"
-          className="flex-1 rounded-[10px] border border-base bg-surface px-4 py-2 text-sm text-navy outline-none focus:border-gold"
+          className="flex-1 rounded-[10px] border border-base bg-surface px-4 py-2 text-sm text-navy outline-none focus:border-accent"
         />
         <div className="flex gap-2">
           <Button
-            variant="gold"
+            variant="accent"
             size="sm"
             icon={<IconCheck size={13} />}
             onClick={() => onApprove(request.id, pickupWindow)}
@@ -158,10 +158,10 @@ function LibraryManagementContent() {
           <Stat
             label="Books out"
             value={loading ? "-" : borrowedBooks.length}
-            tone="gold"
+            tone="accent"
             hint="Currently borrowed"
           />
-          <Button variant="gold" size="md" icon={<IconPlus size={13} />} onClick={() => setShowAddBook(true)}>
+          <Button variant="accent" size="md" icon={<IconPlus size={13} />} onClick={() => setShowAddBook(true)}>
             Add book
           </Button>
         </div>
@@ -201,7 +201,7 @@ function LibraryManagementContent() {
           <CornerFrame className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="section-label">Full catalog</h3>
-              <Chip variant="gold">
+              <Chip variant="accent">
                 {books.length} book{books.length === 1 ? "" : "s"}
               </Chip>
             </div>
@@ -213,7 +213,7 @@ function LibraryManagementContent() {
                   setPage(1);
                 }}
                 placeholder="Search by title, author, genre, or ISBN..."
-                className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-accent"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
                 {filteredCatalog.length}
@@ -239,8 +239,8 @@ function LibraryManagementContent() {
                   }}
                   className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                     statusFilter === value
-                      ? "border-gold-token bg-[var(--surface-strong)] text-navy"
-                      : "border-base bg-surface text-muted hover:border-gold-soft"
+                      ? "border-accent-token bg-[var(--surface-strong)] text-navy"
+                      : "border-base bg-surface text-muted hover:border-accent-soft"
                   }`}
                 >
                   {label} ({statusCounts[value]})
@@ -254,7 +254,7 @@ function LibraryManagementContent() {
                     setSortBy(e.target.value as typeof sortBy);
                     setPage(1);
                   }}
-                  className="rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-gold"
+                  className="rounded-[8px] border border-base bg-surface px-2.5 py-1.5 text-xs text-navy outline-none focus:border-accent"
                 >
                   <option value="title-asc">Title A-Z</option>
                   <option value="title-desc">Title Z-A</option>
@@ -320,8 +320,8 @@ function LibraryManagementContent() {
                           aria-current={n === safePage ? "page" : undefined}
                           className={`h-8 w-8 rounded-[8px] text-xs font-semibold transition ${
                             n === safePage
-                              ? "bg-gold-token text-on-accent"
-                              : "border border-base bg-surface text-muted hover:border-gold-soft"
+                              ? "bg-accent-token text-on-accent"
+                              : "border border-base bg-surface text-muted hover:border-accent-soft"
                           }`}
                         >
                           {n}
@@ -351,7 +351,7 @@ function LibraryManagementContent() {
                       type="button"
                       title="View book details"
                       onClick={() => setViewingBook(book)}
-                      className="flex w-full items-center gap-3 rounded-[10px] border border-base bg-surface p-3 text-left transition hover:border-gold-soft"
+                      className="flex w-full items-center gap-3 rounded-[10px] border border-base bg-surface p-3 text-left transition hover:border-accent-soft"
                     >
                       <BookCover book={book} />
                       <div className="min-w-0 flex-1">
@@ -359,7 +359,7 @@ function LibraryManagementContent() {
                         <p className="mt-0.5 truncate text-xs text-muted">{book.author} · {book.genre}</p>
                         {book.location && (
                           <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gold-token">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent-token">
                               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                               <circle cx="12" cy="10" r="3" />
                             </svg>
@@ -466,7 +466,7 @@ function LibraryManagementContent() {
                           Receipt
                         </Button>
                         <Button
-                          variant="gold"
+                          variant="accent"
                           size="sm"
                           icon={<IconCheck size={12} />}
                           onClick={() => returnBook(book.id)}
@@ -494,7 +494,7 @@ function LibraryManagementContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search a book title..."
-              className="mt-3 w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+              className="mt-3 w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
             />
             {searchQuery.trim() && (
               <div className="mt-4 space-y-2">

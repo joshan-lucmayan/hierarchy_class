@@ -52,7 +52,7 @@ export default function PaymentCancelPage() {
         <div className="flex flex-col gap-3">
           <Link
             href="/student/shop"
-            className="inline-block px-6 py-2.5 rounded-full bg-navy text-white font-semibold hover:bg-gold transition-colors"
+            className="inline-block px-6 py-2.5 rounded-full bg-navy text-white font-semibold hover:bg-accent transition-colors"
           >
             Return to Shop
           </Link>

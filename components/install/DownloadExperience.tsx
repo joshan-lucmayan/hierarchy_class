@@ -115,7 +115,7 @@ export function DownloadExperience() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-[720px] px-4 pb-[calc(3rem+env(safe-area-inset-bottom))] pt-8 sm:px-6 sm:pt-12">
       <header className="mb-6 flex items-center gap-3">
-        <CrownMark height={34} className="text-gold" />
+        <CrownMark height={34} className="text-accent" />
         <div>
           <h1 className="font-display text-xl font-bold text-navy">Get Hierarchy Class</h1>
           <p className="text-xs text-muted">
@@ -207,7 +207,7 @@ export function DownloadExperience() {
                 <span className="min-w-0 flex-1 break-all font-mono-ui text-[10.5px] text-faint">
                   SHA-256 {APK_RELEASE.sha256}
                 </span>
-                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold">
+                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-accent">
                   {apkCopied ? "Copied" : "Copy"}
                 </span>
               </button>
@@ -309,7 +309,7 @@ export function DownloadExperience() {
       </div>
 
       <footer className="mt-8 text-center">
-        <Link href="/" className="text-xs font-semibold text-gold hover:underline">
+        <Link href="/" className="text-xs font-semibold text-accent hover:underline">
           ← Back to Hierarchy Class
         </Link>
       </footer>

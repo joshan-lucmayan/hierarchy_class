@@ -41,7 +41,7 @@ export function Music({ studentId, viewer = false }: { studentId?: string; viewe
     <div>
       {isOwner && profile && (
         <div className="mb-4">
-          <Button variant="gold" className="w-full" icon={<IconPlus size={15} />} onClick={() => setPostOpen(true)}>
+          <Button variant="accent" className="w-full" icon={<IconPlus size={15} />} onClick={() => setPostOpen(true)}>
             Post Music
           </Button>
         </div>
@@ -101,7 +101,7 @@ export function Music({ studentId, viewer = false }: { studentId?: string; viewe
             <button
               type="button"
               onClick={() => setVisibleCount((c) => c + GRID_PAGE)}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-gold-soft"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-accent-soft"
             >
               Load More
             </button>
@@ -169,11 +169,11 @@ function PostMusicModal({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste a YouTube, Spotify, Apple Music, SoundCloud, or Vimeo URL"
-            className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+            className="mt-1.5 w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
           />
         </div>
         {error && <p className="text-sm text-warn">{error}</p>}
-        <Button type="submit" variant="gold" className="w-full" loading={posting} disabled={posting}>
+        <Button type="submit" variant="accent" className="w-full" loading={posting} disabled={posting}>
           {posting ? "Posting..." : "Post"}
         </Button>
       </form>

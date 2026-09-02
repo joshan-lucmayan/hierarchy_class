@@ -7,13 +7,13 @@ export interface StatProps {
   label: string;
   value: React.ReactNode;
   hint?: string;
-  tone?: "default" | "gold" | "warn" | "muted";
+  tone?: "default" | "accent" | "warn" | "muted";
   className?: string;
 }
 
 const VALUE_COLORS = {
   default: "text-navy",
-  gold: "text-gold-token",
+  accent: "text-accent-token",
   warn: "text-warn",
   muted: "text-muted",
 } as const;

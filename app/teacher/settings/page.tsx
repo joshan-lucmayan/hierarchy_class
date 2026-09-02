@@ -79,7 +79,7 @@ export default function TeacherSettingsPage() {
         </p>
         <div className="mt-4">
           <Link href="/teacher/home?customize=1">
-            <Button variant="gold" icon={<IconPencil size={13} />}>
+            <Button variant="accent" icon={<IconPencil size={13} />}>
               Customize Home
             </Button>
           </Link>
@@ -156,7 +156,7 @@ export default function TeacherSettingsPage() {
             </Button>
           </div>
         </div>
-        {requestMessage && <p className="mt-3 text-sm font-semibold text-gold-token">{requestMessage}</p>}
+        {requestMessage && <p className="mt-3 text-sm font-semibold text-accent-token">{requestMessage}</p>}
         {requestError && <p className="mt-3 text-sm text-warn">{requestError}</p>}
       </CornerFrame>
 
@@ -174,7 +174,7 @@ export default function TeacherSettingsPage() {
             <Button variant="outline" className="flex-1" onClick={() => setDeactivateOpen(false)} disabled={busy === "deactivation"}>
               Cancel
             </Button>
-            <Button variant="gold" className="flex-1" loading={busy === "deactivation"} disabled={busy === "deactivation"} onClick={handleDeactivate}>
+            <Button variant="accent" className="flex-1" loading={busy === "deactivation"} disabled={busy === "deactivation"} onClick={handleDeactivate}>
               Deactivate account
             </Button>
           </div>
@@ -195,7 +195,7 @@ export default function TeacherSettingsPage() {
           <div className="mt-5 space-y-2">
             <a
               href={backendUrl("/api/export-account")}
-              className="flex w-full items-center justify-center rounded-[10px] border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-gold"
+              className="flex w-full items-center justify-center rounded-[10px] border border-base bg-surface px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-accent"
             >
               Download My Data
             </a>

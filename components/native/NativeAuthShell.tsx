@@ -31,7 +31,7 @@ export function NativeAuthShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="flex min-h-full flex-col items-center justify-center py-6">
           <div className="mx-auto flex w-full max-w-[400px] flex-col items-center text-center">
-            <div className="flex items-center justify-center text-[var(--gold)]">
+            <div className="flex items-center justify-center text-[var(--accent)]">
               <CrownMark height={48} />
             </div>
             <h1 className="mt-4 font-display text-[19px] font-semibold uppercase tracking-[0.12em] text-[var(--text)]">

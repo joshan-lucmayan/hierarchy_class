@@ -136,7 +136,7 @@ export function FeedbackForm() {
         rows={4}
         maxLength={5000}
         placeholder="Tell us what would make the app better, or report a problem..."
-        className="w-full border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none focus:border-gold"
+        className="w-full border-b border-base bg-transparent px-1 py-2 text-sm text-navy outline-none focus:border-accent"
       />
 
       {/* Attachments */}
@@ -153,7 +153,7 @@ export function FeedbackForm() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={files.length >= MAX_ATTACHMENTS || state === "sending"}
-          className="inline-flex items-center gap-1.5 rounded-full border border-base bg-surface px-3.5 py-2 text-xs font-semibold text-navy transition hover:border-gold disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-full border border-base bg-surface px-3.5 py-2 text-xs font-semibold text-navy transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
@@ -205,12 +205,12 @@ export function FeedbackForm() {
         <button
           type="submit"
           disabled={state === "sending" || !feedback.trim() || uploading}
-          className="inline-flex items-center justify-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center rounded-full bg-navy px-5 py-3 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state === "sending" || uploading ? "Sending..." : "Send feedback"}
         </button>
         {state === "done" && (
-          <p className="text-sm font-semibold text-gold-token">Thanks! Your feedback has been sent.</p>
+          <p className="text-sm font-semibold text-accent-token">Thanks! Your feedback has been sent.</p>
         )}
         {state === "error" && errorText && (
           <p className="text-sm text-warn">{errorText}</p>

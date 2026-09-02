@@ -133,7 +133,7 @@ export function QuickSearchBar() {
         {/* Search icon: magnifying glass using the muted token so it blends
             with the placeholder text and feels like part of the search control.
             On focus it lifts to --text (matching typed text), staying restrained
-            - no gold, no glow. Rounded caps + joins keep the handle and lens
+            - no accent, no glow. Rounded caps + joins keep the handle and lens
             crisp at 20 px. The handle starts at (16,16) - past the circle's
             outer stroke edge - so it's never swallowed by the lens. */}
         <svg

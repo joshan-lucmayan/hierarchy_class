@@ -43,7 +43,7 @@ export default function HabitTracker() {
         <h2 className="section-label">Habit Tracker</h2>
         <Link
           href="/student/habits"
-          className="shrink-0 text-[11px] font-semibold text-gold transition hover:underline"
+          className="shrink-0 text-[11px] font-semibold text-accent transition hover:underline"
         >
           View all
         </Link>
@@ -60,7 +60,7 @@ export default function HabitTracker() {
       ) : active.length === 0 ? (
         <p className="mt-4 text-[12.5px] leading-5 text-muted">
           No active habits.{" "}
-          <Link href="/student/habits" className="font-semibold text-gold hover:underline">
+          <Link href="/student/habits" className="font-semibold text-accent hover:underline">
             Start one
           </Link>
           .
@@ -80,7 +80,7 @@ export default function HabitTracker() {
                 >
                   <span
                     className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg border border-line bg-tile text-muted transition-colors ${
-                      done ? "text-gold" : "group-hover:text-navy"
+                      done ? "text-accent" : "group-hover:text-navy"
                     }`}
                   >
                     <HabitIcon icon={habit.icon} size={15} />
@@ -111,7 +111,7 @@ export default function HabitTracker() {
                     aria-label={`${habit.name} - ${done ? "done today" : "mark done today"}`}
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition disabled:opacity-60 ${
                       done
-                        ? "border-sealion bg-gold text-on-accent"
+                        ? "border-sealion bg-accent text-on-accent"
                         : "border-line bg-tile text-faint hover:border-sealion"
                     }`}
                   >

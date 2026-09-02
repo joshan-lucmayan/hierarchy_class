@@ -15,7 +15,7 @@
   --text: #23252a; /* primary text */
   --muted: #565a63; /* secondary text */
   --faint: #8b8e97; /* labels / captions */
-  --gold: #8a94a0; /* Great Falls accent (deeper for light surfaces) */
+  --accent: #8a94a0; /* Great Falls accent (deeper for light surfaces) */
   --sealion: #8a95a1; /* fills, active border */
   --asphalt: #b6bbc3; /* avatar placeholders, spark bars */
   --warn: #b0605a; /* salmon warning text */
@@ -45,7 +45,7 @@
   --text: #f0f0f1; /* primary text */
   --muted: #9a9ba1; /* secondary text */
   --faint: #6c6d73; /* labels / captions */
-  --gold: #9ea7b3; /* Great Falls accent */
+  --accent: #9ea7b3; /* Great Falls accent */
   --sealion: #7f8995; /* fills, active border */
   --asphalt: #464c55; /* avatar placeholders, spark bars */
   --warn: #c98f8f; /* salmon warning text */
@@ -73,7 +73,7 @@
   --text: color-mix(in srgb, #98979c 50%, #141214); /* Mountain Mist deepened for contrast */
   --muted: color-mix(in srgb, #98979c 62%, #141214); /* secondary text - darker than captions, so it reads */
   --faint: color-mix(in srgb, #98979c 75%, #141214); /* captions / labels - readable but softest */
-  --gold: #98979c; /* Mountain Mist accent */
+  --accent: #98979c; /* Mountain Mist accent */
   --sealion: #98979c; /* fills, active border */
   --asphalt: #d9bbbd; /* avatar placeholders, spark bars */
   --warn: #b0605a; /* salmon warning text */
@@ -198,27 +198,27 @@ body {
   border-color: var(--border);
 }
 
-/* Theme-aware gold + warn accents (var-driven so Rose keeps its pink).
-   The plain Tailwind `text-gold`/`bg-gold` utilities use a fixed hex; these
+/* Theme-aware accent + warn accents (var-driven so Rose keeps its pink).
+   The plain Tailwind `text-accent`/`bg-accent` utilities use a fixed hex; these
    classes track the active theme token instead. */
-.text-gold-token {
-  color: var(--gold);
+.text-accent-token {
+  color: var(--accent);
 }
 
-.bg-gold-token {
-  background-color: var(--gold);
+.bg-accent-token {
+  background-color: var(--accent);
 }
 
-.border-gold-token {
-  border-color: var(--gold);
+.border-accent-token {
+  border-color: var(--accent);
 }
 
-.bg-gold-soft {
-  background-color: color-mix(in srgb, var(--gold) 14%, transparent);
+.bg-accent-soft {
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
-.border-gold-soft {
-  border-color: color-mix(in srgb, var(--gold) 38%, transparent);
+.border-accent-soft {
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
 }
 
 .bg-warn-soft {
@@ -231,21 +231,21 @@ body {
 
 /* Hover variants for the theme-token utilities above. Tailwind can only
    generate variants for utilities it knows about, so the `hover:` forms of
-   these plain CSS classes are declared here (used as `hover-bg-gold-soft`). */
-.hover-bg-gold-token:hover {
-  background-color: var(--gold);
+   these plain CSS classes are declared here (used as `hover-bg-accent-soft`). */
+.hover-bg-accent-token:hover {
+  background-color: var(--accent);
 }
 
 .hover-text-on-accent:hover {
   color: var(--on-accent);
 }
 
-.hover-bg-gold-soft:hover {
-  background-color: color-mix(in srgb, var(--gold) 14%, transparent);
+.hover-bg-accent-soft:hover {
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
-.hover-border-gold-soft:hover {
-  border-color: color-mix(in srgb, var(--gold) 38%, transparent);
+.hover-border-accent-soft:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
 }
 
 .hover-bg-warn-soft:hover {
@@ -260,8 +260,8 @@ body {
   background-color: var(--tile);
 }
 
-.hover-text-gold-token:hover {
-  color: var(--gold);
+.hover-text-accent-token:hover {
+  color: var(--accent);
 }
 
 .hover-text-warn:hover {
@@ -559,7 +559,7 @@ body {
 }
 
 .text-shimmer {
-  background: linear-gradient(90deg, var(--gold) 0%, #eef1f5 45%, var(--gold) 90%);
+  background: linear-gradient(90deg, var(--accent) 0%, #eef1f5 45%, var(--accent) 90%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;

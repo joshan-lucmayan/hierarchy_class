@@ -107,7 +107,7 @@ function RankImpact({
         </p>
         <div className="mt-2 flex items-center gap-3 text-sm">
           <span className="font-mono text-navy">{before}</span>
-          <span className={`font-semibold ${change >= 0 ? "text-gold-token" : "text-warn"}`}>
+          <span className={`font-semibold ${change >= 0 ? "text-accent-token" : "text-warn"}`}>
             {change >= 0 ? "+" : ""}
             {change}
           </span>
@@ -158,7 +158,7 @@ function RankImpact({
           <span className="text-muted">Change</span>
           <span
             className={`font-semibold ${
-              barInfo.direction === "up" ? "text-gold-token" : "text-warn"
+              barInfo.direction === "up" ? "text-accent-token" : "text-warn"
             }`}
           >
             {barInfo.direction === "up" ? "+" : ""}
@@ -207,7 +207,7 @@ function RankImpact({
 
 function EventIcon({ eventType, tone }: { eventType: string; tone: string }) {
   const iconColor = tone === "promotion" || tone === "positive"
-    ? "text-gold-token"
+    ? "text-accent-token"
     : tone === "demotion" || tone === "negative"
       ? "text-warn"
       : "text-muted";
@@ -233,19 +233,19 @@ export function HistoryEventCard({ event }: { event: HistoryEvent }) {
   const meta = getEventMeta(event.eventType);
 
   const toneClasses: Record<string, string> = {
-    positive: "border-l-gold",
+    positive: "border-l-accent",
     negative: "border-l-warn",
     neutral: "border-l-[var(--line)]",
-    promotion: "border-l-gold",
+    promotion: "border-l-accent",
     demotion: "border-l-warn",
     season: "border-l-sealion",
   };
 
   const badgeClasses: Record<string, string> = {
-    positive: "bg-gold-soft text-gold-token",
+    positive: "bg-accent-soft text-accent-token",
     negative: "bg-warn-soft text-warn",
     neutral: "bg-tile text-muted",
-    promotion: "bg-gold-soft text-gold-token",
+    promotion: "bg-accent-soft text-accent-token",
     demotion: "bg-warn-soft text-warn",
     season: "bg-tile text-sealion",
   };

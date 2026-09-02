@@ -77,7 +77,7 @@ export function Wardrobe() {
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
       <div className="mb-1 flex items-center justify-between">
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-navy">Wardrobe</h2>
-        <Link href="/student/shop" className="text-[12px] font-semibold text-gold transition hover:underline">
+        <Link href="/student/shop" className="text-[12px] font-semibold text-accent transition hover:underline">
           Shop
         </Link>
       </div>
@@ -86,7 +86,7 @@ export function Wardrobe() {
       </p>
 
       {status && (
-        <p className="mb-4 rounded-lg border border-gold bg-gold/10 px-3 py-2 text-xs font-medium text-gold">
+        <p className="mb-4 rounded-lg border border-accent bg-accent/10 px-3 py-2 text-xs font-medium text-accent">
           {status}
         </p>
       )}
@@ -133,7 +133,7 @@ export function Wardrobe() {
                         disabled={busyId === item.id}
                         className={`flex items-center gap-2 rounded-lg border p-2 text-left transition disabled:opacity-60 ${
                           isCurrent
-                            ? "border-gold bg-gold/10"
+                            ? "border-accent bg-accent/10"
                             : "border-base bg-[var(--surface-strong)] hover:border-sealion"
                         }`}
                       >
@@ -141,7 +141,7 @@ export function Wardrobe() {
                         <span className="min-w-0">
                           <span className="block truncate text-[12px] font-semibold text-navy">{item.name}</span>
                           {isCurrent && (
-                            <span className="text-[10px] font-bold uppercase tracking-wide text-gold">In use</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-accent">In use</span>
                           )}
                         </span>
                       </button>
@@ -151,7 +151,7 @@ export function Wardrobe() {
               ) : (
                 <p className="mt-3 text-[12px] text-faint">
                   Nothing owned yet -{" "}
-                  <Link href="/student/shop" className="font-semibold text-gold transition hover:underline">
+                  <Link href="/student/shop" className="font-semibold text-accent transition hover:underline">
                     visit the shop
                   </Link>
                   .

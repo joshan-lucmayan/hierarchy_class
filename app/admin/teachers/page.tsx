@@ -19,7 +19,7 @@ function taskChip(status: string) {
     case "done":
       return { variant: "success" as const, label: "Done" };
     case "accepted":
-      return { variant: "gold" as const, label: "Accepted" };
+      return { variant: "accent" as const, label: "Accepted" };
     case "declined":
       return { variant: "danger" as const, label: "Declined" };
     default:
@@ -177,7 +177,7 @@ export default function AdminTeachersPage() {
           {/* ========================================================== */}
           <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat label="Teachers" value={teachers.length} tone="default" hint="Signed up in this school" />
-            <Stat label="Assigned courses" value={snapshot.assignedCourses} tone="gold" hint="Courses with a teacher" />
+            <Stat label="Assigned courses" value={snapshot.assignedCourses} tone="accent" hint="Courses with a teacher" />
             <Stat label="Classes" value={snapshot.classes} tone="default" hint="Distinct sections covered" />
             <Stat
               label="Pending tasks"
@@ -198,7 +198,7 @@ export default function AdminTeachersPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search teachers..."
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-accent"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
                   {filtered.length}
@@ -234,8 +234,8 @@ export default function AdminTeachersPage() {
                         onClick={() => { setSelectedId(teacher.id); setShowAssignForm(false); }}
                         className={`flex w-full items-center gap-3 rounded-[10px] border px-3 py-2.5 text-left transition ${
                           selectedTeacher?.id === teacher.id
-                            ? "border-gold-token bg-[var(--surface-strong)]"
-                            : "border-base bg-surface hover:border-gold-soft"
+                            ? "border-accent-token bg-[var(--surface-strong)]"
+                            : "border-base bg-surface hover:border-accent-soft"
                         }`}
                       >
                         <UserAvatar name={teacher.full_name} src={teacher.avatar_url} size="md" />
@@ -273,7 +273,7 @@ export default function AdminTeachersPage() {
                       name={selectedTeacher.full_name}
                       src={selectedTeacher.avatar_url}
                       size="xl"
-                      className="!border-2 !border-gold-token"
+                      className="!border-2 !border-accent-token"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-lg font-semibold text-navy">{selectedTeacher.full_name}</p>
@@ -330,7 +330,7 @@ export default function AdminTeachersPage() {
                                   {sectionName(c.sectionId)} · {getStudentsByCourse(c.id).length} students
                                 </p>
                               </div>
-                              <p className="shrink-0 text-sm font-bold text-gold-token">{avg ?? "-"}</p>
+                              <p className="shrink-0 text-sm font-bold text-accent-token">{avg ?? "-"}</p>
                             </div>
                           );
                         })
@@ -358,7 +358,7 @@ export default function AdminTeachersPage() {
                           >
                             <p className="min-w-0 truncate text-sm text-navy">{g.label ?? g.type}</p>
                             <div className="flex shrink-0 items-center gap-2">
-                              <p className="text-sm font-bold text-gold-token">{g.score}</p>
+                              <p className="text-sm font-bold text-accent-token">{g.score}</p>
                               <span className="text-xs text-muted">{g.date}</span>
                             </div>
                           </div>
@@ -390,22 +390,22 @@ export default function AdminTeachersPage() {
                           value={taskDraft.title}
                           onChange={(e) => setTaskDraft((d) => ({ ...d, title: e.target.value }))}
                           placeholder="Task title"
-                          className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                          className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                         />
                         <textarea
                           value={taskDraft.description}
                           onChange={(e) => setTaskDraft((d) => ({ ...d, description: e.target.value }))}
                           placeholder="Description (optional)"
                           rows={2}
-                          className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                          className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                         />
                         <input
                           type="date"
                           value={taskDraft.dueDate}
                           onChange={(e) => setTaskDraft((d) => ({ ...d, dueDate: e.target.value }))}
-                          className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                          className="w-full rounded-lg border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                         />
-                        <Button type="submit" variant="gold" className="w-full justify-center" icon={<IconCheck size={14} />}>
+                        <Button type="submit" variant="accent" className="w-full justify-center" icon={<IconCheck size={14} />}>
                           Assign
                         </Button>
                       </form>

@@ -13,7 +13,7 @@ function ActionButton({ item, owned, busy, onBuy }: { item: ShopItem; owned: boo
         type="button"
         onClick={onBuy}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-1.5 rounded-full bg-navy py-2 text-[13px] font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full bg-navy py-2 text-[13px] font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-60"
       >
         <CoinIcon size={15} />
         <span>{item.price.toLocaleString()}</span>
@@ -73,7 +73,7 @@ function ProfileCardPreview({ item }: { item: ShopItem }) {
           <div className="h-1.5 w-20 rounded-full bg-[var(--text)] opacity-80" />
           <div className="mt-1.5 h-1 w-14 rounded-full bg-[var(--muted)] opacity-60" />
         </div>
-        <span className="shrink-0 rounded-full border border-gold px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-gold">
+        <span className="shrink-0 rounded-full border border-accent px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-accent">
           Rank
         </span>
       </div>
@@ -117,7 +117,7 @@ export default function ShopPage() {
       </header>
 
       {status && (
-        <p className="rounded-lg border border-gold bg-gold/10 px-4 py-2.5 text-[13px] font-medium text-gold">
+        <p className="rounded-lg border border-accent bg-accent/10 px-4 py-2.5 text-[13px] font-medium text-accent">
           {status}
         </p>
       )}

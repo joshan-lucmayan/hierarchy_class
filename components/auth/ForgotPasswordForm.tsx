@@ -58,7 +58,7 @@ export function ForgotPasswordForm() {
     <>
       {status === "sent" ? (
         <div className="animate-pop-in flex flex-col items-center gap-4 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-accent">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" />
               <path className="draw-check" d="M22 7l-10 6L2 7" />
@@ -71,7 +71,7 @@ export function ForgotPasswordForm() {
           </p>
           <a
             href="/login"
-            className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+            className="mt-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
           >
             Back to login
           </a>
@@ -94,7 +94,7 @@ export function ForgotPasswordForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 disabled={status === "sending"}
-                className="rounded-lg border border-base px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)] disabled:bg-surface-50"
+                className="rounded-lg border border-base px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)] disabled:bg-surface-50"
               />
             </div>
             {error && <p className="animate-shake text-xs text-warn">{error}</p>}

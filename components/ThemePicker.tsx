@@ -52,13 +52,13 @@ export function ThemePicker() {
             onClick={() => choose(t.id)}
             aria-pressed={active}
             className={`rounded-[10px] border p-4 text-left transition ${
-              active ? "border-gold bg-gold/10" : "border-base bg-[var(--surface-strong)] hover:border-sealion"
+              active ? "border-accent bg-accent/10" : "border-base bg-[var(--surface-strong)] hover:border-sealion"
             }`}
           >
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
             <p className="text-[13.5px] font-bold text-navy">{t.name}</p>
             {active && (
-              <span className="rounded-full bg-gold px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-on-accent">
+              <span className="rounded-full bg-accent px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-on-accent">
                 Active
               </span>
             )}

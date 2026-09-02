@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useNotifications } from "@/lib/notificationsStore";
 
 const TYPE_DOT: Record<string, string> = {
-  announcement: "bg-gold-token",
+  announcement: "bg-accent-token",
   message: "bg-sealion",
   task: "bg-purple-500",
-  grade: "bg-gold-token",
+  grade: "bg-accent-token",
   friend: "bg-[var(--warn-fill)]",
-  library: "bg-gold-token",
+  library: "bg-accent-token",
   system: "bg-gray-400",
 };
 
@@ -74,7 +74,7 @@ export function NotificationBell() {
                     <button
                       type="button"
                       onClick={() => markAllRead()}
-                      className="rounded-full border border-base px-2.5 py-1 text-[10px] font-semibold text-muted transition hover:border-gold hover:text-navy"
+                      className="rounded-full border border-base px-2.5 py-1 text-[10px] font-semibold text-muted transition hover:border-accent hover:text-navy"
                     >
                       Mark all read
                     </button>
@@ -137,7 +137,7 @@ export function NotificationBell() {
                         onClick={() => markRead(n.id)}
                         title="Mark as read"
                         aria-label="Mark as read"
-                        className="mt-0.5 shrink-0 rounded-full border border-base p-1 text-muted transition hover:border-gold hover:text-navy"
+                        className="mt-0.5 shrink-0 rounded-full border border-base p-1 text-muted transition hover:border-accent hover:text-navy"
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M20 6L9 17l-5-5" />

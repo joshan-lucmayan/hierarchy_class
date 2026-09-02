@@ -110,7 +110,7 @@ export function LoginForm() {
     return (
       <div className="animate-pop-in flex w-full flex-col items-center gap-4 py-8 text-center">
         <span
-          className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[var(--gold)]/40 bg-[var(--surface-strong)] text-[var(--gold)]"
+          className="relative flex h-16 w-16 items-center justify-center rounded-full border border-[var(--accent)]/40 bg-[var(--surface-strong)] text-[var(--accent)]"
           style={{ animation: "haloPulse 2.2s ease-in-out infinite" }}
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -124,7 +124,7 @@ export function LoginForm() {
         </div>
         <div className="h-1 w-40 overflow-hidden rounded-full bg-[var(--border)]">
           <div
-            className="h-full rounded-full bg-[var(--gold)]"
+            className="h-full rounded-full bg-[var(--accent)]"
             style={{ animation: "fillbar 1.4s ease-in-out infinite" }}
           />
         </div>
@@ -138,7 +138,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-5">
       {justConfirmed && (
-        <div className="rounded-lg border border-gold-soft bg-gold-soft px-3.5 py-2.5 text-sm text-gold-token">
+        <div className="rounded-lg border border-accent-soft bg-accent-soft px-3.5 py-2.5 text-sm text-accent-token">
           Email confirmed! You can now log in.
         </div>
       )}
@@ -158,7 +158,7 @@ export function LoginForm() {
         </div>
       )}
       {resendStatus && (
-        <div className={`rounded-lg border px-3.5 py-2.5 text-sm ${resendStatus.startsWith("A new") ? "border-gold-soft bg-gold-soft text-gold-token" : "border-warn-soft bg-warn-soft text-warn"}`}>
+        <div className={`rounded-lg border px-3.5 py-2.5 text-sm ${resendStatus.startsWith("A new") ? "border-accent-soft bg-accent-soft text-accent-token" : "border-warn-soft bg-warn-soft text-warn"}`}>
           {resendStatus}
         </div>
       )}
@@ -173,7 +173,7 @@ export function LoginForm() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              className="transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-[var(--gold)]"
+              className="transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-[var(--accent)]"
             >
               <path d="M4 4h16v16H4z" opacity="0" />
               <path d="M22 6l-10 7L2 6" />
@@ -192,7 +192,7 @@ export function LoginForm() {
           disabled={isLoading}
           autoComplete="email"
           className={`rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-            ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+            ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
         />
         {errors.email && <p className="animate-shake text-xs text-warn">{errors.email}</p>}
       </div>
@@ -207,7 +207,7 @@ export function LoginForm() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
-              className="transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-[var(--gold)]"
+              className="transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-[var(--accent)]"
             >
               <rect x="5" y="11" width="14" height="10" rx="1.5" />
               <path d="M8 11V7a4 4 0 018 0v4" />
@@ -226,7 +226,7 @@ export function LoginForm() {
             disabled={isLoading}
             autoComplete="current-password"
             className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm outline-none transition-all disabled:bg-tile disabled:text-faint
-              ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
+              ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(158,167,179,0.18)]"}`}
           />
           <button
             type="button"
@@ -256,7 +256,7 @@ export function LoginForm() {
         className="group relative mt-1 flex items-center justify-center overflow-hidden rounded-lg bg-navy py-3 text-sm font-bold uppercase tracking-widest text-white transition-opacity disabled:opacity-90"
       >
         {isLoading && (
-          <span className="absolute inset-y-0 left-0 w-full origin-left animate-fillbar bg-gold/90" />
+          <span className="absolute inset-y-0 left-0 w-full origin-left animate-fillbar bg-accent/90" />
         )}
         <span className="relative flex items-center gap-2">
           {isLoading ? "Loading" : "Enter"}
@@ -286,7 +286,7 @@ export function LoginForm() {
               onChange={(e) => setResendEmail(e.target.value)}
               placeholder="you@example.com"
               disabled={resending}
-              className="min-w-0 flex-1 rounded-md border border-base px-3 py-2 text-sm outline-none focus:border-[var(--gold)] disabled:bg-tile"
+              className="min-w-0 flex-1 rounded-md border border-base px-3 py-2 text-sm outline-none focus:border-[var(--accent)] disabled:bg-tile"
             />
             <button
               type="submit"

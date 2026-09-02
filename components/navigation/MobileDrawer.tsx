@@ -157,7 +157,7 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
           className="flex items-center justify-between gap-2 border-b border-base p-4"
           style={{ paddingTop: "max(1rem, env(safe-area-inset-top))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-token">Menu</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-token">Menu</p>
           <button
             type="button"
             onClick={requestClose}

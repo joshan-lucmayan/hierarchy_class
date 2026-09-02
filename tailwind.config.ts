@@ -14,7 +14,7 @@ const config: Config = {
         // utility is overridden by globals' .text-navy { color: var(--text) }.
         navy: "#464c55", // buttons / scrims (asphalt)
         slate: "#9a9ba1",
-        gold: "#9ea7b3", // Great Falls accent
+        accent: "#9ea7b3", // Great Falls accent
         faint: "#6c6d73",
         tile: "#1a1b1e",
         warn: "#c98f8f", // salmon warning text

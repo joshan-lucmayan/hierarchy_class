@@ -127,7 +127,7 @@ export function BorrowReceiptModal({
 
         <div className="mt-5 flex gap-2">
           <Button
-            variant="gold"
+            variant="accent"
             className="flex-1"
             icon={<IconCheck size={13} />}
             onClick={() => window.print()}

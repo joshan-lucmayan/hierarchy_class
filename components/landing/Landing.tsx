@@ -36,7 +36,7 @@ function useReveal() {
 function SectionHeading({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
   return (
     <div className="landing-reveal mx-auto mb-14 max-w-[620px] text-center">
-      <span className="font-mono-ui mb-3.5 block text-[11px] uppercase tracking-[0.22em] text-[var(--gold)]">
+      <span className="font-mono-ui mb-3.5 block text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]">
         {eyebrow}
       </span>
       <h2 className="font-display text-[clamp(24px,3vw,32px)] font-semibold text-[#eceef1]">
@@ -62,7 +62,7 @@ const HERO_WORDS = [
   { text: "playing", accent: true },
 ];
 
-/* Small gold sparkles that twinkle around the headline after it lands. */
+/* Small accent sparkles that twinkle around the headline after it lands. */
 const SPARKLES = [
   { top: "-8%", left: "2%", size: 13, delay: 1.9 },
   { top: "18%", left: "-4%", size: 9, delay: 2.2 },
@@ -91,7 +91,7 @@ function Hero() {
           aria-hidden
         />
         <div
-          className="relative flex items-center justify-center text-[var(--gold)]"
+          className="relative flex items-center justify-center text-[var(--accent)]"
           style={{ animation: "riseIn 0.6s ease 0.2s both, crownPulse 3.6s ease-in-out 0.2s infinite" }}
         >
           <CrownMark height={58} />
@@ -125,7 +125,7 @@ function Hero() {
         {SPARKLES.map((sparkle, i) => (
           <span
             key={i}
-            className="pointer-events-none absolute select-none text-[var(--gold)]"
+            className="pointer-events-none absolute select-none text-[var(--accent)]"
             style={{
               top: sparkle.top,
               left: sparkle.left,
@@ -141,7 +141,7 @@ function Hero() {
       </div>
 
       <p
-        className="font-mono-ui mb-7 text-[11px] uppercase tracking-[0.24em] text-[var(--gold)]"
+        className="font-mono-ui mb-7 text-[11px] uppercase tracking-[0.24em] text-[var(--accent)]"
         style={{ animation: "riseIn 0.6s ease 1.7s both" }}
       >
         Climb the ranks
@@ -171,7 +171,7 @@ function Hero() {
         <button
           type="button"
           onClick={() => scrollTo("roles")}
-          className="rounded-lg border border-[rgba(255,255,255,0.14)] px-7 py-3.5 text-[13.5px] font-medium text-[#e7e9ee] transition hover:border-[var(--gold)] hover:text-white"
+          className="rounded-lg border border-[rgba(255,255,255,0.14)] px-7 py-3.5 text-[13.5px] font-medium text-[#e7e9ee] transition hover:border-[var(--accent)] hover:text-white"
         >
           See how it works
         </button>
@@ -179,7 +179,7 @@ function Hero() {
         {ready && !installedLike && (
           <a
             href="/download"
-            className="rounded-lg border border-[rgba(158,167,179,0.35)] px-7 py-3.5 text-[13.5px] font-medium text-[var(--gold)] transition hover:border-[var(--gold)] hover:text-white"
+            className="rounded-lg border border-[rgba(158,167,179,0.35)] px-7 py-3.5 text-[13.5px] font-medium text-[var(--accent)] transition hover:border-[var(--accent)] hover:text-white"
           >
             Get the app
           </a>
@@ -248,14 +248,14 @@ function Roles() {
             className="reveal-pop group rounded-[14px] border border-base bg-[rgba(48,47,51,0.45)] p-7 transition-all duration-500 hover:-translate-y-1.5 hover:border-[rgba(158,167,179,0.4)] hover:shadow-[0_18px_50px_-24px_rgba(158,167,179,0.35)]"
             style={{ transitionDelay: `${i * 0.1}s` }}
           >
-            <span className="font-mono-ui mb-3 block text-[10px] uppercase tracking-[0.18em] text-[var(--gold)]">
+            <span className="font-mono-ui mb-3 block text-[10px] uppercase tracking-[0.18em] text-[var(--accent)]">
               {role.tag}
             </span>
             <h3 className="font-display mb-3.5 text-[19px] font-semibold text-[#eceef1]">{role.title}</h3>
             <ul className="flex flex-col gap-2.5">
               {role.points.map((point) => (
                 <li key={point} className="relative pl-4 text-[13.5px] leading-[1.5] text-[var(--muted)] transition-colors group-hover:text-[var(--text)]">
-                  <span className="absolute left-0 top-[7px] h-[5px] w-[5px] rounded-full bg-[var(--gold)] transition-transform duration-300 group-hover:scale-150" />
+                  <span className="absolute left-0 top-[7px] h-[5px] w-[5px] rounded-full bg-[var(--accent)] transition-transform duration-300 group-hover:scale-150" />
                   {point}
                 </li>
               ))}
@@ -298,12 +298,12 @@ function HowItWorks() {
         sub="One clean loop: teachers grade, admins approve, students climb. Every approved grade is weighed by its category and moves the bar on its own."
       />
       <div className="relative">
-        <div className="draw-line absolute left-[16%] right-[16%] top-[26px] hidden h-px bg-gradient-to-r from-transparent via-[var(--gold)]/40 to-transparent md:block" />
+        <div className="draw-line absolute left-[16%] right-[16%] top-[26px] hidden h-px bg-gradient-to-r from-transparent via-[var(--accent)]/40 to-transparent md:block" />
         <div className="grid gap-10 md:grid-cols-3 md:gap-6">
           {STEPS.map((step, i) => (
             <div key={step.num} className="reveal-pop relative flex flex-col items-center text-center" style={{ transitionDelay: `${i * 0.15}s` }}>
               <div
-                className="relative z-10 mb-5 flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[var(--gold)]/40 bg-[rgba(48,47,51,0.7)] text-[var(--gold)] transition-transform duration-300 hover:scale-110"
+                className="relative z-10 mb-5 flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[var(--accent)]/40 bg-[rgba(48,47,51,0.7)] text-[var(--accent)] transition-transform duration-300 hover:scale-110"
               >
                 <CrownMark height={22} />
               </div>
@@ -379,7 +379,7 @@ function Features() {
             style={{ transitionDelay: `${(i % 3) * 0.09}s` }}
           >
             <span
-              className="pointer-events-none absolute -right-2 -top-2 select-none text-[var(--gold)] opacity-30 transition-all duration-500 group-hover:rotate-12 group-hover:opacity-100"
+              className="pointer-events-none absolute -right-2 -top-2 select-none text-[var(--accent)] opacity-30 transition-all duration-500 group-hover:rotate-12 group-hover:opacity-100"
               style={{ fontSize: 26 }}
               aria-hidden
             >
@@ -479,7 +479,7 @@ function Tech() {
         {TECH.map((item) => (
           <span
             key={item}
-            className="font-mono-ui rounded-full border border-base bg-[rgba(48,47,51,0.28)] px-4 py-2 text-[11.5px] tracking-[0.04em] text-[var(--muted)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--gold)] hover:text-[#eceef1]"
+            className="font-mono-ui rounded-full border border-base bg-[rgba(48,47,51,0.28)] px-4 py-2 text-[11.5px] tracking-[0.04em] text-[var(--muted)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[#eceef1]"
           >
             {item}
           </span>
@@ -512,7 +512,7 @@ function Footer() {
     <footer className="relative z-[2] border-t border-base px-6 py-12 text-center">
       <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-6">
         <div className="flex items-center gap-2.5">
-          <CrownMark height={22} className="text-[var(--gold)]" />
+          <CrownMark height={22} className="text-[var(--accent)]" />
           <span className="font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-[#eceef1]">
             Hierarchy Class
           </span>
@@ -532,7 +532,7 @@ function Footer() {
           href={GITHUB_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-full border border-base bg-[rgba(48,47,51,0.4)] px-4 py-2 text-[12px] text-[var(--muted)] transition hover:border-[var(--gold)] hover:text-[#eceef1]"
+          className="flex items-center gap-2 rounded-full border border-base bg-[rgba(48,47,51,0.4)] px-4 py-2 text-[12px] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[#eceef1]"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
             <path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.28 2.75 1.05a9.36 9.36 0 015 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.6.69.49A10.25 10.25 0 0022 12.25C22 6.58 17.52 2 12 2z" />
@@ -600,7 +600,7 @@ export function Landing() {
       {/* Scroll progress */}
       <div className="fixed inset-x-0 top-0 z-[60] h-[3px] bg-transparent">
         <div
-          className="h-full bg-gradient-to-r from-[var(--gold)] to-[#c2c7cf] transition-[width] duration-150 ease-out"
+          className="h-full bg-gradient-to-r from-[var(--accent)] to-[#c2c7cf] transition-[width] duration-150 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -615,7 +615,7 @@ export function Landing() {
       >
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-3.5">
           <a href="#home" className="flex items-center gap-2">
-            <CrownMark height={24} className="text-[var(--gold)]" />
+            <CrownMark height={24} className="text-[var(--accent)]" />
             <span className="font-display text-[13px] font-semibold uppercase tracking-[0.12em] text-[#eceef1]">
               Hierarchy Class
             </span>
@@ -628,7 +628,7 @@ export function Landing() {
                 href={`#${id}`}
                 className={`relative text-[13px] transition ${
                   active === id
-                    ? "font-medium text-[var(--gold)] after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-full after:bg-[var(--gold)]"
+                    ? "font-medium text-[var(--accent)] after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-full after:bg-[var(--accent)]"
                     : "text-[var(--muted)] hover:text-[#eceef1]"
                 }`}
               >
@@ -640,7 +640,7 @@ export function Landing() {
           <div className="flex items-center gap-2.5">
             <a
               href="/login"
-              className="hidden rounded-lg border border-[rgba(255,255,255,0.14)] px-5 py-2.5 text-[12.5px] font-medium text-[#e7e9ee] transition hover:border-[var(--gold)] hover:text-white sm:block"
+              className="hidden rounded-lg border border-[rgba(255,255,255,0.14)] px-5 py-2.5 text-[12.5px] font-medium text-[#e7e9ee] transition hover:border-[var(--accent)] hover:text-white sm:block"
             >
               Log in
             </a>

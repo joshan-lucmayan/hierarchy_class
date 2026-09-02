@@ -81,7 +81,7 @@ export default function StudentQuizPage() {
       <div className="mx-auto max-w-xl">
         <div className="flex items-center justify-between border-b border-base pb-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{activeQuiz.title}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{activeQuiz.title}</p>
             <p className="mt-1 text-xs text-muted">
               Question {questionIndex + 1} of {activeQuiz.questions.length}
             </p>
@@ -103,7 +103,7 @@ export default function StudentQuizPage() {
               >
                 <span
                   className={`h-2 w-2 shrink-0 rounded-full ${
-                    answers[questionIndex] === i ? "bg-gold" : "border border-base"
+                    answers[questionIndex] === i ? "bg-accent" : "border border-base"
                   }`}
                 />
                 <span className={answers[questionIndex] === i ? "font-semibold text-navy" : "text-navy"}>
@@ -116,7 +116,7 @@ export default function StudentQuizPage() {
             type="button"
             onClick={nextQuestion}
             disabled={answers[questionIndex] === undefined}
-            className="mt-6 w-full justify-center rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-40"
+            className="mt-6 w-full justify-center rounded-full bg-navy py-3 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-40"
           >
             {questionIndex < activeQuiz.questions.length - 1 ? "Next question" : "Submit quiz"}
           </button>
@@ -129,13 +129,13 @@ export default function StudentQuizPage() {
     const bonus = Math.round((result.score / result.total) * 3);
     return (
       <div className="mx-auto max-w-xl py-10 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Quiz complete</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Quiz complete</p>
         <p className="mt-3 text-3xl font-bold text-navy sm:text-5xl">{result.score} / {result.total}</p>
         <p className="mt-2 text-sm text-muted">+{bonus} pts added toward your rank</p>
         <button
           type="button"
           onClick={() => { setActiveQuiz(null); setResult(null); }}
-          className="mt-6 rounded-full bg-gold px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
+          className="mt-6 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
         >
           Back to quizzes
         </button>
@@ -161,7 +161,7 @@ export default function StudentQuizPage() {
               <button
                 type="button"
                 onClick={() => startQuiz(quiz)}
-                className="w-full shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent max-[767px]:min-h-[44px] sm:w-auto"
+                className="w-full shrink-0 rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent max-[767px]:min-h-[44px] sm:w-auto"
               >
                 Start quiz
               </button>

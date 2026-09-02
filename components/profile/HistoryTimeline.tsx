@@ -77,7 +77,7 @@ export function HistoryTimeline({
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-3 text-xs font-semibold text-navy underline decoration-gold underline-offset-2"
+          className="mt-3 text-xs font-semibold text-navy underline decoration-accent underline-offset-2"
         >
           Try again
         </button>
@@ -128,7 +128,7 @@ export function HistoryTimeline({
           type="button"
           onClick={loadMore}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-gold-soft disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-accent-soft disabled:opacity-60"
         >
           {loading ? "Loading..." : "Load More"}
         </button>

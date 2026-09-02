@@ -99,13 +99,13 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
                   <h2 className="truncate text-xl font-bold text-navy">{person.full_name}</h2>
                   {isStudent && !isSelf && <EnrolledBadge status={enrollment} size="sm" />}
                 </div>
-                <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-gold">
+                <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-accent">
                   {isStudent ? "Student" : "Faculty"}
                 </p>
                 {isStudent && identityLine && <p className="mt-1 text-sm text-muted">{identityLine}</p>}
                 {person.favorite_subject && (
                   <p className="mt-1.5 text-[12.5px] text-muted">
-                    <span className="font-semibold text-gold-token">Favorite subject:</span>{" "}
+                    <span className="font-semibold text-accent-token">Favorite subject:</span>{" "}
                     {person.favorite_subject}
                   </p>
                 )}
@@ -114,7 +114,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
                 <button
                   type="button"
                   onClick={() => router.push(`/student/messages?with=${person.id}`)}
-                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+                  className="shrink-0 rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
                 >
                   Message
                 </button>
@@ -171,7 +171,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
                 className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
                   isFriend
                     ? "border border-base bg-surface text-muted hover-border-warn-soft hover-text-warn"
-                    : "bg-gold text-on-accent hover:opacity-90"
+                    : "bg-accent text-on-accent hover:opacity-90"
                 }`}
               >
                 {isFriend ? "Remove Friend" : "Add Friend"}
@@ -180,7 +180,7 @@ export function ProfileModal({ person, onClose }: { person: ProfileRow; onClose:
             <button
               type="button"
               onClick={() => router.push(`/student/profile/view?id=${person.id}`)}
-              className="rounded-full border border-base px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold"
+              className="rounded-full border border-base px-4 py-2 text-xs font-semibold text-navy transition hover:border-accent"
             >
               View full profile
             </button>

@@ -43,7 +43,7 @@ export function AdminBottomNav() {
               >
                 {item.label}
               </span>
-              {active && <span className="h-0.5 w-4 rounded-full bg-gold" />}
+              {active && <span className="h-0.5 w-4 rounded-full bg-accent" />}
             </Link>
           );
         })}

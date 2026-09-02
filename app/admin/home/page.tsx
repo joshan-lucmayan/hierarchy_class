@@ -132,12 +132,12 @@ function FeedPostRow({ post, onEdit, onDelete }: { post: SchoolPost; onEdit: () 
   const [confirming, setConfirming] = useState(false);
   return (
     <>
-      <div className="flex items-start justify-between gap-4 rounded-[10px] border border-base bg-tile p-3.5 transition hover-border-gold-soft">
+      <div className="flex items-start justify-between gap-4 rounded-[10px] border border-base bg-tile p-3.5 transition hover-border-accent-soft">
         <div className="min-w-0">
           {post.title && <p className="break-words text-sm font-semibold text-navy">{post.title}</p>}
           <p className={`${post.title ? "mt-0.5" : ""} line-clamp-2 break-words text-xs text-muted`}>{post.body}</p>
           <p className="mt-1.5 break-words text-[11px] text-muted">
-            <span className="font-semibold text-gold-token">{post.tag}</span> · visible to {post.audience} ·{" "}
+            <span className="font-semibold text-accent-token">{post.tag}</span> · visible to {post.audience} ·{" "}
             {new Date(post.createdAt).toLocaleDateString()}
             {post.authorRole === "admin" && (
               <span className="ml-1.5 rounded border border-line px-1.5 py-0.5 text-[9.5px] font-medium uppercase tracking-[0.12em] text-muted">
@@ -752,8 +752,8 @@ export default function AdminHomePage() {
                           <p className="min-w-0 truncate text-[12px] font-bold text-navy">{s.label}</p>
                           <p className="shrink-0 text-[10.5px] text-muted">
                             {s.students} tracked ·{" "}
-                            <span className="font-semibold text-gold-token">{s.atLeastS}</span> S+ ·{" "}
-                            <span className="font-semibold text-gold-token">{s.ex}</span> EX
+                            <span className="font-semibold text-accent-token">{s.atLeastS}</span> S+ ·{" "}
+                            <span className="font-semibold text-accent-token">{s.ex}</span> EX
                           </p>
                         </div>
                       ))}
@@ -770,7 +770,7 @@ export default function AdminHomePage() {
           <div className="min-h-full">
             <div className="flex items-center justify-between gap-2">
               <h2 className="section-label">Academic Health</h2>
-              {overallAvg !== null && <Chip variant="gold">School avg {overallAvg.toFixed(1)}</Chip>}
+              {overallAvg !== null && <Chip variant="accent">School avg {overallAvg.toFixed(1)}</Chip>}
             </div>
             {programHealth.length === 0 ? (
               <EmptyState
@@ -784,7 +784,7 @@ export default function AdminHomePage() {
                   <div key={p.name}>
                     <div className="flex items-baseline justify-between gap-2">
                       <p className="truncate text-[13px] font-semibold text-navy">{p.name}</p>
-                      <p className="shrink-0 text-[13px] font-bold tabular-nums text-gold-token">{p.avg.toFixed(1)}</p>
+                      <p className="shrink-0 text-[13px] font-bold tabular-nums text-accent-token">{p.avg.toFixed(1)}</p>
                     </div>
                     <Bar value={p.avg} tone="sealion" className="mt-1 w-full" />
                   </div>
@@ -935,12 +935,12 @@ export default function AdminHomePage() {
                         name={submission.teacherName}
                         src={submission.teacherAvatar}
                         size="md"
-                        className="!border-2 !border-gold-soft"
+                        className="!border-2 !border-accent-soft"
                       />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-navy">
                           {submission.teacherName}
-                          <span className="ml-1 text-xs font-medium uppercase tracking-wide text-gold-token">Teacher</span>
+                          <span className="ml-1 text-xs font-medium uppercase tracking-wide text-accent-token">Teacher</span>
                         </p>
                         <p className="mt-0.5 text-xs text-muted">
                           submitted grades for <span className="font-semibold text-navy">{submission.courseName}</span>
@@ -973,7 +973,7 @@ export default function AdminHomePage() {
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Button
-                        variant="gold"
+                        variant="accent"
                         size="sm"
                         icon={<IconCheck size={12} />}
                         disabled={approvingId === submission.id}
@@ -1208,7 +1208,7 @@ export default function AdminHomePage() {
                 return (
                   <div key={band.kind} className="min-w-0 rounded-[10px] border border-base bg-tile">
                     <div className="flex items-center gap-3 border-b border-base px-4 py-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-token">
                         {band.icon}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -1299,7 +1299,7 @@ export default function AdminHomePage() {
             <span className="font-mono-ui text-[10px] font-medium uppercase tracking-[0.2em] text-faint">Commands</span>
             <div className="flex items-center gap-1 rounded-[10px] border border-base bg-surface p-1">
               <Button
-                variant="gold"
+                variant="accent"
                 shape="square"
                 size="sm"
                 icon={<IconCompose size={13} />}
@@ -1340,7 +1340,7 @@ export default function AdminHomePage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="section-label">Editing Admin Home</span>
-                <Chip variant="gold">
+                <Chip variant="accent">
                   {gridPlacements.length} tile{gridPlacements.length === 1 ? "" : "s"}
                 </Chip>
               </div>
@@ -1377,7 +1377,7 @@ export default function AdminHomePage() {
                   Cancel
                 </Button>
                 <Button
-                  variant="gold"
+                  variant="accent"
                   size="sm"
                   icon={<IconCheck size={13} />}
                   loading={saving}
@@ -1422,7 +1422,7 @@ export default function AdminHomePage() {
             desc="Add a widget to rebuild your command center, or start from a developer preset."
           />
           <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <Button variant="gold" icon={<IconPlus size={13} />} onClick={() => setPickerOpen(true)}>
+            <Button variant="accent" icon={<IconPlus size={13} />} onClick={() => setPickerOpen(true)}>
               Add a widget
             </Button>
             <Button variant="outline" icon={<IconCompose size={13} />} onClick={() => setPresetsOpen(true)}>
@@ -1468,7 +1468,7 @@ export default function AdminHomePage() {
           />
           <div className="mt-5 flex justify-center">
             <Link href="/admin/settings">
-              <Button variant="gold" icon={<IconCompose size={13} />}>
+              <Button variant="accent" icon={<IconCompose size={13} />}>
                 Customize in Settings
               </Button>
             </Link>

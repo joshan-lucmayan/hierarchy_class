@@ -11,7 +11,7 @@ import { RankTriangle } from "@/components/ui/RankTriangle";
  * (RankTriangle) - the same shape across students, teachers, and admins.
  * The rank identity lives in the triangle; the rank letter is neutral
  * typography beside it (never inside the triangle, never rank-colored).
- * EX carries the gold "glory" glow.
+ * EX carries the accent "glory" glow.
  *
  * - Non-EX ranks: `bar` is the 0-100 progress toward the next rank; it renders
  *   as "N / 100" with a matching track fill.
@@ -99,7 +99,7 @@ export function RankBadge({ rank, bar, exScore, size = "md", className = "" }: R
       {/* EX has no 0-100 bar - the score is open-ended, so the track shows full. */}
       <div className="mt-2 h-1 w-full max-w-[120px] overflow-hidden rounded-sm bg-line">
         <div
-          className="h-full rounded-full bg-gold"
+          className="h-full rounded-full bg-accent"
           style={{ width: `${trackWidth}%` }}
         />
       </div>

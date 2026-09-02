@@ -39,7 +39,7 @@ export function NativeEntry() {
     >
       <main className="flex w-full max-w-[340px] flex-col items-center text-center">
         {/* Brand: the existing Hierarchy Class crown - no new artwork. */}
-        <div className="flex items-center justify-center text-[var(--gold)]">
+        <div className="flex items-center justify-center text-[var(--accent)]">
           <CrownMark height={56} />
         </div>
 
@@ -60,7 +60,7 @@ export function NativeEntry() {
           aria-live="polite"
         >
           <span
-            className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--gold)] border-t-transparent"
+            className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent"
             aria-hidden
           />
           <span className="sr-only">Checking your session</span>

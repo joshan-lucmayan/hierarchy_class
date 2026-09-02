@@ -45,7 +45,7 @@ export function FriendsModal({ onClose }: { onClose: () => void }) {
                 key={friend.id}
                 href={`/student/profile/${friend.id}`}
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-[10px] border border-base bg-surface px-3 py-2.5 transition hover:border-gold"
+                className="flex items-center gap-3 rounded-[10px] border border-base bg-surface px-3 py-2.5 transition hover:border-accent"
               >
                 <UserAvatar name={friend.fullName} src={friend.avatarUrl} size="md" profileId={friend.id} />
                 <div className="min-w-0 flex-1">
@@ -64,7 +64,7 @@ export function FriendsModal({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={() => setVisible((c) => c + PAGE)}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-gold-soft"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-accent-soft"
             >
               Load More ({visible} of {friends.length})
             </button>

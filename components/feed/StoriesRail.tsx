@@ -104,12 +104,12 @@ export function StoriesRail() {
                 }}
                 aria-label={myStory ? "View your story" : "Add story"}
                 className={`flex h-full w-full items-center justify-center rounded-full p-[4px] transition active:scale-95 sm:p-[2px] ${
-                  myStory ? "bg-[var(--surface-strong)]" : "border-2 border-dashed border-gold"
+                  myStory ? "bg-[var(--surface-strong)]" : "border-2 border-dashed border-accent"
                 }`}
               >
                 <span
                   className={`flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 ${
-                    myStory ? "border-gold bg-navy" : "border-surface bg-navy text-base font-bold sm:text-lg text-gold"
+                    myStory ? "border-accent bg-navy" : "border-surface bg-navy text-base font-bold sm:text-lg text-accent"
                   }`}
                 >
                   {myStory ? (
@@ -131,7 +131,7 @@ export function StoriesRail() {
                   e.stopPropagation();
                   fileInputRef.current?.click();
                 }}
-                className="absolute bottom-[2px] right-[2px] flex h-[18px] w-[18px] items-center justify-center rounded-full border border-surface bg-gold text-on-accent shadow-sm transition active:scale-95 sm:bottom-[1px] sm:right-[1px] sm:h-5 sm:w-5"
+                className="absolute bottom-[2px] right-[2px] flex h-[18px] w-[18px] items-center justify-center rounded-full border border-surface bg-accent text-on-accent shadow-sm transition active:scale-95 sm:bottom-[1px] sm:right-[1px] sm:h-5 sm:w-5"
               >
                 <svg aria-hidden="true" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="sm:w-2.5 sm:h-2.5">
                   <path d="M12 5v14M5 12h14" />
@@ -160,7 +160,7 @@ export function StoriesRail() {
                 className="flex shrink-0 flex-col items-center gap-1 transition active:scale-95 sm:gap-1.5"
               >
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface-strong)] p-[4px] sm:h-16 sm:w-16 sm:p-[2px]">
-                  <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-gold bg-navy">
+                  <span className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-accent bg-navy">
                     <UserAvatar name={story.authorName} src={story.authorAvatar} size="xl" className="!border-0" />
                   </span>
                 </span>
@@ -173,27 +173,27 @@ export function StoriesRail() {
       )}
 
       {pickedFile && (
-        <div className="mt-3 flex flex-col gap-2 rounded-[10px] border border-gold bg-[var(--surface-strong)] p-2.5 sm:mt-3 sm:flex-row sm:items-center sm:p-3">
+        <div className="mt-3 flex flex-col gap-2 rounded-[10px] border border-accent bg-[var(--surface-strong)] p-2.5 sm:mt-3 sm:flex-row sm:items-center sm:p-3">
           <input
             value={captionDraft}
             onChange={(e) => setCaptionDraft(e.target.value)}
             placeholder="Add a caption for your story (optional)"
             maxLength={120}
-            className="flex-1 rounded-full border border-base bg-surface px-3 py-1.5 text-xs text-navy outline-none focus:border-gold sm:px-4 sm:py-2 sm:text-sm min-w-0"
+            className="flex-1 rounded-full border border-base bg-surface px-3 py-1.5 text-xs text-navy outline-none focus:border-accent sm:px-4 sm:py-2 sm:text-sm min-w-0"
           />
           <div className="flex gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={handlePublish}
               disabled={publishing}
-              className="rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50 sm:px-4 sm:py-2"
+              className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent transition hover:opacity-90 disabled:opacity-50 sm:px-4 sm:py-2"
             >
               {publishing ? "Publishing..." : "Publish story"}
             </button>
             <button
               type="button"
               onClick={() => setPickedFile(null)}
-              className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-gold sm:px-4 sm:py-2"
+              className="rounded-full border border-base bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-accent sm:px-4 sm:py-2"
             >
               Cancel
             </button>

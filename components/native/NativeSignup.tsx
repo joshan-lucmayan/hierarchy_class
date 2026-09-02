@@ -144,7 +144,7 @@ export function NativeSignup() {
     return (
       <NativeAuthShell>
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-[var(--gold)]">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-[var(--accent)]">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" />
               <path d="M22 7l-10 6L2 7" />
@@ -156,7 +156,7 @@ export function NativeSignup() {
             Confirm your email before logging in.
           </p>
           {resendStatus && (
-            <p className={`text-xs ${resendStatus.startsWith("A new") ? "text-gold-token" : "text-warn"}`}>
+            <p className={`text-xs ${resendStatus.startsWith("A new") ? "text-accent-token" : "text-warn"}`}>
               {resendStatus}
             </p>
           )}
@@ -172,7 +172,7 @@ export function NativeSignup() {
             <Link
               replace
               href="/login"
-              className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base text-sm font-bold uppercase tracking-widest text-navy transition hover:border-gold-soft touch-manipulation"
+              className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base text-sm font-bold uppercase tracking-widest text-navy transition hover:border-accent-soft touch-manipulation"
             >
               Back to login
             </Link>
@@ -202,8 +202,8 @@ export function NativeSignup() {
               onClick={() => setRole(option.value)}
               className={`rounded-xl border px-4 py-3.5 text-left transition ${
                 role === option.value
-                  ? "border-gold-token bg-[var(--surface-strong)]"
-                  : "border-base bg-surface hover:border-gold-soft"
+                  ? "border-accent-token bg-[var(--surface-strong)]"
+                  : "border-base bg-surface hover:border-accent-soft"
               }`}
             >
               <span className={`block text-sm font-bold ${role === option.value ? "text-[var(--text)]" : "text-[var(--muted)]"}`}>
@@ -232,7 +232,7 @@ export function NativeSignup() {
               enterKeyHint="next"
               onKeyDown={(e) => advanceNativeInput(e, "native-ln")}
               className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.firstName ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.firstName ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             {errors.firstName && <p className="text-xs text-warn">{errors.firstName}</p>}
           </div>
@@ -251,7 +251,7 @@ export function NativeSignup() {
               enterKeyHint="next"
               onKeyDown={(e) => advanceNativeInput(e, "native-mn")}
               className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.lastName ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.lastName ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             {errors.lastName && <p className="text-xs text-warn">{errors.lastName}</p>}
           </div>
@@ -272,7 +272,7 @@ export function NativeSignup() {
             autoComplete="additional-name"
             enterKeyHint="next"
             onKeyDown={(e) => advanceNativeInput(e, role === "student" ? "native-sid" : "native-fid")}
-            className="h-12 w-full rounded-xl border border-base bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)] disabled:bg-tile disabled:text-faint"
+            className="h-12 w-full rounded-xl border border-base bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)] disabled:bg-tile disabled:text-faint"
           />
         </div>
 
@@ -293,7 +293,7 @@ export function NativeSignup() {
               enterKeyHint="next"
               onKeyDown={(e) => advanceNativeInput(e, "native-email")}
               className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.studentId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.studentId ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             {errors.studentId && <p className="text-xs text-warn">{errors.studentId}</p>}
             <p className="text-[11px] text-[var(--faint)]">The ID your school issued to you - not a password, and never shared.</p>
@@ -314,7 +314,7 @@ export function NativeSignup() {
               enterKeyHint="next"
               onKeyDown={(e) => advanceNativeInput(e, "native-email")}
               className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.facultyId ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.facultyId ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             {errors.facultyId && <p className="text-xs text-warn">{errors.facultyId}</p>}
           </div>
@@ -337,7 +337,7 @@ export function NativeSignup() {
             enterKeyHint="next"
             onKeyDown={(e) => advanceNativeInput(e, "native-pass")}
             className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-              ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+              ${errors.email ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
           />
           {errors.email && <p className="text-xs text-warn">{errors.email}</p>}
         </div>
@@ -358,7 +358,7 @@ export function NativeSignup() {
               autoComplete="new-password"
               enterKeyHint="go"
               className={`h-12 w-full rounded-xl border bg-surface px-4 pr-12 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             <button
               type="button"
@@ -417,11 +417,11 @@ export function NativeSignup() {
           />
           <span>
             I agree to the{" "}
-            <a href="/terms" className="font-semibold text-[var(--gold)] underline underline-offset-2">
+            <a href="/terms" className="font-semibold text-[var(--accent)] underline underline-offset-2">
               Terms and Conditions
             </a>{" "}
             and{" "}
-            <a href="/privacy" className="font-semibold text-[var(--gold)] underline underline-offset-2">
+            <a href="/privacy" className="font-semibold text-[var(--accent)] underline underline-offset-2">
               Privacy Policy
             </a>
             .
@@ -433,7 +433,7 @@ export function NativeSignup() {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-6 flex min-h-[52px] w-full items-center justify-center rounded-xl bg-navy text-[15px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
+          className="mt-6 flex min-h-[52px] w-full items-center justify-center rounded-xl bg-navy text-[15px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
         >
           {isLoading ? "Creating account..." : "Create Account"}
         </button>
@@ -444,7 +444,7 @@ export function NativeSignup() {
           <Link
             replace
             href="/login"
-            className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base bg-surface text-sm font-bold uppercase tracking-widest text-navy transition hover:border-gold-soft active:scale-[0.98] touch-manipulation"
+            className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base bg-surface text-sm font-bold uppercase tracking-widest text-navy transition hover:border-accent-soft active:scale-[0.98] touch-manipulation"
           >
             Log In
           </Link>

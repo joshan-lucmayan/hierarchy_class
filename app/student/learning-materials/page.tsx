@@ -34,7 +34,7 @@ export default function LearningMaterialsPage() {
           <select
             value={subjectFilter}
             onChange={(e) => setSubjectFilter(e.target.value)}
-            className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-gold"
+            className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-accent"
           >
             <option value="All">All subjects</option>
             {subjects.map((subject) => (
@@ -44,7 +44,7 @@ export default function LearningMaterialsPage() {
           <select
             value={levelFilter}
             onChange={(e) => setLevelFilter(e.target.value)}
-            className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-gold"
+            className="border-b border-base bg-transparent px-1 py-2 text-sm font-semibold text-navy outline-none focus:border-accent"
           >
             <option value="All">All levels</option>
             {levels.map((level) => (
@@ -72,7 +72,7 @@ export default function LearningMaterialsPage() {
                   <p className="text-xs uppercase tracking-[0.25em] text-muted">{material.subject}</p>
                   <h2 className="mt-2 text-lg font-semibold text-navy">{material.title}</h2>
                 </div>
-                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-gold">
+                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-accent">
                   {material.type}
                 </span>
               </div>
@@ -89,7 +89,7 @@ export default function LearningMaterialsPage() {
                   href={material.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+                  className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
                 >
                   Open resource -&gt;
                 </a>

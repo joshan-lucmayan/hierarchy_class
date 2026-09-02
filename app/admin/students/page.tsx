@@ -248,7 +248,7 @@ export default function AdminStudentsPage() {
         <Stat
           label="School average"
           value={overallAvg !== null ? `${overallAvg} / 100` : "No grades yet"}
-          tone="gold"
+          tone="accent"
           hint="Weighted across all students"
         />
       </div>
@@ -306,7 +306,7 @@ export default function AdminStudentsPage() {
           {/* ========================================================== */}
           <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat label="Registered" value={students.length} tone="default" hint="All students in this school" />
-            <Stat label="Active" value={snapshot.active} tone="gold" hint="Enrolled and current" />
+            <Stat label="Active" value={snapshot.active} tone="accent" hint="Enrolled and current" />
             <Stat label="Expiring soon" value={snapshot.expiringSoon} tone={snapshot.expiringSoon > 0 ? "warn" : "muted"} hint="Within 7 days" />
             <Stat label="Revoked" value={snapshot.revoked} tone={snapshot.revoked > 0 ? "warn" : "muted"} hint="Access removed" />
           </section>
@@ -322,7 +322,7 @@ export default function AdminStudentsPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search students..."
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-2.5 pr-16 text-sm text-navy outline-none focus:border-accent"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
                   {filtered.length}
@@ -358,8 +358,8 @@ export default function AdminStudentsPage() {
                         onClick={() => setSelectedId(student.id)}
                         className={`flex w-full items-center gap-3 rounded-[10px] border px-3 py-2.5 text-left transition ${
                           selectedStudent?.id === student.id
-                            ? "border-gold-token bg-[var(--surface-strong)]"
-                            : "border-base bg-surface hover:border-gold-soft"
+                            ? "border-accent-token bg-[var(--surface-strong)]"
+                            : "border-base bg-surface hover:border-accent-soft"
                         }`}
                       >
                         <UserAvatar name={student.full_name} src={student.avatar_url} size="md" />
@@ -406,7 +406,7 @@ export default function AdminStudentsPage() {
                       name={selectedStudent.full_name}
                       src={selectedStudent.avatar_url}
                       size="xl"
-                      className="!border-2 !border-gold-token"
+                      className="!border-2 !border-accent-token"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="text-lg font-semibold text-navy">{selectedStudent.full_name}</p>
@@ -426,7 +426,7 @@ export default function AdminStudentsPage() {
                         />
                         {selectedRank.current_rank !== "EX" && (
                           <div className="w-28">
-                            <Bar value={selectedRank.current_bar} tone="gold" size="sm" />
+                            <Bar value={selectedRank.current_bar} tone="accent" size="sm" />
                           </div>
                         )}
                       </div>
@@ -440,12 +440,12 @@ export default function AdminStudentsPage() {
                     <Stat
                       label="Average"
                       value={getStudentAverageByProfile(selectedStudent.id) ?? "-"}
-                      tone={getStudentAverageByProfile(selectedStudent.id) !== null ? "gold" : "muted"}
+                      tone={getStudentAverageByProfile(selectedStudent.id) !== null ? "accent" : "muted"}
                     />
                   </div>
 
                   {/* Enrollment */}
-                  <div className="mt-5 rounded-[10px] border border-gold-soft bg-[var(--surface-strong)] p-4">
+                  <div className="mt-5 rounded-[10px] border border-accent-soft bg-[var(--surface-strong)] p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="section-label">Enrollment status</h3>
                       {(() => {
@@ -484,7 +484,7 @@ export default function AdminStudentsPage() {
                               type="date"
                               value={startDraft}
                               onChange={(e) => setStartDraft(e.target.value)}
-                              className="rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                              className="rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                             />
                           </label>
                           <label className="flex flex-col gap-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
@@ -493,11 +493,11 @@ export default function AdminStudentsPage() {
                               type="date"
                               value={expiryDraft}
                               onChange={(e) => setExpiryDraft(e.target.value)}
-                              className="rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                              className="rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                             />
                           </label>
                           <Button
-                            variant="gold"
+                            variant="accent"
                             size="sm"
                             icon={<IconCheck size={13} />}
                             onClick={async () => {
@@ -527,7 +527,7 @@ export default function AdminStudentsPage() {
                         <p className="mt-2 text-[11px] text-muted">
                           Expiry is semester / academic-year based. Enrollment status can only be changed by an admin.
                         </p>
-                        {enrollMessage && <p className="mt-2 text-xs text-gold-token">{enrollMessage}</p>}
+                        {enrollMessage && <p className="mt-2 text-xs text-accent-token">{enrollMessage}</p>}
                       </>
                     )}
                   </div>
@@ -549,7 +549,7 @@ export default function AdminStudentsPage() {
                             setProgramId("");
                             setSectionId("");
                           }}
-                          className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                          className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
                         >
                           <option value="">None</option>
                           {educationLevels.map((p) => (
@@ -566,7 +566,7 @@ export default function AdminStudentsPage() {
                             setSectionId("");
                           }}
                           disabled={!edLevelId}
-                          className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:opacity-50"
+                          className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent disabled:opacity-50"
                         >
                           <option value="">None</option>
                           {nestedPrograms.map((p) => (
@@ -580,7 +580,7 @@ export default function AdminStudentsPage() {
                           value={sectionId}
                           onChange={(e) => setSectionId(e.target.value)}
                           disabled={!programId}
-                          className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:opacity-50"
+                          className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent disabled:opacity-50"
                         >
                           <option value="">None</option>
                           {yearLevelSections.map((s) => (
@@ -602,7 +602,7 @@ export default function AdminStudentsPage() {
                       {(() => {
                         const eff = effectiveFrom(enrollmentRowFor(selectedStudent.id));
                         return eff === "enrolled" ? (
-                          <span className="text-[11px] font-semibold text-gold-token">
+                          <span className="text-[11px] font-semibold text-accent-token">
                             Enrollment verified - course access active.
                           </span>
                         ) : (
@@ -612,7 +612,7 @@ export default function AdminStudentsPage() {
                         );
                       })()}
                     </div>
-                    {academicMessage && <p className="mt-2 text-xs font-semibold text-gold-token">{academicMessage}</p>}
+                    {academicMessage && <p className="mt-2 text-xs font-semibold text-accent-token">{academicMessage}</p>}
                     {academicError && <p className="mt-2 text-xs text-warn">{academicError}</p>}
 
                     {selectedAcademicInfo && selectedAcademicInfo.programs.length > 0 && (
@@ -691,7 +691,7 @@ export default function AdminStudentsPage() {
                         })
                       )}
                     </div>
-                    {courseMessage && <p className="mt-2 text-xs font-semibold text-gold-token">{courseMessage}</p>}
+                    {courseMessage && <p className="mt-2 text-xs font-semibold text-accent-token">{courseMessage}</p>}
                     {courseError && <p className="mt-2 text-xs text-warn">{courseError}</p>}
                   </div>
                 </>

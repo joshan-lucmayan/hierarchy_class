@@ -189,13 +189,13 @@ export function ViewStudentProfile({ profileId }: { profileId: string }) {
                   <h1 className="text-2xl font-bold text-navy">{person.full_name}</h1>
                   {isStudent && <EnrolledBadge status={enrollment} size="sm" />}
                 </div>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-gold">
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-accent">
                   {isStudent ? "Student" : "Faculty"}
                 </p>
                 {isStudent && identityLine && <p className="mt-1.5 text-sm text-muted">{identityLine}</p>}
                 {isStudent && person.favorite_subject && (
                   <p className="mt-1.5 text-[12.5px] text-muted">
-                    <span className="font-semibold text-gold-token">Favorite subject:</span>{" "}
+                    <span className="font-semibold text-accent-token">Favorite subject:</span>{" "}
                     {person.favorite_subject}
                   </p>
                 )}
@@ -203,7 +203,7 @@ export function ViewStudentProfile({ profileId }: { profileId: string }) {
               <button
                 type="button"
                 onClick={() => router.push(`/student/messages?with=${person.id}`)}
-                className="shrink-0 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+                className="shrink-0 rounded-full bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
               >
                 Message
               </button>
@@ -235,7 +235,7 @@ export function ViewStudentProfile({ profileId }: { profileId: string }) {
               className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
                 isFriend
                   ? "border border-base bg-surface text-muted hover-border-warn-soft hover-text-warn"
-                  : "bg-gold text-on-accent hover:opacity-90"
+                  : "bg-accent text-on-accent hover:opacity-90"
               }`}
             >
               {isFriend ? "Remove Friend" : "Add Friend"}
@@ -245,7 +245,7 @@ export function ViewStudentProfile({ profileId }: { profileId: string }) {
             <button
               type="button"
               onClick={() => setCharismaOpen(true)}
-              className="rounded-full border border-base px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-gold sm:col-span-2"
+              className="rounded-full border border-base px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-accent sm:col-span-2"
             >
               Send Charisma
             </button>
@@ -326,7 +326,7 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
       <div className="w-full max-w-sm rounded-[10px] border border-base bg-surface p-7" onClick={(e) => e.stopPropagation()}>
         {sent ? (
           <div className="text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent-token">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6L9 17l-5-5" />
               </svg>
@@ -338,15 +338,15 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
             <button
               type="button"
               onClick={onClose}
-              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+              className="mt-5 w-full rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
             >
               Close
             </button>
           </div>
         ) : (
           <>
-            <div className="mb-3 h-1 w-10 rounded-full bg-gold" />
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Coin Charisma</p>
+            <div className="mb-3 h-1 w-10 rounded-full bg-accent" />
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Coin Charisma</p>
             <h2 className="mt-2 text-xl font-bold text-navy">Send charisma to {person.full_name.split(" ")[0]}</h2>
             <p className="mt-2 text-sm text-muted">Choose a coin package to boost their charisma stat.</p>
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -356,26 +356,26 @@ function SendCharismaModal({ person, onClose }: { person: ProfileRow; onClose: (
                   type="button"
                   onClick={() => setSelected(pkg.coins)}
                   className={`rounded-[10px] border px-2 py-3 text-center transition ${
-                    selected === pkg.coins ? "border-gold bg-[var(--surface-strong)]" : "border-base bg-surface hover:border-gold"
+                    selected === pkg.coins ? "border-accent bg-[var(--surface-strong)]" : "border-base bg-surface hover:border-accent"
                   }`}
                 >
                   <p className="text-lg font-bold text-navy">{pkg.coins}</p>
                   <p className="text-[11px] text-muted">coins</p>
-                  <p className="mt-1 text-xs font-semibold text-gold">₱{pkg.price}</p>
+                  <p className="mt-1 text-xs font-semibold text-accent">₱{pkg.price}</p>
                 </button>
               ))}
             </div>
             <button
               type="button"
               onClick={() => setSent(true)}
-              className="mt-5 w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90"
+              className="mt-5 w-full rounded-full bg-accent py-2.5 text-sm font-semibold text-on-accent transition hover:opacity-90"
             >
               Send {selected} coins
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="mt-2 w-full rounded-full border border-base py-2.5 text-sm font-semibold text-navy transition hover:border-gold"
+              className="mt-2 w-full rounded-full border border-base py-2.5 text-sm font-semibold text-navy transition hover:border-accent"
             >
               Cancel
             </button>

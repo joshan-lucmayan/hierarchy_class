@@ -105,10 +105,10 @@ export function AndroidUpdateChecker() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 animate-modal-in sm:left-auto sm:right-6 sm:max-w-sm">
-      <div className="rounded-[10px] border border-gold-soft bg-surface p-4 shadow-lg">
+      <div className="rounded-[10px] border border-accent-soft bg-surface p-4 shadow-lg">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold-token">Update available</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-token">Update available</p>
             <p className="mt-1 text-sm font-semibold text-navy">
               Hierarchy Class v{meta.latestVersion}
             </p>
@@ -118,7 +118,7 @@ export function AndroidUpdateChecker() {
             type="button"
             onClick={() => setDismissed(true)}
             aria-label="Dismiss"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-base text-muted transition hover:border-gold-soft hover:text-navy"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-base text-muted transition hover:border-accent-soft hover:text-navy"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
               <path d="M18 6L6 18M6 6l12 12" />

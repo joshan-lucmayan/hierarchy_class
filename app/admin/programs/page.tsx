@@ -301,7 +301,7 @@ export default function AdminProgramsPage() {
                     onClick={() => jumpTo(c.step)}
                     disabled={isLast}
                     className={`font-mono-ui text-[10px] uppercase tracking-[0.18em] transition ${
-                      isLast ? "text-navy" : "text-faint hover:text-gold-token"
+                      isLast ? "text-navy" : "text-faint hover:text-accent-token"
                     }`}
                   >
                     {c.label}
@@ -319,7 +319,7 @@ export default function AdminProgramsPage() {
             </Button>
           )}
           <Button
-            variant="gold"
+            variant="accent"
             size="sm"
             icon={showProgramForm || showSectionForm || showCourseForm ? undefined : <IconPlus size={13} />}
             onClick={() => {
@@ -345,7 +345,7 @@ export default function AdminProgramsPage() {
       {/* ============================================================ */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Education levels" value={snapshot.levels} tone="default" />
-        <Stat label="Programs" value={snapshot.programs} tone="gold" />
+        <Stat label="Programs" value={snapshot.programs} tone="accent" />
         <Stat label="Year levels" value={snapshot.sections} tone="default" />
         <Stat label="Courses" value={snapshot.courses} tone="default" />
       </section>
@@ -376,7 +376,7 @@ export default function AdminProgramsPage() {
                     desc="Education levels are the top of the hierarchy. Add one to start building programs, year levels, and courses."
                   />
                   <div className="mt-4 text-center">
-                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openProgramForm}>
+                    <Button variant="accent" size="sm" icon={<IconPlus size={13} />} onClick={openProgramForm}>
                       Add education level
                     </Button>
                   </div>
@@ -414,8 +414,8 @@ export default function AdminProgramsPage() {
                         </div>
                         {level.description && <p className="mt-2 text-xs text-muted">{level.description}</p>}
                         <div className="mt-3 flex items-center justify-between">
-                          <Chip variant="gold">{programCount} program{programCount === 1 ? "" : "s"} inside</Chip>
-                          <IconChevronRight size={13} className="text-faint transition group-hover:text-gold-token" />
+                          <Chip variant="accent">{programCount} program{programCount === 1 ? "" : "s"} inside</Chip>
+                          <IconChevronRight size={13} className="text-faint transition group-hover:text-accent-token" />
                         </div>
                       </div>
                     );
@@ -436,7 +436,7 @@ export default function AdminProgramsPage() {
                     desc={`No programs under "${selectedLevelName}" yet - add one to start building year levels and courses.`}
                   />
                   <div className="mt-4 text-center">
-                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openProgramForm}>
+                    <Button variant="accent" size="sm" icon={<IconPlus size={13} />} onClick={openProgramForm}>
                       Add program
                     </Button>
                   </div>
@@ -474,8 +474,8 @@ export default function AdminProgramsPage() {
                         </div>
                         {prog.description && <p className="mt-2 text-xs text-muted">{prog.description}</p>}
                         <div className="mt-3 flex items-center justify-between">
-                          <Chip variant="gold">{sectionCount} year/level{sectionCount === 1 ? "" : "s"} inside</Chip>
-                          <IconChevronRight size={13} className="text-faint transition group-hover:text-gold-token" />
+                          <Chip variant="accent">{sectionCount} year/level{sectionCount === 1 ? "" : "s"} inside</Chip>
+                          <IconChevronRight size={13} className="text-faint transition group-hover:text-accent-token" />
                         </div>
                       </div>
                     );
@@ -496,7 +496,7 @@ export default function AdminProgramsPage() {
                     desc={`No year / level sections under "${selectedProgramName}" yet - add one to start building courses.`}
                   />
                   <div className="mt-4 text-center">
-                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openSectionForm}>
+                    <Button variant="accent" size="sm" icon={<IconPlus size={13} />} onClick={openSectionForm}>
                       Add year / level
                     </Button>
                   </div>
@@ -549,7 +549,7 @@ export default function AdminProgramsPage() {
                     desc={`No courses in this year / level yet - add one to start enrolling students.`}
                   />
                   <div className="mt-4 text-center">
-                    <Button variant="gold" size="sm" icon={<IconPlus size={13} />} onClick={openCourseForm}>
+                    <Button variant="accent" size="sm" icon={<IconPlus size={13} />} onClick={openCourseForm}>
                       Add course
                     </Button>
                   </div>
@@ -588,7 +588,7 @@ export default function AdminProgramsPage() {
                         <Chip variant={crs.teacherName ? "success" : "neutral"}>
                           {crs.teacherName ? `Taught by ${crs.teacherName}` : "No teacher assigned"}
                         </Chip>
-                        <IconChevronRight size={13} className="text-faint transition group-hover:text-gold-token" />
+                        <IconChevronRight size={13} className="text-faint transition group-hover:text-accent-token" />
                       </div>
                     </div>
                   ))}
@@ -662,13 +662,13 @@ export default function AdminProgramsPage() {
               value={programDraft.name}
               onChange={(e) => setProgramDraft((d) => ({ ...d, name: e.target.value }))}
               placeholder={step === "levels" ? "Education level name" : "Program name"}
-              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
             />
             <input
               value={programDraft.description}
               onChange={(e) => setProgramDraft((d) => ({ ...d, description: e.target.value }))}
               placeholder="Description (optional)"
-              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
             />
             <div className="flex gap-2 pt-1">
               <Button type="submit" variant="primary" icon={editingProgramId ? <IconCheck size={13} /> : <IconPlus size={13} />}>
@@ -687,7 +687,7 @@ export default function AdminProgramsPage() {
               value={sectionDraft}
               onChange={(e) => setSectionDraft(e.target.value)}
               placeholder="Year / level name"
-              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
             />
             <div className="flex gap-2 pt-1">
               <Button type="submit" variant="primary" icon={editingSectionId ? <IconCheck size={13} /> : <IconPlus size={13} />}>
@@ -706,13 +706,13 @@ export default function AdminProgramsPage() {
               value={courseDraft.name}
               onChange={(e) => setCourseDraft((d) => ({ ...d, name: e.target.value }))}
               placeholder="Course name"
-              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
             />
             <input
               value={courseDraft.code}
               onChange={(e) => setCourseDraft((d) => ({ ...d, code: e.target.value }))}
               placeholder="Course code (optional)"
-              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
             />
             <select
               value={courseDraft.teacherId}
@@ -720,7 +720,7 @@ export default function AdminProgramsPage() {
                 const t = signedUpTeachers.find((p) => p.id === e.target.value);
                 setCourseDraft((d) => ({ ...d, teacherId: e.target.value, teacherName: t?.full_name ?? "" }));
               }}
-              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+              className="w-full rounded-[8px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent"
             >
               <option value="">Assign teacher (optional)</option>
               {signedUpTeachers.map((t) => (

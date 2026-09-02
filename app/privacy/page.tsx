@@ -106,7 +106,7 @@ export default function PrivacyPage() {
             href="https://github.com/joshan-lucmayan"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-[var(--gold)] underline underline-offset-2"
+            className="font-semibold text-[var(--accent)] underline underline-offset-2"
           >
             github.com/joshan-lucmayan
           </a>

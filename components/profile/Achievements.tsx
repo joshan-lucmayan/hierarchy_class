@@ -31,13 +31,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const INPUT_CLASS =
-  "w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-gold";
+  "w-full rounded-[10px] border border-base bg-surface px-3 py-2 text-sm text-navy outline-none focus:border-accent";
 
 function SparkDivider() {
   return (
     <div className="flex items-center gap-2.5">
       <span className="h-px flex-1 bg-[var(--line)]" />
-      <span aria-hidden className="text-[10px] text-gold-token">✦</span>
+      <span aria-hidden className="text-[10px] text-accent-token">✦</span>
       <span className="h-px flex-1 bg-[var(--line)]" />
     </div>
   );
@@ -56,10 +56,10 @@ function AchievementCard({ achievement: a, onOpen }: { achievement: StudentAchie
       onClick={onOpen}
       title="View achievement"
       aria-label="View achievement"
-      className="group flex flex-col rounded-[10px] border border-base bg-surface p-3.5 text-left transition hover:border-gold-soft"
+      className="group flex flex-col rounded-[10px] border border-base bg-surface p-3.5 text-left transition hover:border-accent-soft"
     >
       <span className="flex items-center gap-1.5">
-        <span aria-hidden className="text-[10px] text-gold-token">✦</span>
+        <span aria-hidden className="text-[10px] text-accent-token">✦</span>
         <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-muted">Achievement</span>
       </span>
       {/* Full title - wraps naturally, never clamped or ellipsized. */}
@@ -90,7 +90,7 @@ function AchievementDetail({
     <>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span aria-hidden className="text-[13px] text-gold-token">✦</span>
+          <span aria-hidden className="text-[13px] text-accent-token">✦</span>
           <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-muted">Achievement</h3>
         </div>
         {isOwner &&
@@ -125,7 +125,7 @@ function AchievementDetail({
       <button
         type="button"
         onClick={onViewRaw}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-[var(--surface-strong)] py-3 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-gold-soft hover:text-gold-token"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-[var(--surface-strong)] py-3 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-accent-soft hover:text-accent-token"
       >
         <IconEye size={14} />
         View Raw Image
@@ -225,7 +225,7 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
   return (
     <CornerFrame className="rounded-[10px] border border-base bg-surface p-5">
       {/* Profile-section tabs - a compact social-profile navigation strip
-          (Facebook-style UX, not the visual). Text-only tabs with a gold
+          (Facebook-style UX, not the visual). Text-only tabs with a accent
           bottom indicator on the active one; muted text when inactive. No
           heavy borders, no oversized segmented buttons. On very narrow
           screens ONLY this strip scrolls horizontally - never the page. */}
@@ -246,7 +246,7 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
               {active && (
                 <span
                   aria-hidden
-                  className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-gold-token"
+                  className="absolute bottom-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-accent-token"
                 />
               )}
             </button>
@@ -267,7 +267,7 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
         <>
           {isOwner && profile && (
             <div className="mb-4">
-              <Button variant="gold" className="w-full" icon={<IconPlus size={15} />} onClick={() => setPostOpen(true)}>
+              <Button variant="accent" className="w-full" icon={<IconPlus size={15} />} onClick={() => setPostOpen(true)}>
                 Post Achievement
               </Button>
             </div>
@@ -292,7 +292,7 @@ export function Achievements({ studentId, viewer = false }: { studentId?: string
                 <button
                   type="button"
                   onClick={() => setVisibleCount((c) => c + GRID_PAGE)}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-gold-soft"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] border border-base bg-surface py-2.5 text-xs font-bold uppercase tracking-[0.2em] text-navy transition hover:border-accent-soft"
                 >
                   Load More
                 </button>
@@ -490,7 +490,7 @@ export function PostAchievementModal({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full items-center justify-between gap-3 rounded-[10px] border border-dashed border-base bg-surface px-3 py-2.5 text-sm text-muted transition hover:border-gold"
+            className="flex w-full items-center justify-between gap-3 rounded-[10px] border border-dashed border-base bg-surface px-3 py-2.5 text-sm text-muted transition hover:border-accent"
           >
             <span className="truncate">{image ? image.name : "Choose certificate image"}</span>
             <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-navy">
@@ -500,7 +500,7 @@ export function PostAchievementModal({
         </Field>
         {error && <p className="text-sm text-warn">{error}</p>}
         <div className="flex gap-2 pt-1">
-          <Button type="submit" variant="gold" className="flex-1" loading={submitting} disabled={submitting}>
+          <Button type="submit" variant="accent" className="flex-1" loading={submitting} disabled={submitting}>
             {submitting ? "Posting..." : "Post achievement"}
           </Button>
           <Button variant="outline" onClick={onClose} disabled={submitting}>

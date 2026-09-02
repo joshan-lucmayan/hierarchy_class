@@ -38,7 +38,7 @@ export function PresetPicker({
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {/* Customize yourself - the empty-dashboard option */}
-        <div className="flex flex-col rounded-[10px] border border-base bg-surface p-3 transition hover:-translate-y-0.5 hover-border-gold-soft">
+        <div className="flex flex-col rounded-[10px] border border-base bg-surface p-3 transition hover:-translate-y-0.5 hover-border-accent-soft">
           <PresetPreview widgets={[]} labelOf={labelOf} blank />
           <p className="mt-3 text-[13px] font-semibold text-navy">Customize yourself</p>
           <p className="mt-0.5 flex-1 text-[11px] leading-4 text-muted">

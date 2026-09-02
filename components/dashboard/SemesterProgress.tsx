@@ -43,7 +43,7 @@ export function SemesterProgress({ semester }: { semester: ActiveSemester | null
         </p>
         <Link
           href="/admin/ranks"
-          className="mt-3 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-gold-token hover-text-on-accent"
+          className="mt-3 inline-block rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition hover-bg-accent-token hover-text-on-accent"
         >
           Declare a semester
         </Link>
@@ -58,10 +58,10 @@ export function SemesterProgress({ semester }: { semester: ActiveSemester | null
     <CornerFrame className="h-full p-5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="section-label">Current Semester</h2>
-        <Chip variant="gold">{Math.round(pct * 100)}%</Chip>
+        <Chip variant="accent">{Math.round(pct * 100)}%</Chip>
       </div>
       <p className="mt-2 truncate text-[15px] font-bold text-navy">{title || "Semester"}</p>
-      <Bar value={pct * 100} tone="gold" size="md" className="mt-3 w-full" />
+      <Bar value={pct * 100} tone="accent" size="md" className="mt-3 w-full" />
       <div className="mt-2 flex items-center justify-between text-[11.5px]">
         <span className="text-muted">{semester.start_date}</span>
         <span className="font-semibold text-navy">{label}</span>

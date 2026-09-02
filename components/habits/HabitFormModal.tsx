@@ -112,7 +112,7 @@ export function HabitFormModal({
         style={{ maxHeight: "min(90vh, 90dvh)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-1 h-1 w-10 rounded-full bg-gold" />
+        <div className="mb-1 h-1 w-10 rounded-full bg-accent" />
         <h2 className="mt-2 text-lg font-bold text-navy">{habit ? "Edit habit" : "Create habit"}</h2>
         <p className="mt-1 text-xs leading-5 text-muted">
           {habit
@@ -236,7 +236,7 @@ export function HabitFormModal({
                   aria-pressed={frequency === f}
                   className={`rounded-[8px] border px-3 py-2 text-left text-sm transition ${
                     frequency === f
-                      ? "border-sealion bg-gold/10 text-navy"
+                      ? "border-sealion bg-accent/10 text-navy"
                       : "border-line bg-tile text-muted hover:border-sealion"
                   }`}
                 >
@@ -267,7 +267,7 @@ export function HabitFormModal({
                     aria-label={`${label} - ${active ? "scheduled" : "not scheduled"}`}
                     className={`flex h-9 w-9 items-center justify-center rounded-full border text-[12px] font-semibold transition ${
                       active
-                        ? "border-sealion bg-gold text-on-accent"
+                        ? "border-sealion bg-accent text-on-accent"
                         : "border-line bg-tile text-faint hover:border-sealion"
                     }`}
                   >
@@ -290,7 +290,7 @@ export function HabitFormModal({
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="flex-1 rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-gold-token hover-text-on-accent disabled:opacity-60"
+              className="flex-1 rounded-full bg-navy py-2.5 text-sm font-semibold text-white transition hover-bg-accent-token hover-text-on-accent disabled:opacity-60"
             >
               {saving ? "Saving..." : habit ? "Save changes" : "Create habit"}
             </button>

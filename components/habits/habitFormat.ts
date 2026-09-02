@@ -73,7 +73,7 @@ export function dayMark(
   entries: EntryShape[],
   pauses: PauseShape[]
 ): { mark: string; cls: string } {
-  if (dayComplete(habit, date, entries)) return { mark: "✓", cls: "text-gold" };
+  if (dayComplete(habit, date, entries)) return { mark: "✓", cls: "text-accent" };
   const paused = pauses.some(
     (p) => p.habitId === habit.id && p.startedAt <= date && (p.endedAt === null || date <= p.endedAt)
   );

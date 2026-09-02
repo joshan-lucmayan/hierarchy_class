@@ -83,7 +83,7 @@ export default function TeacherQuizPage() {
             Create timed quizzes · published to your courses
           </h2>
         </div>
-        <Stat label="My quizzes" value={loading ? "-" : myQuizzes.length} tone="gold" hint="Published" />
+        <Stat label="My quizzes" value={loading ? "-" : myQuizzes.length} tone="accent" hint="Published" />
       </div>
 
       {loading ? (
@@ -132,7 +132,7 @@ export default function TeacherQuizPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Chapter 4 Review"
-                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-gold"
+                  className="w-full rounded-[10px] border border-base bg-surface px-4 py-3 text-sm text-navy outline-none focus:border-accent"
                 />
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -143,7 +143,7 @@ export default function TeacherQuizPage() {
                   <select
                     value={courseId}
                     onChange={(e) => setCourseId(e.target.value)}
-                    className="w-full rounded-[10px] border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-gold"
+                    className="w-full rounded-[10px] border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-accent"
                   >
                     <option value="">Select a course</option>
                     {myCourses.map((c) => (
@@ -160,7 +160,7 @@ export default function TeacherQuizPage() {
                     min={30}
                     value={timeLimit}
                     onChange={(e) => setTimeLimit(Number(e.target.value))}
-                    className="w-full rounded-[10px] border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-gold"
+                    className="w-full rounded-[10px] border border-base bg-surface px-3 py-3 text-sm text-navy outline-none focus:border-accent"
                   />
                 </label>
               </div>
@@ -187,14 +187,14 @@ export default function TeacherQuizPage() {
                     value={q.question}
                     onChange={(e) => updateQuestion(q.id, e.target.value)}
                     placeholder="Type the question..."
-                    className="mt-3 w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                    className="mt-3 w-full rounded-[10px] border border-base bg-surface px-3 py-2.5 text-sm text-navy outline-none focus:border-accent"
                   />
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {q.options.map((opt, oIndex) => (
                       <label
                         key={oIndex}
                         className={`flex items-center gap-2 rounded-[10px] border px-3 py-2 text-sm ${
-                          q.correctIndex === oIndex ? "border-gold-token bg-[var(--surface-strong)]" : "border-base bg-surface"
+                          q.correctIndex === oIndex ? "border-accent-token bg-[var(--surface-strong)]" : "border-base bg-surface"
                         }`}
                       >
                         <input
@@ -221,7 +221,7 @@ export default function TeacherQuizPage() {
               <Button variant="outline" size="sm" icon={<IconPlus size={13} />} onClick={addQuestion}>
                 Add question
               </Button>
-              <Button variant="gold" size="md" icon={<IconCheck size={13} />} onClick={handleSubmit}>
+              <Button variant="accent" size="md" icon={<IconCheck size={13} />} onClick={handleSubmit}>
                 Publish quiz
               </Button>
               {message && <p className="text-sm text-muted">{message}</p>}
@@ -234,7 +234,7 @@ export default function TeacherQuizPage() {
           <CornerFrame className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="section-label">Published quizzes</h3>
-              {myQuizzes.length > 0 && <Chip variant="gold">{myQuizzes.length} total</Chip>}
+              {myQuizzes.length > 0 && <Chip variant="accent">{myQuizzes.length} total</Chip>}
             </div>
             <div className="mt-4">
               {myQuizzes.length === 0 ? (
@@ -252,7 +252,7 @@ export default function TeacherQuizPage() {
                         <p className="mt-0.5 truncate text-xs text-muted">{q.courseName}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <Chip variant="gold">{q.questions.length} questions</Chip>
+                        <Chip variant="accent">{q.questions.length} questions</Chip>
                         <span className="font-mono-ui text-[10px] uppercase tracking-[0.15em] text-faint">
                           {q.timeLimitSeconds}s
                         </span>

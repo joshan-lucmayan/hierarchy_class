@@ -5,15 +5,15 @@
  * from brighter reds.
  */
 export interface ChipProps {
-  variant?: "neutral" | "gold" | "success" | "warn" | "danger";
+  variant?: "neutral" | "accent" | "success" | "warn" | "danger";
   children: React.ReactNode;
   className?: string;
 }
 
 const VARIANTS = {
   neutral: "border border-base bg-tile text-muted",
-  gold: "border border-gold-soft bg-gold-soft text-gold-token",
-  success: "border border-gold-soft bg-gold-soft text-gold-token",
+  accent: "border border-accent-soft bg-accent-soft text-accent-token",
+  success: "border border-accent-soft bg-accent-soft text-accent-token",
   warn: "border border-warn-soft bg-warn-soft text-warn",
   danger: "border border-warn-soft bg-warn-soft text-warn",
 } as const;

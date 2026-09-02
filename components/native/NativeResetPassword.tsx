@@ -137,12 +137,12 @@ export function NativeResetPassword() {
     <NativeAuthShell>
       {verifying ? (
         <div className="flex flex-col items-center gap-4 py-8 text-center" role="status" aria-live="polite">
-          <span className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--gold)] border-t-transparent" aria-hidden />
+          <span className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" aria-hidden />
           <p className="text-sm text-[var(--muted)]">Checking your reset link...</p>
         </div>
       ) : status === "done" ? (
         <div className="flex flex-col items-center gap-4 py-6 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-[var(--gold)]">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 text-[var(--accent)]">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 6L9 17l-5-5" />
             </svg>
@@ -182,7 +182,7 @@ export function NativeResetPassword() {
           <Link
             replace
             href="/login"
-            className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base bg-surface text-sm font-bold uppercase tracking-widest text-navy transition hover:border-gold-soft active:scale-[0.98] touch-manipulation"
+            className="flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base bg-surface text-sm font-bold uppercase tracking-widest text-navy transition hover:border-accent-soft active:scale-[0.98] touch-manipulation"
           >
             Back to Log In
           </Link>
@@ -245,7 +245,7 @@ export function NativeResetPassword() {
                 enterKeyHint="next"
                 onKeyDown={(e) => advanceNativeInput(e, "native-reset-confirm")}
                 className={`h-12 w-full rounded-xl border bg-surface px-4 pr-12 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                  ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                  ${errors.password ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
               />
               <button
                 type="button"
@@ -289,7 +289,7 @@ export function NativeResetPassword() {
               autoComplete="new-password"
               enterKeyHint="go"
               className={`h-12 w-full rounded-xl border bg-surface px-4 text-[15px] text-[var(--text)] outline-none transition-all placeholder:text-[var(--faint)] disabled:bg-tile disabled:text-faint
-                ${errors.confirm ? "border-warn-soft" : "border-base focus:border-[var(--gold)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
+                ${errors.confirm ? "border-warn-soft" : "border-base focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[rgba(158,167,179,0.18)]"}`}
             />
             {errors.confirm && <p className="text-xs text-warn">{errors.confirm}</p>}
           </div>
@@ -297,7 +297,7 @@ export function NativeResetPassword() {
           <button
             type="submit"
             disabled={status === "saving"}
-            className="mt-6 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-navy text-[15px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
+            className="mt-6 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-navy text-[15px] font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 touch-manipulation"
           >
             {status === "saving" && (
               <span aria-hidden className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -308,7 +308,7 @@ export function NativeResetPassword() {
           <Link
             replace
             href="/login"
-            className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base bg-surface text-sm font-bold uppercase tracking-widest text-navy transition hover:border-gold-soft active:scale-[0.98] touch-manipulation"
+            className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-xl border border-base bg-surface text-sm font-bold uppercase tracking-widest text-navy transition hover:border-accent-soft active:scale-[0.98] touch-manipulation"
           >
             Back to Log In
           </Link>

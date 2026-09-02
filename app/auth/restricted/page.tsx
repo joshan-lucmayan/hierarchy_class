@@ -159,7 +159,7 @@ export default function RestrictedPage() {
           </p>
 
           {pendingAppeal ? (
-            <div className="mt-6 rounded-[10px] border border-gold-soft bg-gold-soft/40 p-4">
+            <div className="mt-6 rounded-[10px] border border-accent-soft bg-accent-soft/40 p-4">
               <p className="text-sm font-semibold text-navy">Appeal submitted</p>
               <p className="mt-1 text-sm leading-6 text-muted">
                 Your appeal is waiting for review by a school administrator. You&apos;ll be able to use the app again
@@ -170,7 +170,7 @@ export default function RestrictedPage() {
             <div
               className={`mt-6 rounded-[10px] border p-4 ${
                 latestAppeal.status === "approved"
-                  ? "border-gold-soft bg-gold-soft/40"
+                  ? "border-accent-soft bg-accent-soft/40"
                   : "border-warn-soft bg-warn-soft/40"
               }`}
             >
@@ -186,7 +186,7 @@ export default function RestrictedPage() {
                 type="button"
                 onClick={handleSignOut}
                 disabled={busy === "signout"}
-                className="mt-3 rounded-full border border-base px-4 py-2 text-xs font-semibold text-navy transition hover:border-gold disabled:opacity-50"
+                className="mt-3 rounded-full border border-base px-4 py-2 text-xs font-semibold text-navy transition hover:border-accent disabled:opacity-50"
               >
                 {busy === "signout" ? "Signing out..." : "Sign out and try again"}
               </button>
@@ -202,11 +202,11 @@ export default function RestrictedPage() {
                 rows={4}
                 maxLength={2000}
                 placeholder="Explain why your account should be restored..."
-                className="w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                className="w-full rounded-[10px] border border-base bg-surface px-3.5 py-2.5 text-sm text-navy outline-none focus:border-accent"
               />
               {error && <p className="text-sm text-warn">{error}</p>}
               <Button
-                variant="gold"
+                variant="accent"
                 className="w-full"
                 loading={busy === "submit"}
                 disabled={busy !== null || !reason.trim()}

@@ -197,7 +197,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
             type="button"
             onClick={() => setShowArchived((v) => !v)}
             className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
-              showArchived ? "border-gold-token bg-[var(--surface-strong)] text-navy" : "border-base bg-surface text-muted hover:border-gold-soft"
+              showArchived ? "border-accent-token bg-[var(--surface-strong)] text-navy" : "border-base bg-surface text-muted hover:border-accent-soft"
             }`}
           >
             {showArchived ? "Inbox" : `Archived${archivedConversations.length > 0 ? ` (${archivedConversations.length})` : ""}`}
@@ -208,7 +208,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={showArchived ? "Filter archived..." : "Search people or chats..."}
-            className="w-full rounded-full border border-base bg-surface px-4 py-2 text-sm text-navy placeholder:text-muted outline-none focus:border-gold"
+            className="w-full rounded-full border border-base bg-surface px-4 py-2 text-sm text-navy placeholder:text-muted outline-none focus:border-accent"
           />
         </div>
 
@@ -237,7 +237,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                         : ""}
                     </p>
                   </div>
-                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold-token">Message</span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-accent-token">Message</span>
                 </button>
               ))}
             </div>
@@ -268,7 +268,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-xs text-muted">{c.lastMessage || "No messages yet"}</p>
                     {c.unread > 0 && (
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold-token text-[10px] font-bold text-on-accent">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-token text-[10px] font-bold text-on-accent">
                         {c.unread}
                       </span>
                     )}
@@ -292,7 +292,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                   type="button"
                   onClick={() => setActiveId(null)}
                   aria-label="Back to conversations"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-base bg-surface text-muted transition hover:border-gold-soft hover:text-navy md:hidden"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-base bg-surface text-muted transition hover:border-accent-soft hover:text-navy md:hidden"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M19 12H5" />
@@ -316,7 +316,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                     type="button"
                     onClick={() => setMenuOpen((v) => !v)}
                     aria-label="Conversation options"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-base text-muted transition hover:border-gold-soft hover:text-navy"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-base text-muted transition hover:border-accent-soft hover:text-navy"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="5" cy="12" r="1.8" />
@@ -396,7 +396,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                 <p className="text-center text-sm text-muted">Loading messages...</p>
               ) : active.messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent-token">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                     </svg>
@@ -430,7 +430,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                         <span
                           className={`max-w-[72%] whitespace-pre-wrap break-words rounded-[14px] px-4 pb-1.5 pt-2.5 text-sm leading-relaxed shadow-sm ${
                             m.mine
-                              ? "rounded-br-[4px] bg-gold-token text-on-accent"
+                              ? "rounded-br-[4px] bg-accent-token text-on-accent"
                               : "rounded-bl-[4px] bg-[var(--surface-strong)] text-navy"
                           }`}
                         >
@@ -469,7 +469,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
                       }
                     }}
                     placeholder="Type a message..."
-                    className="flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-gold"
+                    className="flex-1 rounded-full border border-base bg-surface px-4 py-2.5 text-sm text-navy outline-none focus:border-accent"
                     enterKeyHint="send"
                   />
                   <Button
@@ -496,7 +496,7 @@ export function MessengerView({ role: _role }: { role: ChatRole }) {
               <p className="text-sm text-muted">Loading directory...</p>
             ) : (
               <>
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold-soft text-gold-token">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent-token">
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                   </svg>
