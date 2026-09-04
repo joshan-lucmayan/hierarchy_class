@@ -1,0 +1,26 @@
+name: Refresh profile contribution snake
+
+# Every push to main pings the profile repo (perseus-lelush/perseus-lelush)
+# so the contribution snake animation regenerates within seconds of a commit,
+# instead of waiting for the 30-minute schedule fallback there.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trigger snake regeneration in profile repo
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${{ secrets.PROFILE_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/perseus-lelush/perseus-lelush/dispatches \
+            -d '{"event_type":"snake-refresh"}'
