@@ -63,6 +63,29 @@ function versionToCode(v: string): number {
   return p ? p[0] * 100000 + p[1] * 1000 + p[2] : 0;
 }
 
+/**
+ * Dismissal persists per remote version in localStorage so "Dismiss" survives
+ * cold starts - the banner would otherwise reappear on every launch while a
+ * stale install is still in use. A newer latestVersion prompts again.
+ */
+const DISMISSED_KEY = "hc-android-update-dismissed";
+
+function readDismissedFor(latestVersion: string): boolean {
+  try {
+    return window.localStorage.getItem(DISMISSED_KEY) === latestVersion;
+  } catch {
+    return false;
+  }
+}
+
+function rememberDismissedFor(latestVersion: string): void {
+  try {
+    window.localStorage.setItem(DISMISSED_KEY, latestVersion);
+  } catch {
+    /* storage unavailable - dismissal just stays session-scoped */
+  }
+}
+
 export function AndroidUpdateChecker() {
   const [meta, setMeta] = useState<AndroidVersionMeta | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -79,6 +102,10 @@ export function AndroidUpdateChecker() {
         if (!res.ok) return;
         const data: AndroidVersionMeta = await res.json();
         if (cancelled) return;
+        if (readDismissedFor(data.latestVersion)) {
+          setDismissed(true);
+          return;
+        }
         setMeta(data);
       } catch {
         // Offline or metadata unavailable - quiet
@@ -116,7 +143,10 @@ export function AndroidUpdateChecker() {
           </div>
           <button
             type="button"
-            onClick={() => setDismissed(true)}
+            onClick={() => {
+              rememberDismissedFor(meta.latestVersion);
+              setDismissed(true);
+            }}
             aria-label="Dismiss"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-base text-muted transition hover:border-accent-soft hover:text-navy"
           >
