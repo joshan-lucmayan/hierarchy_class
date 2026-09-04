@@ -19,7 +19,7 @@ test("APK release metadata matches the distributed artifact contract", () => {
     `APK version ${APK_RELEASE.version} must not be newer than package.json ${pkgVersion}`
   );
   assert.equal(APK_RELEASE.versionCode, 127116);
-  assert.equal(APK_RELEASE.sizeBytes, 7682402);
+  assert.equal(APK_RELEASE.sizeBytes, 7680590);
 });
 
 test("download URL is versioned and served from the public downloads path", () => {
