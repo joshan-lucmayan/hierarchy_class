@@ -516,8 +516,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     async (otherProfileId: string) => {
       if (!profile) return;
       const supabase = createClient();
-      await supabase.from("chat_blocks").insert({ blocker_id: profile.id, blocked_id: otherProfileId } as any);
-      setBlocks((prev) => new Set(prev).add(otherProfileId));
+      const { error } = await supabase
+        .from("chat_blocks")
+        .insert({ blocker_id: profile.id, blocked_id: otherProfileId } as any);
+      // Only reflect the block locally when the row actually landed - an
+      // optimistic add on failure shows a "blocked" state that isn't real.
+      if (!error) {
+        setBlocks((prev) => new Set(prev).add(otherProfileId));
+      }
     },
     [profile]
   );

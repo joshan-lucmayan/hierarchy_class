@@ -89,6 +89,14 @@ test("computeAdjusted applies the power curve to the entry's own pct", () => {
   approx(computeAdjusted(110, 1.8), 118.71);
 });
 
+test("computeAdjusted clamps negative S to 0 instead of producing NaN", () => {
+  // A negative S (only reachable from corrupted pre-existing entries) must
+  // never yield NaN - NaN comparisons silently corrupt the bar state.
+  const adjusted = computeAdjusted(-10, 1.8);
+  assert.equal(Number.isNaN(adjusted), false);
+  assert.equal(adjusted, 0);
+});
+
 // ---------------------------------------------------------------------------
 // 2. Bonus scores within 1.5x push entry pct past 100 without rejection
 // ---------------------------------------------------------------------------

@@ -334,17 +334,23 @@ export async function resolveAppeal(appealId: string, approved: boolean) {
   if (appeal.school_id !== caller.school_id) {
     return { error: "This appeal belongs to another school." };
   }
-  if (appeal.status !== "pending") return { error: "This appeal was already reviewed." };
 
-  // Record the decision.
-  const { error: updateError } = await (supabase.from("account_appeals") as any)
+  // Atomically claim the pending appeal: only ONE concurrent admin can flip
+  // it out of 'pending'. The loser sees zero updated rows and stops here -
+  // check-then-act let two approvals race and double-notify the student.
+  const { data: claimed, error: claimError } = await (supabase.from("account_appeals") as any)
     .update({
       status: approved ? "approved" : "denied",
       reviewed_by: caller.id,
       reviewed_at: new Date().toISOString(),
     })
-    .eq("id", appeal.id);
-  if (updateError) return { error: "Couldn't record the decision." };
+    .eq("id", appeal.id)
+    .eq("status", "pending")
+    .select("id");
+  if (claimError) return { error: "Couldn't record the decision." };
+  if (!claimed || claimed.length === 0) {
+    return { error: "This appeal was already reviewed by another admin." };
+  }
 
   // Approving restores access; denying keeps the account restricted.
   if (approved) {

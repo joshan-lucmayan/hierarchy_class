@@ -77,8 +77,9 @@ async function reuseOrRetirePending(
 
   try {
     const paymongoSession = await getCheckoutSessionStatus(tx.provider_session_id);
+    const sessionStatus = paymongoSession.attributes.status;
 
-    if (paymongoSession.attributes.status === 'active') {
+    if (sessionStatus === 'active' || sessionStatus === 'pending' || sessionStatus === 'payment_processing') {
       // Session still valid - reuse existing checkout URL
       return NextResponse.json({
         checkout_url: paymongoSession.attributes.checkout_url,
@@ -86,6 +87,13 @@ async function reuseOrRetirePending(
         status: 'reused',
         transaction_id: tx.id,
       } satisfies CheckoutResponse);
+    }
+
+    if (sessionStatus === 'succeeded' || sessionStatus === 'paid') {
+      // The session was PAID but the transaction is still pending - the
+      // webhook (or its retry) must complete it. Leave the row untouched so
+      // the one-pending invariant holds; never retire a paid session.
+      return null;
     }
 
     // Session expired - mark as expired and create new transaction

@@ -9,9 +9,10 @@
  * The webhook route stays active so any session that was already paid before
  * the disable can still be credited.
  *
- * To re-enable, flip PAYMENTS_ENABLED to true (and fix the pending-session
- * reuse lookup in lib/paymongo.ts getCheckoutSessionStatus, which still calls
- * the /v1 checkout_sessions endpoint instead of /v2).
+ * To re-enable, flip PAYMENTS_ENABLED to true. (The pending-session reuse
+ * lookup in lib/paymongo.ts getCheckoutSessionStatus now calls the /v2
+ * checkout_sessions endpoint; run the e2e runbook in docs/PAYMENTS.md before
+ * going live - it has never been executed end to end.)
  */
 export const PAYMENTS_ENABLED = false;
 

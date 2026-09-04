@@ -22,7 +22,14 @@ export interface PayMongoCheckoutSession {
     checkout_url: string;
     client_key: string;
     reference_number: string;
-    status: 'active' | 'expired';
+    status:
+      | 'active'
+      | 'pending'
+      | 'payment_processing'
+      | 'succeeded'
+      | 'paid'
+      | 'expired'
+      | 'cancelled';
     livemode: boolean;
     payment_method_types: string[];
     line_items: Array<{
@@ -248,7 +255,10 @@ export async function getCheckoutSessionStatus(
   const secretKey = getSecretKey();
   const baseUrl = getApiBaseUrl();
   
-  const response = await fetch(`${baseUrl}/v1/checkout_sessions/${sessionId}`, {
+  // Sessions are CREATED via POST /v2/checkout_sessions (createCheckoutSession),
+  // so the lookup must also hit /v2 - GET /v1/checkout_sessions/{id} cannot
+  // resolve v2 cs_xxx IDs (404), which silently broke pending-session reuse.
+  const response = await fetch(`${baseUrl}/v2/checkout_sessions/${sessionId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Basic ${Buffer.from(`${secretKey}:`).toString('base64')}`,

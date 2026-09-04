@@ -338,9 +338,12 @@ export function computeComposite(
 // Section 4 - adjusted score (power curve)
 // ---------------------------------------------------------------------------
 
-/** Adjusted = 100 × (S/100)^k. May exceed 100 when S exceeds 100 (bonus). */
+/** Adjusted = 100 × (S/100)^k. May exceed 100 when S exceeds 100 (bonus).
+ * Negative S (only possible from corrupted pre-existing period entries - new
+ * entries are hard-blocked) would make Math.pow return NaN and silently
+ * corrupt the bar state, so clamp it to 0 instead. */
 export function computeAdjusted(S: number, k: number): number {
-  return 100 * Math.pow(S / 100, k);
+  return 100 * Math.pow(Math.max(0, S) / 100, k);
 }
 
 // ---------------------------------------------------------------------------

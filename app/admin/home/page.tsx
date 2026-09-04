@@ -268,7 +268,7 @@ export default function AdminHomePage() {
     loading: hierarchyLoading,
   } = useClassroomHierarchy();
   const { tasks } = useTeacherTasks();
-  const { posts, deletePost } = useSchoolFeed();
+  const { posts, error: feedError, deletePost } = useSchoolFeed();
   const { requests: accountRequests, refetch: refetchAccountRequests } = useAccountRequests();
   const { ranks: schoolRanks, loading: rankLoading } = useRankStore();
   const { statuses: enrollmentStatuses } = useAdminEnrollments();
@@ -830,7 +830,12 @@ export default function AdminHomePage() {
                       </span>
                     </Link>
                   );
-                })}
+              })}
+              {feedError && (
+                <p className="mt-3 rounded-[10px] border border-warn-soft bg-warn-soft px-3 py-2 text-xs text-warn">
+                  {feedError}
+                </p>
+              )}
               </div>
             )}
           </div>
@@ -1229,7 +1234,7 @@ export default function AdminHomePage() {
                               key={post.id}
                               post={post}
                               onEdit={() => setEditingPost({ kind: band.kind, id: post.id })}
-                              onDelete={() => deletePost(post.id)}
+                              onDelete={() => void deletePost(post.id)}
                             />
                           ))}
                         </div>

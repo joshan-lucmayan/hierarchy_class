@@ -38,7 +38,7 @@ interface SchoolFeedContextValue {
     notifyAudience: boolean;
   }) => Promise<string | null>;
   updatePost: (id: string, patch: { type: "post" | "announcement"; title: string; body: string; tag: string; audience: "everyone" | "students" | "teachers"; image?: File | null; notifyAudience: boolean }) => Promise<boolean>;
-  deletePost: (id: string) => Promise<void>;
+  deletePost: (id: string) => Promise<boolean>;
   refresh: () => void;
 }
 
@@ -242,11 +242,20 @@ export function SchoolFeedProvider({ children }: { children: React.ReactNode }) 
     async (id: string) => {
       const supabase = createClient();
       const existing = posts.find((p) => p.id === id);
-      await supabase.from("school_feed_posts").delete().eq("id", id);
+      const { error } = await supabase.from("school_feed_posts").delete().eq("id", id);
+      if (error) {
+        setError(
+          error.message === "Forbidden"
+            ? "You don't have permission to delete this post."
+            : "Couldn't delete the post. Please try again."
+        );
+        return false;
+      }
       if (existing?.imagePath) {
         await supabase.storage.from("feed").remove([existing.imagePath]);
       }
       refresh();
+      return true;
     },
     [posts, refresh]
   );
