@@ -3,7 +3,7 @@
 Hierarchy Class has no separate REST service. The "API" is a combination of
 three surfaces:
 
-1. **Next.js routes** (`app/api/`, `app/actions/`, `middleware.ts`) - the
+1. **Next.js routes** (`app/api/`, `app/auth/`, `middleware.ts`) - the
    server-side layer of the Next app.
 2. **Supabase REST** (PostgREST) - the browser talks to Supabase directly
    with the anon key; RLS scopes every query. Tables are listed in
@@ -17,13 +17,16 @@ three surfaces:
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/feedback` | POST | Sends the feedback/report form to email (Resend) |
-| `/api/payments/packages` | GET | Active Florin packages for logged-in users (server-authenticated) |
-| `/api/payments/create-checkout` | POST | Students only: validates a package from the DB, creates/reuses the pending transaction + PayMongo Checkout Session (GCash), returns `checkout_url` |
-| `/api/payments/webhook` | POST | PayMongo webhook (`checkout_session.payment.paid`): raw-body HMAC signature verification, provider data cross-checks, then service-role `complete_payment()` - see [PAYMENTS.md](./PAYMENTS.md) |
+| `/api/feedback` | POST | Sends the feedback/report form to the developer's inbox (hardcoded in the route, delivered via Resend). Requires a signed-in user - anonymous submissions are rejected |
+| `/api/resolve-music` | POST | Resolves a music link (YouTube/SoundCloud/Vimeo/Apple Music/Spotify - including albums, playlists, artists, episodes, shows) into title/artist/cover. Free and open, no login; per-IP rate limited (30 req/min) |
+| `/api/export-account` | GET | Own-data JSON export ("Download My Data"); RLS-gated to the caller's own rows |
+| `/api/version` | GET | Public version probe for the service-worker update check |
+| `/api/payments/packages` | GET | **Currently disabled** (`PAYMENTS_ENABLED = false` -> 503). When enabled: active Florin packages for logged-in users |
+| `/api/payments/create-checkout` | POST | **Currently disabled** -> 503. When enabled: students only, validates a package from the DB, creates/reuses the pending transaction + PayMongo Checkout Session (GCash), returns `checkout_url` |
+| `/api/payments/webhook` | POST | PayMongo webhook (`checkout_session.payment.paid`): raw-body HMAC signature verification, provider data cross-checks, then service-role `complete_payment()`. Stays active while checkout is disabled so already-paid sessions still credit - see [PAYMENTS.md](./PAYMENTS.md) |
+| `/api/bridge/auth/*` | POST | Native/standalone app bridge: `signup` (validated student/teacher signup - role, school eligibility, school-issued IDs, password policy; email confirmation required) and `resend-confirmation`. Implemented in `lib/server/authOps.ts` |
+| `/api/bridge/account/*` | POST | Native/standalone app bridge: account lifecycle (`deactivate`, `reactivate`), restriction/appeals (`restrict`, `unrestrict`, `appeals`, `appeals/resolve`, `deletion-requests/resolve`). Implemented in `lib/server/accountOps.ts` |
 | `/auth/callback` | GET | Exchanges the auth/recovery code for a session; routes password-reset flows |
-| `/actions/auth` | server action | `signUpWithProfile` (validated student/teacher signup: role, school eligibility, school-issued IDs, password policy; email confirmation required) and `resendSignupConfirmation` |
-| `/actions/account` | server action | Account lifecycle (`deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`) + restriction/appeals (`adminRestrictUser`, `adminUnrestrictUser`, `submitAppeal`, `resolveAppeal`). School-admin deactivation (`adminSetUserDeactivation`) was removed in v1.7.66 |
 | `middleware.ts` | - | Session refresh + DB-truth role guard (profiles.role / school_id / deactivated_at / restricted_at + email confirmation) - see [SECURITY.md](./SECURITY.md) |
 
 Everything else under `app/` is the client-rendered UI (App Router pages).

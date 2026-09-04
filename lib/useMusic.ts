@@ -71,7 +71,15 @@ export function useMusic(studentId?: string | null) {
 
   const remove = useCallback(async (item: StudentMusicRow) => {
     const supabase = createClient();
-    await supabase.from("student_music").delete().eq("id", item.id).eq("student_id", item.student_id);
+    const { error: deleteError } = await supabase
+      .from("student_music")
+      .delete()
+      .eq("id", item.id)
+      .eq("student_id", item.student_id);
+    if (deleteError) {
+      console.error("[music] delete failed:", deleteError.message);
+      return;
+    }
     setRefetchTick((t) => t + 1);
   }, []);
 

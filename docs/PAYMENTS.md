@@ -1,5 +1,16 @@
 # Hierarchy Class - Florin Payments (GCash via PayMongo)
 
+> **STATUS: TEMPORARILY DISABLED.** Top-ups are switched off via
+> `PAYMENTS_ENABLED = false` in `lib/paymentsConfig.ts`: the purchase modal
+> shows a "coming soon" state and both `/api/payments/create-checkout` and
+> `/api/payments/packages` respond 503. The webhook stays active so any
+> already-paid session can still be credited. **Known issue to fix before
+> re-enabling:** `lib/paymongo.ts` `getCheckoutSessionStatus` calls the
+> `/v1/checkout_sessions` endpoint but sessions are created on `/v2` - the
+> lookup 404s, which silently defeats pending-session reuse (and, before the
+> disable, could retire a still-payable session as "failed"). Flip the flag
+> only after that endpoint is corrected and sandbox-tested.
+
 Students top up their **Florin** balance with real money through **PayMongo
 Hosted Checkout**, paying with **GCash**. The browser never touches payment
 credentials and never credits Florin - the **verified webhook is the only path

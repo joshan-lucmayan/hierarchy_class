@@ -84,6 +84,12 @@ export function passwordPolicyError(password: string): string | null {
   return null;
 }
 
+/** Runtime-safe string coercion - the server forwards raw JSON bodies, so
+ *  any field can arrive as a number/object/null. Never deref before this. */
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
 /**
  * Validates the full signup payload. Pure - takes the raw input and returns
  * field-level errors. The server action additionally verifies school
@@ -92,16 +98,17 @@ export function passwordPolicyError(password: string): string | null {
 export function validateSignupInput(input: SignupInput): SignupErrors {
   const errors: SignupErrors = {};
 
-  if (!input.firstName.trim()) errors.firstName = "Enter your first name.";
-  if (!input.lastName.trim()) errors.lastName = "Enter your last name.";
+  if (!asString(input.firstName).trim()) errors.firstName = "Enter your first name.";
+  if (!asString(input.lastName).trim()) errors.lastName = "Enter your last name.";
 
-  if (!input.email.trim()) {
+  const email = asString(input.email).trim();
+  if (!email) {
     errors.email = "Enter your email.";
-  } else if (!isValidEmail(input.email)) {
+  } else if (!isValidEmail(email)) {
     errors.email = "Enter a valid email address.";
   }
 
-  const passwordError = passwordPolicyError(input.password);
+  const passwordError = passwordPolicyError(asString(input.password));
   if (passwordError) errors.password = passwordError;
 
   if (!input.schoolId) errors.school = "Please select your school.";
@@ -110,9 +117,13 @@ export function validateSignupInput(input: SignupInput): SignupErrors {
   // publicly. An explicit admin attempt is rejected with a clear message.
   const role = parsePublicSignupRole(input.role);
   if (!role) {
-    errors.role = input.role.trim().toLowerCase() === "admin"
-      ? "Administrator accounts cannot be created through signup."
-      : "Choose Student or Teacher.";
+    // input.role is raw client data and may be missing/non-string - guard
+    // before dereferencing so a malformed body gets a field error, not a 500.
+    const rawRole = typeof input.role === "string" ? input.role.trim().toLowerCase() : "";
+    errors.role =
+      rawRole === "admin"
+        ? "Administrator accounts cannot be created through signup."
+        : "Choose Student or Teacher.";
     return errors;
   }
 
@@ -136,9 +147,9 @@ export function normalizeSignupIdentifiers(input: SignupInput): {
 } {
   const role = parsePublicSignupRole(input.role);
   return {
-    studentId: role === "student" ? normalizeIdentifier(input.studentId ?? "") || null : null,
-    facultyId: role === "teacher" ? normalizeIdentifier(input.facultyId ?? "") || null : null,
-    middleName: normalizeIdentifier(input.middleName ?? "") || null,
+    studentId: role === "student" ? normalizeIdentifier(asString(input.studentId)) || null : null,
+    facultyId: role === "teacher" ? normalizeIdentifier(asString(input.facultyId)) || null : null,
+    middleName: normalizeIdentifier(asString(input.middleName)) || null,
   };
 }
 

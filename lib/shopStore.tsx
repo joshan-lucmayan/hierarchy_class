@@ -76,30 +76,44 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     async function loadAll() {
       setLoading(true);
 
-      const [{ data: itemRows }, { data: ownedRows }, { data: loadoutRow }, { data: borderRows }] =
-        (await Promise.all([
-          supabase.from("shop_items").select("*").eq("active", true).order("sort_order"),
-          supabase
-            .from("shop_ownership")
-            .select("item_id")
-            .eq("student_id", profile!.id),
-          supabase
-            .from("student_shop_loadout")
-            .select("background_item_id, avatar_border_item_id, profile_card_item_id")
-            .eq("student_id", profile!.id)
-            .maybeSingle(),
-          // School-wide loadouts (joined to the item for its accent/image) so
-          // every user's decoration renders on other people's avatars and
-          // profile cards.
-          supabase
-            .from("student_shop_loadout")
-            .select(
-              "student_id, border:shop_items!student_shop_loadout_avatar_border_item_id_fkey(accent), card:shop_items!student_shop_loadout_profile_card_item_id_fkey(image_url)"
-            )
-            .or("avatar_border_item_id.not.is.null,profile_card_item_id.not.is.null"),
-        ])) as any[];
+      const [itemsResult, ownedResult, loadoutResult, bordersResult] = (await Promise.all([
+        supabase.from("shop_items").select("*").eq("active", true).order("sort_order"),
+        supabase
+          .from("shop_ownership")
+          .select("item_id")
+          .eq("student_id", profile!.id),
+        supabase
+          .from("student_shop_loadout")
+          .select("background_item_id, avatar_border_item_id, profile_card_item_id")
+          .eq("student_id", profile!.id)
+          .maybeSingle(),
+        // School-wide loadouts (joined to the item for its accent/image) so
+        // every user's decoration renders on other people's avatars and
+        // profile cards.
+        supabase
+          .from("student_shop_loadout")
+          .select(
+            "student_id, border:shop_items!student_shop_loadout_avatar_border_item_id_fkey(accent), card:shop_items!student_shop_loadout_profile_card_item_id_fkey(image_url)"
+          )
+          .or("avatar_border_item_id.not.is.null,profile_card_item_id.not.is.null"),
+      ])) as any[];
 
       if (cancelled) return;
+
+      // Any query failure used to render an empty shop silently - surface it.
+      const firstError =
+        itemsResult.error ?? ownedResult.error ?? loadoutResult.error ?? bordersResult.error;
+      if (firstError) {
+        console.error("[shop] load failed:", firstError);
+        setError("Couldn't load the shop. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const itemRows = itemsResult.data;
+      const ownedRows = ownedResult.data;
+      const loadoutRow = loadoutResult.data;
+      const borderRows = bordersResult.data;
 
       const catalog = ((itemRows ?? []) as any[]).map((r) => ({
         id: r.id,
@@ -219,7 +233,11 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     async (type: ShopItemType) => {
       if (!profile) return;
       const supabase = createClient();
-      await (supabase as any).rpc("unequip_shop_item", { p_slot: type });
+      const { error: rpcError } = (await (supabase as any).rpc("unequip_shop_item", {
+        p_slot: type,
+      })) as any;
+      if (rpcError) return;
+      // Only reflect the change when the DB write succeeded.
       setEquipped((prev) => ({ ...prev, [type]: null }));
     },
     [profile]

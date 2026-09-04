@@ -60,10 +60,31 @@ test("restricted users can reach the restriction/callback/recovery/API paths", (
     "/forgot-password",
     "/reset-password",
     "/logout",
-    "/api/export-account",
+    "/api/version",
+    "/api/bridge/account/appeals",
   ]) {
     assert.equal(decideAuthRoute(ctx({ profile: restricted, pathname })).type, "next", pathname);
   }
+});
+
+test("restricted/deactivated users cannot reach general API routes (no blanket /api bypass)", () => {
+  const restricted = { ...student, restricted_at: "2026-01-01T00:00:00Z" };
+  const deactivated = { ...student, deactivated_at: "2026-01-01T00:00:00Z" };
+  for (const profile of [restricted, deactivated]) {
+    for (const pathname of ["/api/feedback", "/api/resolve-music", "/api/export-account"]) {
+      assert.equal(decideAuthRoute(ctx({ profile, pathname })).type, "redirect", pathname);
+    }
+  }
+});
+
+test("role prefix matching respects path boundaries", () => {
+  // "/studentX" is NOT a student route - it must not match the /student prefix.
+  for (const pathname of ["/studentX", "/administrator", "/teacherlounge"]) {
+    assert.equal(decideAuthRoute(ctx({ profile: student, pathname })).type, "next", pathname);
+  }
+  // Nested routes still match.
+  assert.equal(decideAuthRoute(ctx({ profile: student, pathname: "/student" })).type, "next");
+  assert.equal(decideAuthRoute(ctx({ profile: admin, pathname: "/admin/users" })).type, "next");
 });
 
 test("restriction takes precedence over deactivation", () => {
@@ -91,7 +112,9 @@ test("deactivated users can reach the reactivation/callback/recovery/API paths",
     "/auth/callback",
     "/forgot-password",
     "/reset-password",
-    "/api/export-account",
+    "/logout",
+    "/api/version",
+    "/api/bridge/account/reactivate",
   ]) {
     assert.equal(decideAuthRoute(ctx({ profile: deactivated, pathname })).type, "next", pathname);
   }

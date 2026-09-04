@@ -1,8 +1,8 @@
 {
-  "latestVersion": "1.27.115",
-  "versionCode": 127115,
-  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.27.115.apk",
-  "releaseNotes": "Library overhaul (location, receipts, loan days, fines, notification deep-links) + habit tracker improvements (pause-aware progress, contribution-style history grid, streak stats, simplified UI).",
+  "latestVersion": "1.27.116",
+  "versionCode": 127116,
+  "downloadUrl": "https://www.hierarchyclass.com/downloads/hierarchy-class-v1.27.116.apk",
+  "releaseNotes": "Florin top-ups temporarily disabled (coming soon), stricter account security (restricted/deactivated accounts lose blanket API access), more reliable feedback and account deletion, music links now support Spotify playlists/albums/artists and are rate-limited, plus shop/chat/profile reliability fixes.",
   "minimumSupportedVersion": "1.24.111",
   "minimumVersionCode": 124111
 }

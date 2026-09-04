@@ -1,6 +1,6 @@
 # Hierarchy Class - Architecture
 
-**Version 1.27.115.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
+**Version 1.27.116.** A gamified academic-tracking platform ("Make school feel like a game worth playing")
 for schools: students, teachers, and admins get role-scoped dashboards built
 on Supabase (Postgres + Auth + RLS + Realtime + Storage) and Next.js 14
 (App Router).
@@ -102,7 +102,7 @@ Concern -> folder cheat sheet:
 | Concern | Where |
 |---|---|
 | Frontend UI & routes | `app/`, `components/` |
-| Backend (server-side) | `app/api/`, `app/actions/`, `middleware.ts`, `lib/supabase/auth.ts` |
+| Backend (server-side) | `app/api/`, `app/auth/`, `middleware.ts`, `lib/supabase/auth.ts` |
 | Database (schema, RLS, RPCs, triggers) | `database/migrations/` |
 | Security (auth, RLS, role guards) | `middleware.ts`, `database/migrations/` (RLS) |
 | Client data layer | `lib/` (stores + hooks) |
@@ -142,11 +142,12 @@ Postgres
   lands on the public home page (`/`), which shows the landing site for
   visitors.
 - **Signup**: public signup accepts only **student** and **teacher**; the
-  server action validates the role, the school (must exist, be active, and be
+  signup bridge (`/api/bridge/auth/signup` -> `lib/server/authOps.ts`)
+  validates the role, the school (must exist, be active, and be
   open for registration via `schools.registration_enabled`), and the
   school-issued student/faculty ID. The `handle_new_user()` DB trigger
   re-validates role + school at the database level, so a forged payload is
-  rejected even if the server action is bypassed. Admins are provisioned by
+  rejected even if the bridge is bypassed. Admins are provisioned by
   the platform owner only.
 - **Email confirmation** is required: signup sends a confirmation link
   (`NEXT_PUBLIC_SITE_URL` must be set in production), login refuses
@@ -185,8 +186,8 @@ where it matters. All are Supabase-backed - **there is no mock data**.
 | `useSchoolProfiles` | profiles | School roster by role (RLS-scoped) |
 | `useRankStore` (`RankProvider`) | student_rank_state (+ rank_config) | Non-linear rank engine: `rankOf(profileId)`, `sorted` (best-first); realtime refetch on rank state changes |
 | `useMyEnrollment` / `useAdminEnrollments` | enrollment_status | Effective status computed at read time |
-| `useAccountRequests` | account_requests | Submit deletion request + admin list (approve/deny runs via `resolveDeletionRequest` server action) |
-| `app/actions/account.ts` | profiles, account_requests, account_appeals, auth.users, storage | Account lifecycle: self-service deactivate/reactivate (`profiles.deactivated_at`), admin-approved permanent deletion (service-role auth delete + storage cleanup, migration 058 preserves/anonymizes school records), admin restriction of suspicious accounts (`profiles.restricted_at`) + appeal submission/review (`account_appeals`, migration 060). School admins CANNOT deactivate other users - that power was removed |
+| `useAccountRequests` | account_requests | Submit deletion request + admin list (approve/deny runs via `resolveDeletionRequest` in `lib/server/accountOps.ts`, through `/api/bridge/account/deletion-requests/resolve`) |
+| `lib/server/accountOps.ts` (via `/api/bridge/account/*`) | profiles, account_requests, account_appeals, auth.users, storage | Account lifecycle: self-service deactivate/reactivate (`profiles.deactivated_at`), admin-approved permanent deletion (service-role auth delete + storage cleanup, migration 058 preserves/anonymizes school records), admin restriction of suspicious accounts (`profiles.restricted_at`) + appeal submission/review (`account_appeals`, migration 060). School admins CANNOT deactivate other users - that power was removed |
 | `app/api/export-account` | RLS-gated reads | Own-data JSON export (Download My Data) |
 
 See [FRONTEND.md](./FRONTEND.md) for the pages and component breakdown.
@@ -283,10 +284,12 @@ reuses `lib/uploadUtils.ts` validation with a certificate-specific 10 MB cap.
 `music_url`, resolved `title`/`artist`/`album_cover_url` and the platform.
 Resolution happens in `app/api/resolve-music/route.ts` - keyless oEmbed for
 YouTube, SoundCloud and Vimeo, keyless iTunes lookup for Apple Music, and
-Spotify via its keyless oEmbed endpoint (title + cover) with an upgrade to the
-Spotify Web API when server-only `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`
-env vars are configured (full title/artist/cover; spotify.link short links
-are resolved with the final host verified). The server only ever calls the
+Spotify via its keyless oEmbed endpoint (title + cover) with the artist
+parsed from the public page's og:description when oEmbed omits it. Spotify
+tracks, albums, playlists, artists, episodes and shows all resolve, and
+spotify.link short links are resolved with the final host verified. The
+route is free and open (no login, no credentials); a per-IP rate limit
+(30 requests/minute) protects it. The server only ever calls the
 whitelisted platform metadata endpoints, so no credentials reach the client
 and there is no SSRF surface. The profile's MUSIC tab
 (`components/profile/Music.tsx` + `lib/useMusic.ts`) shows
@@ -311,7 +314,7 @@ reversible) and **permanent deletion** (admin-approved, irreversible).
 ```
 User clicks "Deactivate account" in Settings
   ↓
-deactivateAccount() server action
+deactivateAccount() bridge call
   ↓
 profiles.deactivated_at = now()  (RLS: own row only)
   ↓
@@ -339,7 +342,7 @@ Admin reviews in Settings → Account requests
   ↓
 Admin approves → resolveDeletionRequest()
   ↓
-Same-school + admin role verified server-side (RLS + server action)
+Same-school + admin role verified server-side (RLS + bridge module)
   ↓
 Storage paths collected (avatars, certificates, stories, materials, feed)
   ↓
@@ -358,7 +361,7 @@ creates a server-only client using `SUPABASE_SERVICE_ROLE_KEY` - this key is:
 
 - Server-only (never `NEXT_PUBLIC_`, never exposed to the browser)
 - Never committed to the repository
-- Only used by the account-deletion path (`app/actions/account.ts`)
+- Only used by the account-deletion path (`lib/server/accountOps.ts`)
 - Callers must perform their own authorization BEFORE using it
 
 The service-role client is **not** a general-purpose admin tool. It exists
@@ -369,7 +372,7 @@ storage cleanup require privileged access that RLS alone cannot provide.
 
 | File | Responsibility |
 |---|---|
-| `app/actions/account.ts` | Server actions: `deactivateAccount`, `reactivateAccount`, `resolveDeletionRequest`, `adminRestrictUser`, `adminUnrestrictUser`, `submitAppeal`, `resolveAppeal`. Authorization runs against the caller's session (anon key + RLS) before the service-role client is used for the irreversible step |
+| `lib/server/accountOps.ts` (via `/api/bridge/account/*`) | Account lifecycle bridge: `deactivate`, `reactivate`, `deletion-requests/resolve`, `restrict`, `unrestrict`, `appeals`, `appeals/resolve`. Authorization runs against the caller's session (anon key + RLS) before the service-role client is used for the irreversible step |
 | `app/api/export-account/route.ts` | Data export endpoint ("Download My Data"). Uses the caller's own session - RLS gates every query. Returns JSON. No service role involved |
 | `app/auth/reactivate/page.tsx` | Reactivation page shown to deactivated users. Two options: Reactivate (clears `deactivated_at`, welcome-back notification) or Stay Deactivated (sign out) |
 | `lib/supabase/serviceClient.ts` | Server-only Supabase client with the service role. Used ONLY by account deletion (auth admin + storage cleanup) |

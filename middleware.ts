@@ -61,15 +61,24 @@ export async function middleware(request: NextRequest) {
   // from user_metadata. This single query also covers deactivation.
   // (Note: supabase-js types `.maybeSingle()` as `never` here, so the result
   // is cast - same convention as the rest of the codebase.)
+  //
+  // A transient DB error must NOT look like "no profile" - that would bounce
+  // signed-in users to /auth/incomplete (false logout). On error, fail open
+  // for the cookie-refresh job and let each page/API enforce its own auth.
   let profile: AuthProfile | null = null;
   if (user) {
-    const { data: profileRow } = (await supabase
+    const { data: profileRow, error: profileError } = (await supabase
       .from("profiles")
       .select("role, school_id, deactivated_at, restricted_at")
       .eq("user_id", user.id)
       .maybeSingle()) as {
       data: { role: string; school_id: string; deactivated_at: string | null; restricted_at: string | null } | null;
+      error: { message: string } | null;
     };
+    if (profileError) {
+      console.error("[middleware] profiles lookup failed:", profileError.message);
+      return response;
+    }
     if (profileRow) {
       const role = profileRow.role as Role;
       if (role === "student" || role === "teacher" || role === "admin") {

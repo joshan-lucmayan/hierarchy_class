@@ -4,31 +4,54 @@ import type { MusicPlatform, ResolvedMusic } from "@/lib/musicTypes";
 // Music metadata resolution - post-music-by-link.
 //
 // The student pastes a music URL and this endpoint resolves title, artist and
-// album artwork server-side so no client code touches any credential. The
-// server only ever calls the platform's own metadata endpoint (never the
-// arbitrary user-supplied URL), which also keeps this route safe from SSRF.
+// album artwork server-side. The route is FREE and OPEN: no login, no API
+// credentials, no quota to buy. It only ever calls each platform's keyless
+// public metadata endpoint (never the arbitrary user-supplied URL), which
+// also keeps this route safe from SSRF. Because it is open, a per-IP rate
+// limit protects it from abuse.
 //
 // Supported platforms:
 //   - YouTube / SoundCloud / Vimeo  - keyless oEmbed (no credentials needed)
 //   - Apple Music                   - keyless iTunes lookup API
-//   - Spotify                       - the Spotify Web API (full title/artist/
-//                                     cover metadata) when SPOTIFY_CLIENT_ID
-//                                     and SPOTIFY_CLIENT_SECRET env vars are
-//                                     configured; otherwise it falls back to
-//                                     Spotify's keyless oEmbed endpoint
-//                                     (title + cover) with the artist parsed
-//                                     from the public track page when oEmbed
-//                                     omits it. Credentials are only ever
-//                                     read server-side and never shipped to
-//                                     the browser. spotify.link short links
-//                                     are resolved (redirects followed,
-//                                     final host verified) before either
-//                                     path.
+//   - Spotify                       - keyless oEmbed endpoint (title + cover)
+//                                     with the artist parsed from the public
+//                                     page's og:description when oEmbed omits
+//                                     it. Tracks, albums, playlists, artists,
+//                                     episodes and show links all resolve.
+//                                     spotify.link short links are resolved
+//                                     (redirects followed, final host
+//                                     verified) first.
 
 // Types live in lib/musicTypes.ts (shared with client code - see there).
 export type { MusicPlatform, ResolvedMusic } from "@/lib/musicTypes";
 
 const OEmbed_TIMEOUT_MS = 8000;
+
+// Per-IP rate limit: 30 resolves per minute. Keeps the open endpoint safe
+// from scripted hammering without ever requiring a login.
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 60_000;
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const bucket = rateBuckets.get(ip);
+  if (!bucket || bucket.resetAt <= now) {
+    // Periodically sweep expired buckets so the map cannot grow unbounded.
+    if (rateBuckets.size > 5_000) {
+      for (const [key, b] of rateBuckets) if (b.resetAt <= now) rateBuckets.delete(key);
+    }
+    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  bucket.count += 1;
+  return bucket.count > RATE_LIMIT;
+}
+
+function clientIp(request: Request): string {
+  const fwd = request.headers.get("x-forwarded-for");
+  return fwd?.split(",")[0]?.trim() || "unknown";
+}
 
 function detectPlatform(host: string): MusicPlatform | null {
   const h = host.replace(/^www\./, "").replace(/^m\./, "");
@@ -98,9 +121,10 @@ function decodeEntities(value: string): string {
     .replace(/&gt;/g, ">");
 }
 
-/** Parses the artist out of Spotify's public track page - the og:description
+/** Parses the artist out of a Spotify public track page - the og:description
  *  meta is "Artist · Album · Song · Year", so the artist is the first
- *  segment. Keyless; only used when oEmbed omits the artist. */
+ *  segment. Keyless; only used when oEmbed omits the artist (track pages
+ *  only - other Spotify content types have no artist line to parse). */
 async function spotifyArtistFromPage(trackId: string): Promise<string | null> {
   try {
     const res = await fetchWithTimeout(`https://open.spotify.com/track/${trackId}`, {
@@ -117,38 +141,15 @@ async function spotifyArtistFromPage(trackId: string): Promise<string | null> {
   }
 }
 
-// Spotify client-credentials token, cached for the token lifetime (1 hour).
-let spotifyToken: { token: string; expiresAt: number } | null = null;
-
-async function getSpotifyToken(): Promise<string> {
-  const now = Date.now();
-  if (spotifyToken && spotifyToken.expiresAt > now + 30_000) return spotifyToken.token;
-
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  if (!clientId || !clientSecret) throw new Error("spotify-not-configured");
-
-  const res = await fetchWithTimeout("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-    },
-    body: "grant_type=client_credentials",
-  });
-  if (!res.ok) throw new Error("spotify-auth-failed");
-  const data = (await res.json()) as { access_token?: string; expires_in?: number };
-  if (!data.access_token) throw new Error("spotify-auth-failed");
-
-  spotifyToken = { token: data.access_token, expiresAt: now + (data.expires_in ?? 3600) * 1000 };
-  return spotifyToken.token;
-}
-
 function error(message: string, status: number) {
   return NextResponse.json({ ok: false, error: message }, { status });
 }
 
 export async function POST(request: Request) {
+  if (isRateLimited(clientIp(request))) {
+    return error("Too many music lookups right now - try again in a minute.", 429);
+  }
+
   let body: { url?: unknown } = {};
   try {
     body = await request.json();
@@ -207,47 +208,23 @@ export async function POST(request: Request) {
         url = finalUrl;
       }
 
-      const match = url.pathname.match(/^\/track\/([\w]+)/);
+      // Tracks, albums, playlists, artists, episodes and shows all resolve -
+      // every type has a public oEmbed endpoint with title + cover.
+      const match = url.pathname.match(/^\/(track|album|playlist|artist|episode|show)\/([\w]+)/);
       if (!match) return error("Music information could not be retrieved.", 422);
-      const trackId = match[1];
-      const canonicalUrl = `https://open.spotify.com/track/${trackId}`;
+      const [, contentType, contentId] = match;
+      const canonicalUrl = `https://open.spotify.com/${contentType}/${contentId}`;
 
-      // Preferred: the Spotify Web API returns full metadata (title, artist,
-      // cover) but needs OAuth credentials. Only used when the server env has
-      // them; any failure falls through to the keyless path below.
-      if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
-        try {
-          const token = await getSpotifyToken();
-          const track = (await fetchJson(`https://api.spotify.com/v1/tracks/${trackId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })) as {
-            name?: string;
-            artists?: { name?: string }[];
-            album?: { images?: { url?: string }[]; name?: string };
-            external_urls?: { spotify?: string };
-          };
-          const title = (track.name ?? "").trim();
-          if (!title) throw new Error("empty-track");
-          return ok(
-            track.external_urls?.spotify ?? canonicalUrl,
-            platform,
-            title,
-            track.artists?.[0]?.name,
-            track.album?.images?.[0]?.url
-          );
-        } catch {
-          // fall through to the keyless oEmbed path rather than failing
-        }
-      }
-
-      // Keyless fallback: Spotify's public oEmbed endpoint returns title +
-      // cover with no credentials. Artist is not included, so when it is
-      // missing we parse it from the public track page's og:description
-      // ("Artist · Album · Song · Year").
+      // Keyless: Spotify's public oEmbed endpoint returns title + cover with
+      // no credentials. Artist is not included, so for tracks we parse it
+      // from the public page's og:description ("Artist · Album · Song · Year").
       const data = await fetchJsonRetry(
         `https://open.spotify.com/oembed?url=${encodeURIComponent(canonicalUrl)}&format=json`
       );
-      const artist = (data.author_name as string | undefined) ?? (await spotifyArtistFromPage(trackId));
+      const artist =
+        contentType === "track"
+          ? (data.author_name as string | undefined) ?? (await spotifyArtistFromPage(contentId))
+          : (data.author_name as string | undefined) ?? null;
       return ok(canonicalUrl, platform, data.title, artist, data.thumbnail_url);
     }
 

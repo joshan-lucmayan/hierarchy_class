@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMyProfile } from "@/lib/useMyProfile";
-import type { Rank } from "@/lib/rankEngine";
+import { RANK_ORDER, type Rank } from "@/lib/rankEngine";
 
 const PAGE_SIZE = 20;
 
@@ -86,7 +86,9 @@ export function useHistory(studentId?: string | null) {
   const [hasMore, setHasMore] = useState(true);
   const loadingMore = useRef(false);
   const offsetRef = useRef(0);
-  const cancelledRef = useRef(false);
+  /** Bumped on every (re)load - invalidates in-flight fetches from an older
+   *  generation (e.g. after the viewed student changed). */
+  const generationRef = useRef(0);
 
   const supabaseConfigured =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -99,6 +101,9 @@ export function useHistory(studentId?: string | null) {
     setError(null);
   }, [targetId]);
 
+  // Enrichment query must never be built with an empty `in()` - that is a
+  // guaranteed bad request. (gradeTypes empty = no candidates anyway.)
+
   // Primary fetch: rank_history_log + batch enrichment.
   const fetchPage = useCallback(
     async (offset: number, append: boolean) => {
@@ -106,6 +111,11 @@ export function useHistory(studentId?: string | null) {
         setLoading(false);
         return;
       }
+
+      // Snapshot the generation: when targetId changes, the reset effect
+      // bumps the ref so any in-flight fetch knows its results are stale -
+      // including the loading flags, which it must still release.
+      const generation = ++generationRef.current;
 
       if (append) loadingMore.current = true;
       else setLoading(true);
@@ -121,7 +131,7 @@ export function useHistory(studentId?: string | null) {
         .order("id", { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1);
 
-      if (cancelledRef.current) return;
+      if (generation !== generationRef.current) return;
 
       if (fetchErr) {
         setError("Couldn't load your history.");
@@ -147,6 +157,8 @@ export function useHistory(studentId?: string | null) {
       //    (student_id, category, points_earned, points_possible, created_at
       //     within a 5-second window).
       const gradeMap = await fetchGradeEnrichment(supabase, targetId, historyRows);
+
+      if (generation !== generationRef.current) return;
 
       // 3) Merge into HistoryEvent objects.
       const enriched: HistoryEvent[] = historyRows.map((row) => ({
@@ -181,13 +193,10 @@ export function useHistory(studentId?: string | null) {
     [supabaseConfigured, targetId],
   );
 
-  // Initial load.
+  // Load. Re-running fetchPage bumps generationRef, which invalidates any
+  // in-flight fetch from the previous generation (previous targetId).
   useEffect(() => {
-    cancelledRef.current = false;
     fetchPage(0, false);
-    return () => {
-      cancelledRef.current = true;
-    };
   }, [fetchPage]);
 
   const loadMore = useCallback(() => {
@@ -242,7 +251,9 @@ async function fetchGradeEnrichment(
     categoryToGradeType[r.category!]?.forEach((t) => gradeTypes.add(t));
   });
 
-  // Fetch grade_entries in the time window for this student.
+  // Fetch grade_entries in the time window for this student. An empty `in()`
+  // list is a guaranteed bad request - bail out instead.
+  if (gradeTypes.size === 0) return result;
   const { data: gradeRows } = await supabase
     .from("grade_entries")
     .select(

@@ -35,50 +35,67 @@ export function useMyProfile(): UseMyProfileResult {
     let cancelled = false;
     const supabase = createClient();
 
-    supabase.auth.getUser().then(async ({ data: userData, error: userError }) => {
-      if (cancelled) return;
-      if (userError || !userData.user) {
-        setError("Not signed in.");
+    supabase.auth
+      .getUser()
+      .then(async ({ data: userData, error: userError }) => {
+        if (cancelled) return;
+        if (userError || !userData.user) {
+          setError("Not signed in.");
+          setLoading(false);
+          return;
+        }
+
+        const { data, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", userData.user.id)
+          .single();
+
+        if (cancelled) return;
+        if (profileError || !data) {
+          setError("Couldn't load your profile.");
+          setProfile(null);
+        } else {
+          setProfile(data as ProfileRow);
+          setError(null);
+        }
         setLoading(false);
-        return;
-      }
-
-      const { data, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userData.user.id)
-        .single();
-
-      if (cancelled) return;
-      if (profileError || !data) {
+      })
+      .catch(() => {
+        if (cancelled) return;
         setError("Couldn't load your profile.");
-        setProfile(null);
-      } else {
-        setProfile(data as ProfileRow);
-        setError(null);
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
 
-    // Realtime: when this user's profile changes anywhere (their own edit, or
-    // an admin updating their academic info/avatar), every open page that
-    // renders the profile refreshes - nav bars, profile views, the monitor.
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseConfigured, refetchTick]);
+
+  // Realtime: when this user's profile changes anywhere (their own edit, or
+  // an admin updating their academic info/avatar), every open page that
+  // renders the profile refreshes - nav bars, profile views, the monitor.
+  // Filtered to this profile's row only (not the whole table). The channel
+  // name must be unique PER MOUNT - this hook is used by several providers at
+  // once, and a shared name would make the second subscriber attach its
+  // listener to an already-subscribed channel (which throws).
+  const profileId = profile?.id;
+  useEffect(() => {
+    if (!supabaseConfigured || !profileId) return;
+    const supabase = createClient();
     const channel = supabase
       .channel(`my-profile-${randomId()}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "profiles" },
-        () => {
-          if (!cancelled) setRefetchTick((t) => t + 1);
-        }
+        { event: "*", schema: "public", table: "profiles", filter: `id=eq.${profileId}` },
+        () => setRefetchTick((t) => t + 1)
       )
       .subscribe();
 
     return () => {
-      cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [supabaseConfigured, refetchTick]);
+  }, [supabaseConfigured, profileId]);
 
   const refetch = useCallback(() => setRefetchTick((t) => t + 1), []);
 
@@ -126,7 +143,16 @@ export function useMyProfile(): UseMyProfileResult {
       const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
       const avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
 
-      await (supabase.from("profiles") as any).update({ avatar_url: avatarUrl }).eq("id", profile.id);
+      // If the DB update fails, keep the old object: the profile still points
+      // at it, so removing it would break the avatar image.
+      const { error: updateError } = await (supabase
+        .from("profiles") as any)
+        .update({ avatar_url: avatarUrl })
+        .eq("id", profile.id);
+      if (updateError) {
+        setError("Couldn't save your profile picture.");
+        return;
+      }
 
       // Remove the superseded image so no orphaned objects accumulate.
       if (prevPath && prevPath !== path) {

@@ -242,9 +242,6 @@ export function resolveConfig(partial?: Partial<RankConfig>): RankConfig {
   for (const rank of RANK_ORDER.filter((r) => r !== "EX")) {
     const tier = cfg.tiers.find((t) => t.rank === rank);
     if (!tier || !(tier.n > 0)) throw new Error(`rankEngine: missing/invalid tier for rank "${rank}"`);
-    if (!cfg.seasonResetMap[rank] && rank !== "D") {
-      throw new Error(`rankEngine: missing season reset for rank "${rank}"`);
-    }
   }
   for (const rank of RANK_ORDER) {
     if (!cfg.seasonResetMap[rank]) throw new Error(`rankEngine: missing season reset for rank "${rank}"`);
@@ -755,7 +752,9 @@ export interface EndSeasonMeta {
  */
 export function endSeason(state: StudentRankState, meta: EndSeasonMeta, cfg: RankConfig): { state: StudentRankState; log: SeasonHistoryLog } {
   const peak = state.peak_rank_this_season;
-  const resetTo = cfg.seasonResetMap[state.current_rank];
+  // Unknown/corrupt current_rank reseeds to D rather than silently writing
+  // `undefined` into the rank field.
+  const resetTo = cfg.seasonResetMap[state.current_rank] ?? "D";
 
   const next: StudentRankState = { ...state };
   if (rankIndex(peak) > rankIndex(state.highest_rank_ever)) {
@@ -765,6 +764,10 @@ export function endSeason(state: StudentRankState, meta: EndSeasonMeta, cfg: Ran
   next.current_rank = resetTo;
   next.current_bar = 0;
   next.peak_rank_this_season = resetTo;
+  // The EX score belongs to the season that just ended - it must not carry
+  // into a season where the student is back at C/D (getDualRankDisplay always
+  // exposes it, so a stale total would render next to the new rank).
+  next.ex_score = resetTo === "EX" ? state.ex_score : 0;
   next.season_id = meta.season_id;
 
   const log: SeasonHistoryLog = {

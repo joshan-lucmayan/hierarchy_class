@@ -196,6 +196,7 @@ export async function signUpWithProfile(input: SignUpInput): Promise<SignUpResul
 
   if (signUpError || !authData.user) {
     const message = signUpError?.message || "Signup failed";
+    console.error("[signup] supabase signUp failed:", message);
     // The database unique indexes reject duplicate school IDs inside the
     // trigger; surface that as a friendly field error.
     if (/duplicate key|already registered/i.test(message)) {
@@ -206,7 +207,11 @@ export async function signUpWithProfile(input: SignUpInput): Promise<SignUpResul
         fieldErrors: { [dupField]: "Already registered." } as SignupErrors,
       };
     }
-    return { success: false, error: message };
+    if (/already registered|user already/i.test(message)) {
+      return { success: false, error: "That email already has an account. Try signing in instead." };
+    }
+    // Never return provider-internal error strings to the client.
+    return { success: false, error: "Signup failed. Please check your details and try again." };
   }
 
   return { success: true, userId: authData.user.id };

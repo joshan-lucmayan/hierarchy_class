@@ -274,13 +274,9 @@ export async function getCheckoutSessionStatus(
  */
 export function generateReferenceNumber(): string {
   const timestamp = Date.now().toString(36);
-  // Base-36 fractions can come out shorter than expected (e.g. 0.5 -> "i"),
-  // so normalize the random segment to exactly 6 characters.
-  const random = Math.random()
-    .toString(36)
-    .substring(2, 12)
-    .padEnd(6, '0')
-    .slice(0, 6);
+  // Cryptographically random segment (used in the PayMongo Idempotency-Key,
+  // so it must never collide) - 3 bytes = exactly 6 hex characters.
+  const random = crypto.randomBytes(3).toString("hex");
   return `HC-TXN-${timestamp}-${random}`.toUpperCase();
 }
 

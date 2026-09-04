@@ -6,10 +6,11 @@
 //
 // Configure:
 //   RESEND_API_KEY=re_...                    (https://resend.com/api-keys)
-//   FEEDBACK_EMAIL=you@example.com           (where feedback is delivered)
 //   FEEDBACK_FROM_EMAIL=Hierarchy Class <noreply@yourdomain.com>
 //                                            (optional; falls back to
 //                                             Resend's onboarding sandbox)
+// Feedback delivery address is hardcoded as FEEDBACK_INBOX in
+// app/api/feedback/route.ts - not configurable via env.
 
 const DEFAULT_FROM = "Hierarchy Class <onboarding@resend.dev>";
 

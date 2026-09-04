@@ -442,19 +442,28 @@ export async function resolveDeletionRequest(requestId: string, decision: Decisi
     return { error: "Permanent deletion isn't configured on this server yet." };
   }
 
-  // Collect storage paths BEFORE the auth-user delete (after it, the DB rows
-  // that point at the files are gone).
-  const paths = await collectStoragePaths(supabase, target);
-
-  // Record the admin's approval (intent) before the irreversible step.
-  const { error: approveError } = await (supabase.from("account_requests") as any)
+  // Atomically claim the pending request: only ONE concurrent admin can flip
+  // it out of 'pending'. The loser sees zero updated rows and stops here -
+  // previously a check-then-act race let a second approval run deleteUser
+  // (which fails on the already-deleted user) and revert the request to
+  // 'pending' for an account that no longer exists.
+  const { data: claimed, error: claimError } = await (supabase.from("account_requests") as any)
     .update({
       status: "approved",
       reviewed_by: caller.id,
       reviewed_at: new Date().toISOString(),
     })
-    .eq("id", req.id);
-  if (approveError) return { error: "Couldn't record the approval." };
+    .eq("id", req.id)
+    .eq("status", "pending")
+    .select("id");
+  if (claimError) return { error: "Couldn't record the approval." };
+  if (!claimed || claimed.length === 0) {
+    return { error: "This request was already reviewed by another admin." };
+  }
+
+  // Collect storage paths BEFORE the auth-user delete (after it, the DB rows
+  // that point at the files are gone).
+  const paths = await collectStoragePaths(supabase, target);
 
   // Delete the auth user. auth.users -> profiles ON DELETE CASCADE removes the
   // profile; migration 058's SET NULL FKs keep school records anonymized.

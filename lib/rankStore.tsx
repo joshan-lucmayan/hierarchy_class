@@ -6,7 +6,7 @@ import { useMyProfile } from "@/lib/useMyProfile";
 import { randomId } from "@/lib/randomId";
 import { RANK_ORDER, type Rank } from "@/lib/rankEngine";
 
-const RANKS: Rank[] = ["D", "C", "B", "A", "S", "S+", "S++", "EX"];
+const RANKS: readonly string[] = RANK_ORDER;
 
 export interface StudentRankInfo {
   student_id: string;
@@ -86,6 +86,12 @@ export function RankProvider({ children }: { children: React.ReactNode }) {
           );
           setError(null);
         }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError("Couldn't load ranks.");
+        setRanks([]);
         setLoading(false);
       });
     return () => {

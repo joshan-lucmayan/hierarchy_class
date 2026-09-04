@@ -38,6 +38,28 @@ export const ROLE_PREFIXES: Record<string, Role> = {
   "/admin": "admin",
 };
 
+/** Boundary-safe prefix test: "/student" matches "/student" and
+ *  "/student/..." but NOT "/student-council" or "/administrator". */
+function matchesPrefix(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+/**
+ * The API paths a lifecycle-limited account may still call. Everything else
+ * under /api requires a fully active account - individual API routes still
+ * authenticate every request themselves (middleware never skips an API route
+ * on their behalf).
+ */
+const LIFECYCLE_ALLOWED_API = [
+  "/api/bridge/", // account lifecycle operations (deactivate/reactivate/restrict/appeals/signup)
+  "/api/auth", // auth callback/session helpers
+  "/api/version", // public version probe (service worker update check)
+];
+
+function apiAllowedForLimitedAccounts(pathname: string): boolean {
+  return LIFECYCLE_ALLOWED_API.some((prefix) => pathname.startsWith(prefix));
+}
+
 export function homePathForRole(role: Role): string {
   return `/${role}/home`;
 }
@@ -53,13 +75,16 @@ export function homePathForRole(role: Role): string {
  *  4. Unverified email -> confirmation required, no application access.
  *  5. Role prefix vs profiles.role -> wrong role bounces to own home.
  *  6. Signed-in users on /login or /signup -> their own home.
+ *
+ * /api is NOT blanket-allowed for lifecycle-limited accounts (restricted,
+ * deactivated, no-profile, unverified) - only the explicit prefixes in
+ * LIFECYCLE_ALLOWED_API pass. Every API route must authenticate its own
+ * callers; the middleware only constrains the account lifecycle on top.
  */
 export function decideAuthRoute(ctx: AuthContext): AuthDecision {
   const { pathname, isAuthenticated, emailConfirmed, profile } = ctx;
 
-  const matchedPrefix = Object.keys(ROLE_PREFIXES).find((prefix) =>
-    pathname.startsWith(prefix)
-  );
+  const matchedPrefix = Object.keys(ROLE_PREFIXES).find((prefix) => matchesPrefix(pathname, prefix));
 
   // 1) Unauthenticated.
   if (!isAuthenticated) {
@@ -75,7 +100,7 @@ export function decideAuthRoute(ctx: AuthContext): AuthDecision {
   //     the appeal flow regardless of other lifecycle flags.
   if (profile?.restricted_at) {
     const allowed =
-      pathname.startsWith("/api/") ||
+      apiAllowedForLimitedAccounts(pathname) ||
       pathname === "/auth/restricted" ||
       pathname === "/auth/callback" ||
       pathname === "/logout" ||
@@ -87,9 +112,10 @@ export function decideAuthRoute(ctx: AuthContext): AuthDecision {
   // 2) Deactivated accounts: only the minimal lifecycle flow is reachable.
   if (profile?.deactivated_at) {
     const allowed =
-      pathname.startsWith("/api/") ||
+      apiAllowedForLimitedAccounts(pathname) ||
       pathname === "/auth/reactivate" ||
       pathname === "/auth/callback" ||
+      pathname === "/logout" ||
       pathname === "/forgot-password" ||
       pathname === "/reset-password";
     return allowed ? { type: "next" } : { type: "redirect", to: "/auth/reactivate" };
@@ -97,7 +123,7 @@ export function decideAuthRoute(ctx: AuthContext): AuthDecision {
 
   // 3) Authenticated but no profile row - a broken/partial account.
   if (!profile) {
-    if (pathname.startsWith("/api/") || pathname === "/auth/incomplete") {
+    if (apiAllowedForLimitedAccounts(pathname) || pathname === "/auth/incomplete") {
       return { type: "next" };
     }
     return { type: "redirect", to: "/auth/incomplete" };
@@ -106,7 +132,7 @@ export function decideAuthRoute(ctx: AuthContext): AuthDecision {
   // 4) Email must be confirmed for application access. Login/signup stay
   //    reachable so the user can resend the confirmation or sign out.
   if (!emailConfirmed) {
-    if (pathname.startsWith("/api/") || pathname === "/auth/callback") {
+    if (apiAllowedForLimitedAccounts(pathname) || pathname === "/auth/callback") {
       return { type: "next" };
     }
     if (pathname === "/login" || pathname === "/signup") {

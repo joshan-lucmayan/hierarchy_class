@@ -372,12 +372,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         p_read: true,
       });
 
-      const { data } = await supabase
+      const { data, error: messagesError } = await supabase
         .from("chat_messages")
         .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true })
         .limit(200);
+
+      // A transient failure must not wipe the open thread's history - keep
+      // whatever messages are already in state and just stop the spinner.
+      if (messagesError) {
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversationId ? { ...c, messagesLoading: false } : c))
+        );
+        return;
+      }
 
       // Find my history cutoff: if I deleted this thread, only messages newer
       // than that count - a deleted thread behaves like a fresh one for me.

@@ -10,7 +10,7 @@
 > as the archive's reference and for the web PWA half (PWA manifest, service worker, offline
 > model, caching policy all still serve the website).
 
-> **Package:** `com.hierarchyclass.app` - **TWA build:** `1.15.90` (`versionCode 11590`, archived) - **Standalone build:** `1.27.115` (`versionCode 127115`) - **Web:** `1.27.115` (`package.json:version`)
+> **Package:** `com.hierarchyclass.app` - **TWA build:** `1.15.90` (`versionCode 11590`, archived) - **Standalone build:** `1.27.116` (`versionCode 127116`) - **Web:** `1.27.116` (`package.json:version`)
 > **PWA:** `public/manifest.json` + `public/sw.js` (vanilla, no Workbox) → **TWA via Bubblewrap** → APK/AAB
 
 This document is the single source for Android delivery, offline architecture, and PWA security. It reflects the actual implementation in `app/layout.tsx`, `public/manifest.json`, `public/sw.js`, `middleware.ts`, `android/twa-manifest.json`, and `public/.well-known/assetlinks.json`.
@@ -77,7 +77,7 @@ Next.js 14.2.5 App Router (React 18, Tailwind)
 ```
 Teacher/Admin action (enter score, save weights, submit)
   → Server RPC (e.g. approve_grade_submission, confirm_and_apply_score_entry, saveCourseRankWeights)
-  → lib/rankEngine.ts validation + lib/paymentGuard etc. + RLS + paymongo webhook
+  → lib/rankEngine.ts validation + migration guard tests + RLS + paymongo webhook
   → Postgres authoritative update
   → Supabase Realtime broadcast
   → Student UI (RankProvider, WeeklyProgress, Leaderboard) syncs
@@ -100,7 +100,7 @@ Teacher/Admin action (enter score, save weights, submit)
 - Realtime: chat, rank, grade, notifications
 - Sending messages: `components/chat/MessengerView.tsx:158-164` guards `useOnline()` → `actionError: "You’re offline - connect to send…"` + `OfflineBanner`, draft preserved in `draft` state
 - Teacher grade submission: `app/teacher/classroom/page.tsx:177-205` `useOnline()` guard → `setSubmitError: "You’re offline - connect to submit grades. Your scores are still in the fields…"`, `handleSaveWeights` same, inputs preserved in `scoreInputs`/`maxInputs` (not cleared)
-- Payments: `components/student/FlorinPurchaseModal.tsx:92-128` `useOnline` guard → `setError: "You’re offline - connect to purchase…"`, `fetch /api/payments/*` bypassed in SW, packages fetch shows “Failed to load” + banner, no checkout redirect via `window.location.href` when offline
+- Payments: **online top-ups are currently disabled** (`PAYMENTS_ENABLED = false` in `lib/paymentsConfig.ts`) - `components/student/FlorinPurchaseModal.tsx` shows a static "Coming soon" state with the balance and no purchase path, and `/api/payments/*` (except the webhook) refuse with 503
 - Habits `toggleDay`/`recordEntry` (Supabase) will error via store (existing `error` state) - not explicitly bannered to avoid blanket noise; failure is visible in `actionError`
 - Account/security: `useAccountRequests`, `deactivateAccount` etc. remain network
 
@@ -133,7 +133,7 @@ Middleware `matcher` excludes `sw.js`, `manifest.json`, `offline` (and should al
 
 **App name:** `Hierarchy Class` (`android/twa-manifest.json:4` `name`, `launcherName`)
 
-**Version:** `package.json:version` (`1.27.115`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). Version 1.27.115 (versionCode 127115).
+**Version:** `package.json:version` (`1.27.116`) is the web release version. The Android shell tracks it only at native-build time: `android/twa-manifest.json` `appVersion:1.15.90` `appVersionCode:11590` (`major*10000 + minor*100 + patch`). Version 1.27.116 (versionCode 127116).
 
 **Host:** `www.hierarchyclass.com` - **PRODUCTION** (Vercel). Set in `android/twa-manifest.json` `host`, `iconUrl`, `maskableIconUrl`, `monochromeIconUrl`, `webManifestUrl`, `fullScopeUrl`. The TWA scope is restricted to this host only.
 
@@ -283,7 +283,7 @@ Both fingerprints are real and re-verified against the actual keystores on 2026-
 
 ### Automated
 
-- `npx tsc --noEmit` (TS), `npm run lint` (ESLint), `npm run build` (Next 14, 54 routes), `npm test` (134 tests: `rankEngine.test.ts`, `habitLogic.test.ts`, `signupValidation.test.ts`, `authz.test.ts`, `migrationGuard.test.ts`, `paymongo.test.ts`, `paymentGuard.test.ts`, `pwaGuard.test.ts`)
+- `npx tsc --noEmit` (TS), `npm run lint` (ESLint), `npm run build` (Next 14), `npm test` (165 tests: `rankEngine.test.ts`, `habitLogic.test.ts`, `signupValidation.test.ts`, `authz.test.ts`, `migrationGuard.test.ts`, `paymongo.test.ts`, `paymentGuard.test.ts`, `pwaGuard.test.ts`, `appUpdate.test.ts`, `platform.test.ts`, `apkRelease.test.ts`)
 - PWA validation: `scripts/validate-pwa.mjs` (manifest required fields, icons exist, sw bypass rules, no unsafe authenticated caching)
 - `lib/pwaGuard.test.ts` (if added): manifest fields, icon files exist, SW never caches Supabase/API
 - `lib/useOnline` hook unit not needed (thin wrapper).
@@ -305,11 +305,11 @@ No physical device claimed. Local browser verification at 320/360/375/390/412 po
 7. Login + signup: school selector must show "CSA - College of Saint Amateil"; login lands on the role home.
 8. Service worker: DevTools remote debugging (`chrome://inspect`) → Application → Service Workers shows `sw.js` activated+running.
 9. Update system: after the NEXT deployment, keep the app open ~15 min or background/foreground it → "New version available" appears above the bottom nav → **Update** reloads exactly once into the new version; **Later** hides it until the following deploy.
-10. Regression: chat send, grade entry, offline airplane mode → `/offline`, payments sandbox flow.
+10. Regression: chat send, grade entry, offline airplane mode → `/offline` (payments top-up is disabled - the modal shows "Coming soon").
 
 Physical Android not claimed in this env. QA checklist (reproducible on HTTPS staging):
 
-Android 320-412 portrait/landscape: install banner (`beforeinstallprompt` → `InstallPrompt` banner) → tap Install → home screen icon (maskable 512 with safe area) → standalone (no URL bar when `assetlinks` verified, else Custom Tabs) → safe-area insets (`AppShell` bottom calc, `BottomNav` `env(safe-area)`, `Modal` `max(1rem,env)`) → BottomNav scroll → keyboard (chat `inputMode` etc.) → login (Supabase) → student/teacher/admin nav → chat send → classroom grade enter/submit → rank view (Leaderboard `live`) → `OfflineBanner` on airplane → `/offline` → reconnect → update banner → Play billing not verified live (GCash redirect requires Custom Tabs external browser; `FlorinPurchaseModal` uses `window.location.href` → in TWA should open Custom Tab and return via `window.location.href` - needs physical device).
+Android 320-412 portrait/landscape: install banner (`beforeinstallprompt` → `InstallPrompt` banner) → tap Install → home screen icon (maskable 512 with safe area) → standalone (no URL bar when `assetlinks` verified, else Custom Tabs) → safe-area insets (`AppShell` bottom calc, `BottomNav` `env(safe-area)`, `Modal` `max(1rem,env)`) → BottomNav scroll → keyboard (chat `inputMode` etc.) → login (Supabase) → student/teacher/admin nav → chat send → classroom grade enter/submit → rank view (Leaderboard `live`) → `OfflineBanner` on airplane → `/offline` → reconnect → update banner.
 
 Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, admin dashboard `auto-rows-[auto] md:auto-rows-[15rem]`.
 
@@ -320,7 +320,7 @@ Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, ad
 - ~~**Middleware `assetlinks.json` exclusion missing `.well-known`**~~ **FIXED**: `middleware.ts:104` matcher now includes `\.well-known` in the negative lookahead - verified `/.well-known/assetlinks.json`, `/manifest.json`, `/sw.js` are exempt from auth/role routing while `/student/*`, `/api/*` still match. No further middleware change needed.
 - ~~**Vercel deployment pending**~~ **RESOLVED (2026-08-26)**: production is now `https://www.hierarchyclass.com/` - `/`, `/manifest.json`, `/sw.js`, `/.well-known/assetlinks.json` (correct fingerprint), icons and `/api/version` all return 200. The apex `hierarchyclass.com` has NO DNS record; only the `www` host exists, which is why the TWA host is `www.hierarchyclass.com`.
 - **Physical device verification pending:** the new-domain APK was built and every automated check passes (host inside artifacts, signature ↔ assetlinks match), but the address-bar-free TWA experience must still be confirmed on a real Android phone (see Testing).
-- **Payment in TWA not physically verified:** `FlorinPurchaseModal:119` `window.location.href = checkout_url` → PayMongo hosted checkout (GCash). In TWA, external checkout should open Custom Tab (fallbackType `customtabs` in manifest) and return to `start_url`. Existing `paymentGuard.test.ts` + `paymongo.test.ts` pass, but live redirect on installed TWA needs device test.
+- **Payments in TWA (superseded while disabled):** when top-ups are re-enabled, `FlorinPurchaseModal` must open the external PayMongo checkout in a Custom Tab (fallbackType `customtabs` in the TWA manifest) and return to `start_url`; verify on a physical device with the PayMongo sandbox before going live (see [PAYMENTS.md](./PAYMENTS.md)).
 
 ---
 
@@ -339,10 +339,10 @@ Tablet 768/820: teacher workspace rail `overflow-x-auto lg:w-44 lg:flex-col`, ad
 | TWA APK | Android app wrapping the live site in Trusted Web Activity (no browser UI); fullscreen when Digital Asset Links verify; falls back to Custom Tabs otherwise | Sideload `app-release-signed.apk` now; later distribution |
 | Play Store AAB | `app-release-bundle.aab` uploaded to Google Play → optimized device-specific downloads; Play may re-sign (Play App Signing) | Play Console upload after enrollment |
 
-**A successful automated build ≠ successful physical device testing.** Nothing here proves on-device behavior: DAL verification (address bar removal), splash, safe areas, keyboard handling, GCash checkout return flow, push/notification delegation, or SW updates must be confirmed on a real Android phone over HTTPS.
+**A successful automated build ≠ successful physical device testing.** Nothing here proves on-device behavior: DAL verification (address bar removal), splash, safe areas, keyboard handling, push/notification delegation, or SW updates must be confirmed on a real Android phone over HTTPS.
 
 ---
 
 ## 10. References
 
-- `public/manifest.json`, `public/sw.js`, `public/icons/*`, `app/offline/page.tsx`, `components/pwa/*`, `lib/useOnline.ts`, `components/ui/OfflineBanner.tsx`, `app/teacher/classroom/page.tsx:177-205` (online guard), `components/chat/MessengerView.tsx:158-164`, `components/student/FlorinPurchaseModal.tsx:92-128`, `middleware.ts:102-105`, `android/twa-manifest.json`, `public/.well-known/assetlinks.json`, `android/README.md`
+- `public/manifest.json`, `public/sw.js`, `public/icons/*`, `app/offline/page.tsx`, `components/pwa/*`, `lib/useOnline.ts`, `components/ui/OfflineBanner.tsx`, `app/teacher/classroom/page.tsx` (online guard), `components/chat/MessengerView.tsx`, `components/student/FlorinPurchaseModal.tsx`, `lib/paymentsConfig.ts` (top-up switch), `middleware.ts`, `android/twa-manifest.json`, `public/.well-known/assetlinks.json`, `android/README.md`

@@ -4,7 +4,7 @@
 
 Hierarchy Class is a gamified academic-tracking platform for students, teachers, and school administrators. Real grades become tiered ranks (S++ → D), habits build streaks, and daily effort shows up in live progress — while grading data stays strictly controlled by teachers and admins.
 
-**Current version:** `1.27.115`
+**Current version:** `1.27.116`
 
 ---
 
@@ -31,9 +31,9 @@ Each admin account is scoped to exactly **one school**.
 - **Messaging** — one shared chat across roles with unread badges, archive, and blocking
 - **Habit tracker** — custom goals, streaks, pause/archive, and a contribution-style history calendar
 - **Library** — barcode ISBN lookup, borrow requests, receipts, and overdue fines
-- **Quiz engine, learning materials, and Florin** (in-app currency with GCash top-ups via PayMongo)
+- **Quiz engine, learning materials, and Florin** (in-app currency; GCash top-ups via PayMongo are **currently disabled** — the purchase UI shows a "Coming soon" state)
 - **Florin shop** — decorative backgrounds, profile cards, and avatar borders
-- **Student profile** — bio, hobbies, achievements, music, photos, and story archive
+- **Student profile** — bio, hobbies, achievements, music (paste any YouTube/Spotify/Apple Music/SoundCloud/Vimeo link), photos, and story archive
 - **Midnight & Rose themes**
 
 ## Tech stack

@@ -1,7 +1,8 @@
 # Admin Provisioning (Platform Owner)
 
 Administrator accounts are **never** created through public signup. The
-signup form, the server action, and the `handle_new_user()` database trigger
+signup form, the signup bridge (`lib/server/authOps.ts`), and the
+`handle_new_user()` database trigger
 all reject `role = admin` outright. Admins are provisioned by the platform
 owner/developer through one of the two controlled mechanisms below.
 
@@ -99,4 +100,4 @@ provisions another admin. There is no self-service "create admin" page.
 - **Close:** `UPDATE schools SET registration_enabled = false WHERE id = '<uuid>';`
   The school stays in the database (`active` untouched); it simply stops
   appearing in the signup selector, and new signups are rejected by the
-  server action and the trigger. Existing members keep working.
+  signup bridge and the trigger. Existing members keep working.

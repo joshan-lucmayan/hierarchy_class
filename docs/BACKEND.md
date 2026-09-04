@@ -7,8 +7,8 @@ of:
 1. **Supabase** (hosted Postgres + PostgREST + Realtime + Storage + Auth) -
    the source of truth for every feature: users, schools, programs, courses,
    grades, chat, habits, feed, library, materials, banners, stories.
-2. **Next.js server-side code** (`middleware.ts`, `app/actions/`, `app/api/`,
-   `lib/supabase/`) - session handling, role routing, signup, feedback email.
+2. **Next.js server-side code** (`middleware.ts`, `app/api/`, `app/auth/`,
+   `lib/server/`, `lib/supabase/`) - session handling, role routing, signup, feedback email.
 3. **The browser** talks to Supabase *directly* with the anon key; **RLS**
    scopes every query to the signed-in user's school and role. There is no
    backend tier between the client and the database for normal reads/writes.
@@ -43,11 +43,11 @@ of:
         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  Next.js server                                               │
-│   ├─ middleware.ts        session refresh + DB-truth role guard │
-│   ├─ app/actions/auth.ts  validated signup + resend confirm    │
-│   ├─ app/api/feedback     feedback -> Resend email             │
-│   ├─ app/auth/callback    OAuth/reset callback exchange       │
-│   └─ lib/supabase/auth.ts getServerProfile (profiles-based)     │
+│   ├─ middleware.ts          session refresh + DB-truth role guard │
+│   ├─ app/api/bridge/auth    validated signup + resend confirm │
+│   ├─ app/api/feedback       feedback -> Resend email           │
+│   ├─ app/auth/callback      OAuth/reset callback exchange       │
+│   └─ lib/supabase/auth.ts   getServerProfile (profiles-based)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -59,8 +59,8 @@ user can edit themselves (migration 059 removed every policy that read
 `user_metadata`). Policies resolve the caller's school/role through the
 SECURITY DEFINER helpers `my_school_id()` / `my_role()` or
 `EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() AND role = ... AND
-school_id = <row>.school_id)`. Middleware and server actions do the same:
-profile first (by `profiles.user_id`), then route/act.
+school_id = <row>.school_id)`. Middleware and the bridge server modules do
+the same: profile first (by `profiles.user_id`), then route/act.
 
 ---
 
@@ -103,9 +103,9 @@ EXISTS` guards) because there is no tracking table.
 | Path | Responsibility |
 |---|---|
 | `middleware.ts` | Runs on every request: refreshes the Supabase session cookie and enforces access from the `profiles` table (database truth) - email confirmation required, deactivated -> `/auth/reactivate`, restricted (suspicious account) -> `/auth/restricted` (appeal flow), missing profile -> `/auth/incomplete`, role prefix vs `profiles.role`. Bounces wrong-role users to their own home, logged-out users to `/login`. Skips all checks when `NEXT_PUBLIC_SUPABASE_*` env vars are absent (UI-only dev mode). |
-| `app/actions/auth.ts` | `signUpWithProfile(...)` server action - validates role (student/teacher only), school eligibility (`active` + `registration_enabled`), school-issued IDs, and password policy before calling `auth.signUp`; the `handle_new_user()` DB trigger re-validates and inserts the `profiles` row. Also `resendSignupConfirmation(...)`. |
-| `app/actions/account.ts` | Account lifecycle actions: `deactivateAccount` / `reactivateAccount` (self-service), `resolveDeletionRequest` (admin-approved deletion), and the v1.7.66 restriction set - `adminRestrictUser` / `adminUnrestrictUser` (same-school admin, suspicious accounts), `submitAppeal` / `resolveAppeal` (`account_appeals`). The old `adminSetUserDeactivation` (school-admin deactivate) was **removed** - school admins cannot deactivate other users. |
-| `app/api/feedback/route.ts` | POST - validates the session, re-checks attachment paths (own school/user folder), stores the report in `feedback_reports` (RLS-scoped), signs the attachments with the server-only client, and emails the developer via Resend. |
+| `app/api/bridge/auth/*` + `lib/server/authOps.ts` | Validated signup (`signup`) - role (student/teacher only), school eligibility (`active` + `registration_enabled`), school-issued IDs, and password policy before calling `auth.signUp`; the `handle_new_user()` DB trigger re-validates and inserts the `profiles` row. Also `resend-confirmation`. |
+| `app/api/bridge/account/*` + `lib/server/accountOps.ts` | Account lifecycle bridge: `deactivate` / `reactivate` (self-service), `deletion-requests/resolve` (admin-approved deletion), and the v1.7.66 restriction set - `restrict` / `unrestrict` (same-school admin, suspicious accounts), `appeals` / `appeals/resolve` (`account_appeals`). The old `adminSetUserDeactivation` (school-admin deactivate) was **removed** - school admins cannot deactivate other users. |
+| `app/api/feedback/route.ts` | POST - requires a signed-in user, re-checks attachment paths (own school/user folder), stores the report in `feedback_reports` (RLS-scoped), signs the attachments with the server-only client, and emails the developer's hardcoded inbox (`FEEDBACK_INBOX` in the route) via Resend. |
 | `app/auth/callback/route.ts` | GET - exchanges auth/recovery codes for a session, routes password-reset flows. |
 | `lib/supabase/auth.ts` | `getServerProfile(cookieStore)` - server-side read of the caller's profile role/school (database truth), used by the landing page. |
 | `lib/supabase/client.ts` | The single browser client factory (`createBrowserClient`). |

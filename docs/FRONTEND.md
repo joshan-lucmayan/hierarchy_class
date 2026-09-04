@@ -227,7 +227,7 @@ Why this design?
   handler, `ThemePicker`, `FeedbackForm`, and `APP_VERSION` are unchanged.
   A **Restricted accounts** section (v1.7.66) lists restricted users and open
   appeals (`useAppeals`) with gold Restore + outline Deny `Button`s wired to
-  the `resolveAppeal` server action - restoring an account clears
+  the `resolveAppeal` bridge implementation - restoring an account clears
   `restricted_at`, denying leaves it restricted and the appeal resolved.
 - **Admin Users - the school directory (1.4.25, v1.7.66).**
   `app/admin/users/page.tsx` is the directory surface: a header band with a
@@ -242,7 +242,7 @@ Why this design?
   for students - replacing the old static `bg-gold/20 text-gold` pill), and
   `RankBadge` for students. **The Deactivate button/action was removed in
   v1.7.66** - school admins cannot deactivate/suspend/ban accounts directly
-  (the `adminSetUserDeactivation` server action is gone); instead the row
+  (the `adminSetUserDeactivation` action is gone); instead the row
   offers **Restrict** (temporarily block a suspicious account, sets
   `profiles.restricted_at`, triggers the restriction email) / **Restore**
   (clears `restricted_at`), and deactivation requests flow through the
@@ -284,13 +284,13 @@ Why this design?
   `feedback` bucket before submit). The
   Account section keeps its warn-tone card (`CornerFrame tone="warn"`,
   replacing the old inline `border-warn-soft`). Deactivate account is now
-  **self-service and immediate** (server action `deactivateAccount` in
-  `app/actions/account.ts` sets `profiles.deactivated_at`, then signs out) - a
+  **self-service and immediate** (the deactivate bridge call in
+  `lib/server/accountOps.ts` sets `profiles.deactivated_at`, then signs out) - a
   confirm modal explains nothing is deleted and that reactivation is possible.
   Request account deletion opens a strong warning modal (permanent, needs
   admin approval) with a **Download My Data** link to `/api/export-account`
   (own-data JSON export, RLS-gated) before submitting the `account_requests`
-  row. Admins approve/deny deletion through the server action
+  row. Admins approve/deny deletion through the bridge implementation
   `resolveDeletionRequest` (role + same-school verified server-side), with a
   destructive confirm dialog on approve. Deactivated users are redirected by
   `middleware.ts` to `/auth/reactivate` and can only reach that minimal flow
@@ -830,7 +830,8 @@ flat token dashboard look, but built on the same tokens and fonts):
 
   **Signup** (`components/auth/SignupForm.tsx`) supports only **Student**
   and **Teacher** - there is no administrator option in the UI, in the
-  server action, or in the `handle_new_user()` database trigger. Each role
+  signup bridge (`lib/server/authOps.ts`), or in the `handle_new_user()`
+  database trigger. Each role
   collects first/last name, optional middle name, and a **school-issued
   identifier** (Student ID / Faculty ID, unique within the school), plus
   email, password, and a school picked from the live `registration_enabled`
@@ -889,8 +890,9 @@ flat token dashboard look, but built on the same tokens and fonts):
    / SoundCloud / Vimeo URL, `POST /api/resolve-music` resolves
    title/artist/cover server-side (keyless oEmbed for YouTube/SoundCloud/
    Vimeo, keyless iTunes lookup for Apple Music, and keyless Spotify oEmbed
-   with an optional upgrade to the Spotify Web API when server-only env vars
-   are configured - no credentials reach the client, no SSRF, only
+   with the artist parsed from the public page when oEmbed omits it - Spotify
+   tracks, albums, playlists, artists, episodes and shows all resolve; free
+   and open, per-IP rate limited, no credentials anywhere, no SSRF, only
    whitelisted platform endpoints are fetched), and one **Post**
    action resolves and saves to `student_music` in a single step. Cards show
    the cover, title and artist and link out to the original track; the owner
@@ -984,10 +986,11 @@ flat token dashboard look, but built on the same tokens and fonts):
    map (`decorColorOf`, `profileCardOf`) so each user's decorations follow
     them across the app. The shop page has no balance of its own - the Florin
     pill in the header (next to the notification bell) shows the balance and
-    opens the **Buy Florin** top-up modal (`FlorinPurchaseModal`): packages
-    load from `/api/payments/packages`, and selecting one creates a PayMongo
-    GCash checkout server-side and redirects to it - the webhook completes
-    the purchase (see [PAYMENTS.md](./PAYMENTS.md)); the profile pencil (on
+    opens the **Buy Florin** top-up modal (`FlorinPurchaseModal`). **Online
+    top-ups are currently disabled** (`PAYMENTS_ENABLED = false` in
+    `lib/paymentsConfig.ts`): the modal shows a "Coming soon" state with the
+    balance and no purchase path, and the payment APIs respond 503 (see
+    [PAYMENTS.md](./PAYMENTS.md)); the profile pencil (on
     the avatar) opens the photo/name editor.
 8. **Academic info (admin)** - Admin -> Students -> Academic info picks
    education level -> program -> year/level (or **None** to clear); saving
@@ -1052,7 +1055,8 @@ flat token dashboard look, but built on the same tokens and fonts):
 (`/teacher/settings`) each expose:
 
 - **Deactivate Account** - sets `profiles.deactivated_at` via the
-  `deactivateAccount` server action, then signs the user out and redirects to
+  deactivate bridge call (`lib/server/accountOps.ts` through
+  `/api/bridge/account/deactivate`), then signs the user out and redirects to
   `/login?deactivated=1`. Nothing is deleted; the user can reactivate by
   logging back in.
 - **Request Account Deletion** - opens a warning modal explaining the
@@ -1086,8 +1090,8 @@ role home
 
 - `middleware.ts` checks `profiles.deactivated_at` on every request. If
   set, the user is redirected to `/auth/reactivate` regardless of which
-  page they tried to reach (except `/api/`, `/auth/callback`,
-  `/forgot-password`, `/reset-password`).
+  page they tried to reach (except the lifecycle API allowlist,
+  `/auth/callback`, `/forgot-password`, `/reset-password`).
 - The `/auth/reactivate` page shows a "Welcome back" message with two
   buttons: **Reactivate Account** (clears `deactivated_at`, creates a
   "Welcome back!" notification, redirects to role home) or **Stay

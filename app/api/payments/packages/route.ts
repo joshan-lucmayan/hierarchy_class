@@ -12,11 +12,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/serviceClient';
 import { getServerProfile } from '@/lib/supabase/auth';
+import { PAYMENTS_ENABLED, PAYMENTS_DISABLED_MESSAGE } from '@/lib/paymentsConfig';
 
 // Auth-aware per-request route: never statically rendered.
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  // Payments are temporarily disabled - no catalog while the switch is off.
+  if (!PAYMENTS_ENABLED) {
+    return NextResponse.json(
+      { error: PAYMENTS_DISABLED_MESSAGE },
+      { status: 503 }
+    );
+  }
+
   try {
     // Require an authenticated user before exposing the catalog
     const profile = await getServerProfile(request.cookies);

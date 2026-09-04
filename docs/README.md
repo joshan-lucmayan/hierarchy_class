@@ -11,7 +11,7 @@ you're working on.
 | [BACKEND.md](./BACKEND.md) | The actual backend: how Supabase (Postgres/RLS/RPC/realtime/storage) + Next.js server code are wired together |
 | [API.md](./API.md) | HTTP/API surface: Next.js routes, Supabase RPCs, and realtime channels |
 | [SECURITY.md](./SECURITY.md) | Auth flow, middleware, RLS policies, and defense-in-depth |
-| [PAYMENTS.md](./PAYMENTS.md) | The GCash/PayMongo Florin top-up: architecture, webhook-authoritative completion, security model, and the sandbox E2E testing guide |
+| [PAYMENTS.md](./PAYMENTS.md) | The GCash/PayMongo Florin top-up: architecture, webhook-authoritative completion, security model, and the sandbox E2E testing guide. **Top-ups are currently disabled** - see the status note at the top of the document |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | The production setup: GitHub, Vercel, Supabase, Cloudflare, and Digital Plat Dev |
 | [FRONTEND.md](./FRONTEND.md) | Pages, components, data stores/hooks, theming, the public landing + auth design, and key user flows |
 | [ANDROID.md](./ANDROID.md) | Android delivery: PWA → TWA packaging (Bubblewrap), signing, Digital Asset Links, APK/AAB builds, and offline/PWA security model |

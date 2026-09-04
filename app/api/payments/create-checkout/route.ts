@@ -25,6 +25,7 @@ import {
   pesoToCentavos,
   getCheckoutSessionStatus,
 } from '@/lib/paymongo';
+import { PAYMENTS_ENABLED, PAYMENTS_DISABLED_MESSAGE } from '@/lib/paymentsConfig';
 import type { Database } from '@/types/supabase';
 
 // ============================================================================
@@ -134,6 +135,15 @@ async function fetchPendingTransaction(
 // ============================================================================
 
 export async function POST(request: NextRequest) {
+  // Payments are temporarily disabled - refuse before doing any work
+  // (lib/paymentsConfig.ts is the single switch).
+  if (!PAYMENTS_ENABLED) {
+    return NextResponse.json(
+      { error: PAYMENTS_DISABLED_MESSAGE },
+      { status: 503 }
+    );
+  }
+
   try {
     // 1. Authenticate the request
     const profile = await getServerProfile(request.cookies);

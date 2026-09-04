@@ -42,7 +42,8 @@ test("067: webhook dedup table has UNIQUE (provider, event_id)", () => {
 });
 
 test("067: clients get NO write path on payment_transactions", () => {
-  assert.ok(!M067.includes('CREATE POLICY') || true); // policies exist for reads only
+  // No INSERT/UPDATE/DELETE policies may exist on payment_transactions -
+  // every write goes through the service-role webhook/checkout routes only.
   const insertPolicies = M067.match(/CREATE POLICY "[^"]+" ON payment_transactions\s+FOR (INSERT|UPDATE|DELETE)/g);
   assert.equal(insertPolicies, null, "no INSERT/UPDATE/DELETE policies may exist on payment_transactions");
 });

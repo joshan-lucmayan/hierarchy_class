@@ -54,6 +54,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       if (cancelled) return;
       if (fetchError) {
         setError("Couldn't load notifications.");
+        setLoading(false);
         return;
       }
 

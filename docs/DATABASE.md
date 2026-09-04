@@ -291,7 +291,8 @@ keys. The two behaviors are independent:
 1. Student/teacher submits a deletion request via `account_requests` (type
    `'deletion'`).
 2. A same-school admin reviews the request in **Settings → Account requests**.
-3. On approval, the server action `resolveDeletionRequest` uses the
+3. On approval, the bridge module `resolveDeletionRequest`
+   (`lib/server/accountOps.ts`) atomically claims the pending request, then uses the
    **service-role client** (`lib/supabase/serviceClient.ts`) to call
    `auth.admin.deleteUser()`.
 4. `auth.users` → `profiles` cascades via `ON DELETE CASCADE` (migration 001),
@@ -343,7 +344,7 @@ longer blocks deletion.
 
 #### Storage cleanup
 
-After the DB cascade, the server action collects storage paths from the
+After the DB cascade, the bridge module collects storage paths from the
 (now-deleted or about-to-be-deleted) DB rows (avatar, certificates, stories,
 materials, feed images) and removes them from Supabase Storage using the
 service-role client. This is best-effort per bucket - failures are reported
